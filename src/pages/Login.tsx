@@ -1,100 +1,149 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React from 'react';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as yup from 'yup';
+import {
+  Container,
+  Paper,
+  Box,
+  TextField,
+  Button,
+  Typography,
+  Alert,
+  Link as MuiLink,
+} from '@mui/material';
+import { LogIn as LogInIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { LogIn } from 'lucide-react';
-import './Auth.css';
+import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
+import { LoadingSpinner } from '../components/core/LoadingSpinner';
 
-interface LoginProps {
-  setIsLoggedIn: (value: boolean) => void;
-}
+const schema = yup.object({
+  email: yup
+    .string()
+    .email('البريد الإلكتروني غير صحيح')
+    .required('البريد الإلكتروني مطلوب'),
+  password: yup
+    .string()
+    .min(6, 'كلمة المرور يجب أن تكون 6 أحرف على الأقل')
+    .required('كلمة المرور مطلوبة'),
+});
 
-export default function Login({ setIsLoggedIn }: LoginProps) {
+type LoginFormData = yup.InferType<typeof schema>;
+
+export default function Login() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
+  const location = useLocation();
+  const { login, isLoading } = useAuth();
+  const { showError, showSuccess } = useToast();
+  const [apiError, setApiError] = React.useState<string>('');
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormData>({
+    resolver: yupResolver(schema),
   });
-  const [error, setError] = useState('');
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-
-    if (!formData.email || !formData.password) {
-      setError('Please fill in all fields');
-      return;
-    }
-
-    // Mock authentication
-    if (formData.email && formData.password.length >= 6) {
-      localStorage.setItem('user', JSON.stringify({
-        email: formData.email,
-        name: formData.email.split('@')[0]
-      }));
-      setIsLoggedIn(true);
-      navigate('/');
-    } else {
-      setError('Invalid email or password');
+  const onSubmit = async (data: LoginFormData) => {
+    try {
+      setApiError('');
+      await login(data);
+      showSuccess(t('success') + ' - تم تسجيل الدخول بنجاح');
+      
+      // Redirect to the page user was trying to access, or home
+      const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/';
+      navigate(from, { replace: true });
+    } catch (error: any) {
+      const errorMessage = error?.message || 'حدث خطأ أثناء تسجيل الدخول';
+      setApiError(errorMessage);
+      showError(errorMessage);
     }
   };
+
+  if (isLoading) {
+    return <LoadingSpinner fullScreen message={t('loading')} />;
+  }
 
   return (
-    <div className="auth-page">
-      <div className="auth-container">
-        <div className="auth-header">
-          <LogIn size={40} color="#667eea" />
-          <h1>{t('login')}</h1>
-        </div>
-
-        {error && <div className="error-message">{error}</div>}
-
-        <form onSubmit={handleSubmit} className="auth-form">
-          <div className="form-group">
-            <label htmlFor="email">{t('email')}</label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
-              onChange={handleInputChange}
-              placeholder="your@email.com"
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="password">{t('password')}</label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              value={formData.password}
-              onChange={handleInputChange}
-              placeholder="••••••••"
-              required
-            />
-          </div>
-
-          <button type="submit" className="submit-button">
+    <Container maxWidth="sm" sx={{ py: 8 }}>
+      <Paper
+        elevation={3}
+        sx={{
+          p: 4,
+          borderRadius: 3,
+        }}
+      >
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            mb: 3,
+          }}
+        >
+          <LogInIcon size={48} color="#1e3a8a" style={{ marginBottom: '1rem' }} />
+          <Typography variant="h4" component="h1" gutterBottom>
             {t('login')}
-          </button>
-        </form>
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            سجل الدخول للوصول إلى قاعدة البيانات
+          </Typography>
+        </Box>
 
-        <div className="auth-footer">
-          <p>
-            {t('dont_have_account')} <Link to="/register">{t('register')}</Link>
-          </p>
-        </div>
-      </div>
-    </div>
+        {apiError && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {apiError}
+          </Alert>
+        )}
+
+        <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate>
+          <TextField
+            {...register('email')}
+            fullWidth
+            label={t('email')}
+            type="email"
+            error={!!errors.email}
+            helperText={errors.email?.message}
+            margin="normal"
+            autoComplete="email"
+            autoFocus
+          />
+
+          <TextField
+            {...register('password')}
+            fullWidth
+            label={t('password')}
+            type="password"
+            error={!!errors.password}
+            helperText={errors.password?.message}
+            margin="normal"
+            autoComplete="current-password"
+          />
+
+          <Button
+            type="submit"
+            fullWidth
+            variant="contained"
+            sx={{ mt: 3, mb: 2, py: 1.5 }}
+            disabled={isLoading}
+          >
+            {t('login')}
+          </Button>
+
+          <Box sx={{ textAlign: 'center' }}>
+            <Typography variant="body2">
+              {t('dont_have_account')}{' '}
+              <MuiLink component={Link} to="/register" underline="hover">
+                {t('register')}
+              </MuiLink>
+            </Typography>
+          </Box>
+        </Box>
+      </Paper>
+    </Container>
   );
 }

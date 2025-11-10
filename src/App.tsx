@@ -1,88 +1,137 @@
-import React from 'react';
+import { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { AuthProvider } from './contexts/AuthContext';
+import { ToastProvider } from './contexts/ToastContext';
+import { MainLayout } from './components/layout/MainLayout';
+import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import { GuestRoute } from './components/auth/GuestRoute';
+import { LoadingSpinner } from './components/core/LoadingSpinner';
+import { ErrorBoundary } from './components/core/ErrorBoundary';
+import theme from './theme/theme';
+import './i18n/config';
 
-// استيراد الصفحات بأسمائها الصحيحة
-import Home from './pages/Home';
-import ParasitesList from './pages/ParasitesList';
-import AddSample from './pages/AddSample';
-import ParasiteDetail from './pages/ParasiteDetail';
-import Login from './pages/Login';
-import Register from './pages/Register';
-
-// تيم بسيط مع دعم العربية
-const theme = createTheme({
-  direction: 'rtl',
-  palette: {
-    primary: {
-      main: '#1e3a8a', // أزرق الجامعة
-    },
-    secondary: {
-      main: '#dc2626', // أحمر علمي
-    },
-    background: {
-      default: '#f8fafc',
-    },
-  },
-  typography: {
-    fontFamily: '"Cairo", "Arial", sans-serif',
-  },
-});
-
-// مكون تنقل بسيط
-function SimpleLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc' }}>
-      {/* هيدر بسيط */}
-      <header style={{
-        backgroundColor: '#1e3a8a',
-        color: 'white',
-        padding: '1rem',
-        textAlign: 'center'
-      }}>
-        <h1 style={{ margin: 0, fontSize: '1.5rem' }}>ParasiteDB</h1>
-        <p style={{ margin: 0, fontSize: '0.9rem' }}>قاعدة بيانات عينات الطفيليات - جامعة العربي بن مهيدي</p>
-      </header>
-
-      {/* شريط تنقل */}
-      <nav style={{
-        backgroundColor: 'white',
-        padding: '1rem',
-        borderBottom: '1px solid #e5e7eb',
-        textAlign: 'center'
-      }}>
-        <a href="/" style={{ margin: '0 1rem', color: '#1e3a8a', textDecoration: 'none' }}>الرئيسية</a>
-        <a href="/parasites" style={{ margin: '0 1rem', color: '#1e3a8a', textDecoration: 'none' }}>الطفيليات</a>
-        <a href="/add-sample" style={{ margin: '0 1rem', color: '#1e3a8a', textDecoration: 'none' }}>إضافة عينة</a>
-        <a href="/login" style={{ margin: '0 1rem', color: '#1e3a8a', textDecoration: 'none' }}>تسجيل الدخول</a>
-      </nav>
-
-      {/* المحتوى الرئيسي */}
-      <main style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
-        {children}
-      </main>
-    </div>
-  );
-}
+// Lazy load pages for code splitting
+const Home = lazy(() => import('./pages/Home'));
+const ParasitesList = lazy(() => import('./pages/ParasitesList'));
+const ParasiteDetail = lazy(() => import('./pages/ParasiteDetail'));
+const AddParasite = lazy(() => import('./pages/AddParasite'));
+const AddSample = lazy(() => import('./pages/AddSample'));
+const Login = lazy(() => import('./pages/Login'));
+const Register = lazy(() => import('./pages/Register'));
 
 function App() {
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <Router>
-        <SimpleLayout>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/parasites" element={<ParasitesList />} />
-            <Route path="/add-sample" element={<AddSample />} />
-            <Route path="/parasite/:id" element={<ParasiteDetail />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-          </Routes>
-        </SimpleLayout>
-      </Router>
-    </ThemeProvider>
+    <ErrorBoundary>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <LocalizationProvider dateAdapter={AdapterDateFns}>
+          <Router>
+            <AuthProvider>
+              <ToastProvider>
+                <Routes>
+                  {/* Public Routes */}
+                  <Route
+                    path="/"
+                    element={
+                      <MainLayout>
+                        <Suspense fallback={<LoadingSpinner fullScreen />}>
+                          <Home />
+                        </Suspense>
+                      </MainLayout>
+                    }
+                  />
+                  <Route
+                    path="/parasites"
+                    element={
+                      <MainLayout>
+                        <Suspense fallback={<LoadingSpinner fullScreen />}>
+                          <ParasitesList />
+                        </Suspense>
+                      </MainLayout>
+                    }
+                  />
+                  <Route
+                    path="/parasite/:id"
+                    element={
+                      <MainLayout>
+                        <Suspense fallback={<LoadingSpinner fullScreen />}>
+                          <ParasiteDetail />
+                        </Suspense>
+                      </MainLayout>
+                    }
+                  />
+
+                  {/* Protected Routes */}
+                  <Route
+                    path="/add-parasite"
+                    element={
+                      <ProtectedRoute>
+                        <MainLayout>
+                          <Suspense fallback={<LoadingSpinner fullScreen />}>
+                            <AddParasite />
+                          </Suspense>
+                        </MainLayout>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/add-sample"
+                    element={
+                      <ProtectedRoute>
+                        <MainLayout>
+                          <Suspense fallback={<LoadingSpinner fullScreen />}>
+                            <AddSample />
+                          </Suspense>
+                        </MainLayout>
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  {/* Guest Routes (Login/Register) */}
+                  <Route
+                    path="/login"
+                    element={
+                      <GuestRoute>
+                        <Suspense fallback={<LoadingSpinner fullScreen />}>
+                          <Login />
+                        </Suspense>
+                      </GuestRoute>
+                    }
+                  />
+                  <Route
+                    path="/register"
+                    element={
+                      <GuestRoute>
+                        <Suspense fallback={<LoadingSpinner fullScreen />}>
+                          <Register />
+                        </Suspense>
+                      </GuestRoute>
+                    }
+                  />
+
+                  {/* 404 Route */}
+                  <Route
+                    path="*"
+                    element={
+                      <MainLayout>
+                        <div style={{ textAlign: 'center', padding: '4rem' }}>
+                          <h1>404 - الصفحة غير موجودة</h1>
+                          <p>الصفحة التي تبحث عنها غير موجودة.</p>
+                        </div>
+                      </MainLayout>
+                    }
+                  />
+                </Routes>
+              </ToastProvider>
+            </AuthProvider>
+          </Router>
+        </LocalizationProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 }
 

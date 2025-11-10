@@ -1,43 +1,58 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as yup from 'yup';
+import {
+  Container,
+  Paper,
+  Box,
+  TextField,
+  Button,
+  Typography,
+  Grid,
+} from '@mui/material';
 import { Upload } from 'lucide-react';
-import './AddParasite.css';
+import { useTranslation } from 'react-i18next';
+import { useParasites } from '../hooks/useParasites';
+import { useToast } from '../contexts/ToastContext';
+import { LoadingSpinner } from '../components/core/LoadingSpinner';
 
-interface AddParasiteProps {
-  setIsLoggedIn?: (value: boolean) => void;
-}
+const schema = yup.object({
+  scientificName: yup.string().required('الاسم العلمي مطلوب'),
+  commonName: yup.string(),
+  arabicName: yup.string(),
+  frenchName: yup.string(),
+  hostSpecies: yup.string(),
+  discoveryYear: yup.number().min(1900).max(new Date().getFullYear()),
+  morphologicalCharacteristics: yup.string(),
+  detectionMethod: yup.string(),
+  description: yup.string(),
+});
 
-export default function AddParasite({}: AddParasiteProps) {
+type ParasiteFormData = yup.InferType<typeof schema>;
+
+export default function AddParasite() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    scientificName: '',
-    commonName: '',
-    arabicName: '',
-    frenchName: '',
-    hostSpecies: '',
-    morphologicalCharacteristics: '',
-    detectionMethod: '',
-    description: '',
-    discoveryYear: new Date().getFullYear(),
-  });
-
-  const [imageFile, setImageFile] = useState<File | null>(null);
+  const { createParasite, loading } = useParasites({ autoFetch: false });
+  const { showSuccess, showError } = useToast();
   const [imagePreview, setImagePreview] = useState<string>('');
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: name === 'discoveryYear' ? parseInt(value) : value
-    }));
-  };
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<ParasiteFormData>({
+    resolver: yupResolver(schema),
+    defaultValues: {
+      discoveryYear: new Date().getFullYear(),
+    },
+  });
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setImageFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result as string);
@@ -46,192 +61,196 @@ export default function AddParasite({}: AddParasiteProps) {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Check if user is logged in
-    const user = localStorage.getItem('user');
-    if (!user) {
-      alert('Please login to add a parasite');
-      navigate('/login');
-      return;
+  const onSubmit = async (data: ParasiteFormData) => {
+    try {
+      const parasiteData = {
+        ...data,
+        imageUrl: imagePreview || undefined,
+      };
+      
+      const result = await createParasite(parasiteData);
+      
+      if (result) {
+        showSuccess('تم إضافة الطفيلي بنجاح');
+        navigate('/parasites');
+      } else {
+        showError('فشل إضافة الطفيلي');
+      }
+    } catch (error: any) {
+      showError(error?.message || 'حدث خطأ أثناء إضافة الطفيلي');
     }
-
-    // Here you would normally send the data to your backend
-    console.log('Form data:', formData);
-    console.log('Image file:', imageFile);
-
-    alert('Parasite added successfully!');
-    navigate('/parasites');
   };
 
+  if (loading) {
+    return <LoadingSpinner fullScreen message={t('loading')} />;
+  }
+
   return (
-    <div className="add-parasite-page">
-      <div className="form-container">
-        <h1>{t('add_parasite')}</h1>
-        
-        <form onSubmit={handleSubmit} className="parasite-form">
-          <div className="form-section">
-            <h2>Basic Information</h2>
-            
-            <div className="form-group">
-              <label htmlFor="scientificName">{t('scientific_name')} *</label>
-              <input
-                type="text"
-                id="scientificName"
-                name="scientificName"
-                value={formData.scientificName}
-                onChange={handleInputChange}
-                required
-                placeholder="e.g., Plasmodium falciparum"
+    <Container maxWidth="md">
+      <Paper elevation={3} sx={{ p: 4, borderRadius: 3 }}>
+        <Typography variant="h4" component="h1" gutterBottom>
+          {t('add_parasite')}
+        </Typography>
+
+        <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ mt: 3 }}>
+          <Typography variant="h6" sx={{ mb: 2, mt: 3 }}>
+            Basic Information
+          </Typography>
+
+          <TextField
+            {...register('scientificName')}
+            fullWidth
+            label={t('scientific_name')}
+            error={!!errors.scientificName}
+            helperText={errors.scientificName?.message}
+            margin="normal"
+            required
+          />
+
+          <Grid container spacing={2} sx={{ mt: 1 }}>
+            <Grid item xs={12} md={6}>
+              <TextField
+                {...register('commonName')}
+                fullWidth
+                label="Common Name"
+                margin="normal"
               />
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="commonName">Common Name</label>
-                <input
-                  type="text"
-                  id="commonName"
-                  name="commonName"
-                  value={formData.commonName}
-                  onChange={handleInputChange}
-                  placeholder="e.g., Malaria Parasite"
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="arabicName">{t('arabic_name')}</label>
-                <input
-                  type="text"
-                  id="arabicName"
-                  name="arabicName"
-                  value={formData.arabicName}
-                  onChange={handleInputChange}
-                  placeholder="الاسم العربي"
-                />
-              </div>
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="frenchName">{t('french_name')}</label>
-              <input
-                type="text"
-                id="frenchName"
-                name="frenchName"
-                value={formData.frenchName}
-                onChange={handleInputChange}
-                placeholder="Nom français"
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                {...register('arabicName')}
+                fullWidth
+                label={t('arabic_name')}
+                margin="normal"
               />
-            </div>
-          </div>
+            </Grid>
+          </Grid>
 
-          <div className="form-section">
-            <h2>Scientific Details</h2>
+          <TextField
+            {...register('frenchName')}
+            fullWidth
+            label={t('french_name')}
+            margin="normal"
+          />
 
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="hostSpecies">{t('host_species')}</label>
-                <input
-                  type="text"
-                  id="hostSpecies"
-                  name="hostSpecies"
-                  value={formData.hostSpecies}
-                  onChange={handleInputChange}
-                  placeholder="e.g., Homo sapiens"
-                />
-              </div>
+          <Typography variant="h6" sx={{ mb: 2, mt: 3 }}>
+            Scientific Details
+          </Typography>
 
-              <div className="form-group">
-                <label htmlFor="discoveryYear">{t('discovery_year')}</label>
-                <input
-                  type="number"
-                  id="discoveryYear"
-                  name="discoveryYear"
-                  value={formData.discoveryYear}
-                  onChange={handleInputChange}
-                  min="1900"
-                  max={new Date().getFullYear()}
-                />
-              </div>
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="morphologicalCharacteristics">{t('morphological_characteristics')}</label>
-              <textarea
-                id="morphologicalCharacteristics"
-                name="morphologicalCharacteristics"
-                value={formData.morphologicalCharacteristics}
-                onChange={handleInputChange}
-                rows={4}
-                placeholder="Describe the morphological features..."
+          <Grid container spacing={2}>
+            <Grid item xs={12} md={6}>
+              <TextField
+                {...register('hostSpecies')}
+                fullWidth
+                label={t('host_species')}
+                margin="normal"
               />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="detectionMethod">{t('detection_method')}</label>
-              <textarea
-                id="detectionMethod"
-                name="detectionMethod"
-                value={formData.detectionMethod}
-                onChange={handleInputChange}
-                rows={4}
-                placeholder="Describe the detection methods..."
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                {...register('discoveryYear', { valueAsNumber: true })}
+                fullWidth
+                label={t('discovery_year')}
+                type="number"
+                margin="normal"
+                inputProps={{ min: 1900, max: new Date().getFullYear() }}
               />
-            </div>
+            </Grid>
+          </Grid>
 
-            <div className="form-group">
-              <label htmlFor="description">{t('description')}</label>
-              <textarea
-                id="description"
-                name="description"
-                value={formData.description}
-                onChange={handleInputChange}
-                rows={5}
-                placeholder="Provide a detailed description..."
+          <TextField
+            {...register('morphologicalCharacteristics')}
+            fullWidth
+            label={t('morphological_characteristics')}
+            multiline
+            rows={4}
+            margin="normal"
+          />
+
+          <TextField
+            {...register('detectionMethod')}
+            fullWidth
+            label={t('detection_method')}
+            multiline
+            rows={4}
+            margin="normal"
+          />
+
+          <TextField
+            {...register('description')}
+            fullWidth
+            label={t('description')}
+            multiline
+            rows={5}
+            margin="normal"
+          />
+
+          <Typography variant="h6" sx={{ mb: 2, mt: 3 }}>
+            {t('image')}
+          </Typography>
+
+          <Box
+            sx={{
+              border: '2px dashed',
+              borderColor: 'divider',
+              borderRadius: 2,
+              p: 3,
+              textAlign: 'center',
+              cursor: 'pointer',
+              '&:hover': {
+                borderColor: 'primary.main',
+                bgcolor: 'action.hover',
+              },
+            }}
+          >
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              style={{ display: 'none' }}
+              id="image-upload"
+            />
+            <label htmlFor="image-upload">
+              <Upload size={40} style={{ marginBottom: '1rem', cursor: 'pointer' }} />
+              <Typography variant="body2" sx={{ cursor: 'pointer' }}>
+                Click to upload or drag and drop
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                PNG, JPG, GIF up to 10MB
+              </Typography>
+            </label>
+          </Box>
+
+          {imagePreview && (
+            <Box sx={{ mt: 2 }}>
+              <img
+                src={imagePreview}
+                alt="Preview"
+                style={{ maxWidth: '100%', borderRadius: 8 }}
               />
-            </div>
-          </div>
+            </Box>
+          )}
 
-          <div className="form-section">
-            <h2>{t('image')}</h2>
-
-            <div className="image-upload">
-              <label htmlFor="imageInput" className="upload-area">
-                <Upload size={40} />
-                <p>Click to upload or drag and drop</p>
-                <span>PNG, JPG, GIF up to 10MB</span>
-                <input
-                  type="file"
-                  id="imageInput"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                />
-              </label>
-
-              {imagePreview && (
-                <div className="image-preview">
-                  <img src={imagePreview} alt="Preview" />
-                  <p>Image preview</p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="form-actions">
-            <button type="submit" className="submit-button">
+          <Box sx={{ display: 'flex', gap: 2, mt: 4 }}>
+            <Button
+              type="submit"
+              variant="contained"
+              size="large"
+              disabled={loading}
+            >
               {t('submit')}
-            </button>
-            <button 
-              type="button" 
-              className="cancel-button"
+            </Button>
+            <Button
+              type="button"
+              variant="outlined"
+              size="large"
               onClick={() => navigate('/parasites')}
             >
               {t('cancel')}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+            </Button>
+          </Box>
+        </Box>
+      </Paper>
+    </Container>
   );
 }

@@ -1,158 +1,248 @@
-import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Microscope, Database, Users, BookOpen } from 'lucide-react';
-import './Home.css';
-
-interface Parasite {
-  id: number;
-  scientificName: string;
-  arabicName?: string;
-  frenchName?: string;
-  hostSpecies?: string;
-  discoveryYear?: number;
-  imageUrl?: string;
-}
+import {
+  Box,
+  Container,
+  Typography,
+  Grid,
+  Card,
+  CardContent,
+  CardMedia,
+  Button,
+  Paper,
+} from '@mui/material';
+import { useParasites } from '../hooks/useParasites';
+import { LoadingSpinner } from '../components/core/LoadingSpinner';
+import { universityColors, gradients } from '../theme/colors';
 
 export default function Home() {
   const { t, i18n } = useTranslation();
-  const [parasites, setParasites] = useState<Parasite[]>([]);
-  const [totalParasites, setTotalParasites] = useState(0);
-  const [totalSamples, setTotalSamples] = useState(0);
+  const { parasites, loading, total } = useParasites({ autoFetch: true });
 
-  useEffect(() => {
-    // Fetch parasites data
-    const mockParasites: Parasite[] = [
-      {
-        id: 1,
-        scientificName: 'Plasmodium falciparum',
-        arabicName: 'البلازموديوم',
-        frenchName: 'Plasmodium falciparum',
-        hostSpecies: 'Homo sapiens',
-        discoveryYear: 2020,
-        imageUrl: '/images/parasites/parasite1.png'
-      },
-      {
-        id: 2,
-        scientificName: 'Ascaris lumbricoides',
-        arabicName: 'الإسكارس',
-        frenchName: 'Ascaris lumbricoides',
-        hostSpecies: 'Homo sapiens',
-        discoveryYear: 2021,
-        imageUrl: '/images/parasites/parasite2.png'
-      },
-      {
-        id: 3,
-        scientificName: 'Entamoeba histolytica',
-        arabicName: 'الإنتاميبا',
-        frenchName: 'Entamoeba histolytica',
-        hostSpecies: 'Homo sapiens',
-        discoveryYear: 2022,
-        imageUrl: '/images/parasites/parasite3.png'
-      }
-    ];
+  const recentParasites = parasites.slice(0, 3);
+  const totalSamples = 15; // Mock data for now
 
-    setParasites(mockParasites.slice(0, 3));
-    setTotalParasites(mockParasites.length);
-    setTotalSamples(15);
-  }, []);
+  if (loading && parasites.length === 0) {
+    return <LoadingSpinner fullScreen message={t('loading')} />;
+  }
 
   return (
-    <div className="home-page">
+    <Container maxWidth="xl">
       {/* Hero Section */}
-      <section className="hero">
-        <div className="hero-content">
-          <h1>{t('app_title')}</h1>
-          <p>{t('welcome_subtitle')}</p>
-          <Link to="/parasites" className="cta-button">
-            {t('nav_parasites')}
-          </Link>
-        </div>
-        <div className="hero-image">
-          <Microscope size={120} color="#667eea" />
-        </div>
-      </section>
+      <Paper
+        elevation={0}
+        sx={{
+          background: gradients.hero,
+          color: 'white',
+          p: { xs: 4, md: 6 },
+          borderRadius: 3,
+          mb: 4,
+          textAlign: 'center',
+        }}
+      >
+        <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+          <Microscope size={80} color="white" />
+        </Box>
+        <Typography variant="h3" component="h1" gutterBottom sx={{ fontWeight: 700 }}>
+          {t('app_title')}
+        </Typography>
+        <Typography variant="h6" sx={{ mb: 3, opacity: 0.9 }}>
+          {t('welcome_subtitle')}
+        </Typography>
+        <Button
+          component={Link}
+          to="/parasites"
+          variant="contained"
+          size="large"
+          sx={{
+            bgcolor: 'white',
+            color: universityColors.primary.main,
+            '&:hover': {
+              bgcolor: 'rgba(255, 255, 255, 0.9)',
+            },
+          }}
+        >
+          {t('nav_parasites')}
+        </Button>
+      </Paper>
 
       {/* Stats Section */}
-      <section className="stats">
-        <div className="stat-card">
-          <Database size={40} color="#667eea" />
-          <h3>{totalParasites}</h3>
-          <p>{t('total_parasites')}</p>
-        </div>
-        <div className="stat-card">
-          <BookOpen size={40} color="#764ba2" />
-          <h3>{totalSamples}</h3>
-          <p>{t('total_samples')}</p>
-        </div>
-        <div className="stat-card">
-          <Users size={40} color="#667eea" />
-          <h3>50+</h3>
-          <p>Researchers</p>
-        </div>
-        <div className="stat-card">
-          <Microscope size={40} color="#764ba2" />
-          <h3>100%</h3>
-          <p>Digital Archive</p>
-        </div>
-      </section>
+      <Grid container spacing={3} sx={{ mb: 4 }}>
+        <Grid item xs={6} md={3}>
+          <Card
+            sx={{
+              textAlign: 'center',
+              p: 2,
+              background: `linear-gradient(135deg, ${universityColors.primary.main} 0%, ${universityColors.primary.light} 100%)`,
+              color: 'white',
+            }}
+          >
+            <Database size={40} style={{ margin: '0 auto 1rem' }} />
+            <Typography variant="h4" sx={{ fontWeight: 700 }}>
+              {total}
+            </Typography>
+            <Typography variant="body2">{t('total_parasites')}</Typography>
+          </Card>
+        </Grid>
+        <Grid item xs={6} md={3}>
+          <Card
+            sx={{
+              textAlign: 'center',
+              p: 2,
+              background: `linear-gradient(135deg, ${universityColors.secondary.main} 0%, ${universityColors.secondary.light} 100%)`,
+              color: 'white',
+            }}
+          >
+            <BookOpen size={40} style={{ margin: '0 auto 1rem' }} />
+            <Typography variant="h4" sx={{ fontWeight: 700 }}>
+              {totalSamples}
+            </Typography>
+            <Typography variant="body2">{t('total_samples')}</Typography>
+          </Card>
+        </Grid>
+        <Grid item xs={6} md={3}>
+          <Card
+            sx={{
+              textAlign: 'center',
+              p: 2,
+              background: `linear-gradient(135deg, ${universityColors.accent.green} 0%, #34d399 100%)`,
+              color: 'white',
+            }}
+          >
+            <Users size={40} style={{ margin: '0 auto 1rem' }} />
+            <Typography variant="h4" sx={{ fontWeight: 700 }}>
+              50+
+            </Typography>
+            <Typography variant="body2">Researchers</Typography>
+          </Card>
+        </Grid>
+        <Grid item xs={6} md={3}>
+          <Card
+            sx={{
+              textAlign: 'center',
+              p: 2,
+              background: `linear-gradient(135deg, ${universityColors.accent.purple} 0%, #a78bfa 100%)`,
+              color: 'white',
+            }}
+          >
+            <Microscope size={40} style={{ margin: '0 auto 1rem' }} />
+            <Typography variant="h4" sx={{ fontWeight: 700 }}>
+              100%
+            </Typography>
+            <Typography variant="body2">Digital Archive</Typography>
+          </Card>
+        </Grid>
+      </Grid>
 
       {/* Features Section */}
-      <section className="features">
-        <h2>{t('app_title')}</h2>
-        <div className="features-grid">
-          <div className="feature-card">
-            <Microscope size={50} color="#667eea" />
-            <h3>{t('nav_parasites')}</h3>
-            <p>Browse and search through our comprehensive collection of parasites with detailed scientific information and microscopic images.</p>
-          </div>
-          <div className="feature-card">
-            <Database size={50} color="#764ba2" />
-            <h3>{t('nav_samples')}</h3>
-            <p>Access detailed information about collected samples, including collection dates, locations, and host species.</p>
-          </div>
-          <div className="feature-card">
-            <BookOpen size={50} color="#667eea" />
-            <h3>Scientific Data</h3>
-            <p>View morphological characteristics, detection methods, and scientific descriptions in multiple languages.</p>
-          </div>
-        </div>
-      </section>
+      <Paper elevation={2} sx={{ p: 4, mb: 4, borderRadius: 3 }}>
+        <Typography variant="h4" component="h2" gutterBottom sx={{ mb: 3, textAlign: 'center' }}>
+          {t('app_title')}
+        </Typography>
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={4}>
+            <Box sx={{ textAlign: 'center' }}>
+              <Microscope size={50} color={universityColors.primary.main} style={{ marginBottom: '1rem' }} />
+              <Typography variant="h6" gutterBottom>
+                {t('nav_parasites')}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Browse and search through our comprehensive collection of parasites with detailed scientific information and microscopic images.
+              </Typography>
+            </Box>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <Box sx={{ textAlign: 'center' }}>
+              <Database size={50} color={universityColors.secondary.main} style={{ marginBottom: '1rem' }} />
+              <Typography variant="h6" gutterBottom>
+                {t('nav_samples')}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Access detailed information about collected samples, including collection dates, locations, and host species.
+              </Typography>
+            </Box>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <Box sx={{ textAlign: 'center' }}>
+              <BookOpen size={50} color={universityColors.accent.purple} style={{ marginBottom: '1rem' }} />
+              <Typography variant="h6" gutterBottom>
+                Scientific Data
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                View morphological characteristics, detection methods, and scientific descriptions in multiple languages.
+              </Typography>
+            </Box>
+          </Grid>
+        </Grid>
+      </Paper>
 
       {/* Recent Additions */}
-      <section className="recent-additions">
-        <h2>{t('recent_additions')}</h2>
-        <div className="parasites-grid">
-          {parasites.map((parasite) => (
-            <Link 
-              key={parasite.id} 
-              to={`/parasites/${parasite.id}`}
-              className="parasite-card"
+      {recentParasites.length > 0 && (
+        <Box>
+          <Typography variant="h4" component="h2" gutterBottom sx={{ mb: 3 }}>
+            {t('recent_additions')}
+          </Typography>
+          <Grid container spacing={3}>
+            {recentParasites.map((parasite) => (
+              <Grid item xs={12} sm={6} md={4} key={parasite.id}>
+                <Card
+                  component={Link}
+                  to={`/parasite/${parasite.id}`}
+                  sx={{
+                    textDecoration: 'none',
+                    height: '100%',
+                    transition: 'transform 0.2s, box-shadow 0.2s',
+                    '&:hover': {
+                      transform: 'translateY(-4px)',
+                      boxShadow: 6,
+                    },
+                  }}
+                >
+                  <CardMedia
+                    component="img"
+                    height="200"
+                    image={parasite.imageUrl || '/images/placeholder.png'}
+                    alt={parasite.scientificName}
+                    sx={{ objectFit: 'cover' }}
+                  />
+                  <CardContent>
+                    <Typography variant="h6" component="h3" gutterBottom>
+                      {parasite.scientificName}
+                    </Typography>
+                    {i18n.language === 'ar' && parasite.arabicName && (
+                      <Typography variant="body2" color="text.secondary" gutterBottom>
+                        {parasite.arabicName}
+                      </Typography>
+                    )}
+                    {i18n.language === 'fr' && parasite.frenchName && (
+                      <Typography variant="body2" color="text.secondary" gutterBottom>
+                        {parasite.frenchName}
+                      </Typography>
+                    )}
+                    <Typography variant="body2" color="text.secondary">
+                      <strong>{t('host_species')}:</strong> {parasite.hostSpecies}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      <strong>{t('discovery_year')}:</strong> {parasite.discoveryYear}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+          <Box sx={{ textAlign: 'center', mt: 3 }}>
+            <Button
+              component={Link}
+              to="/parasites"
+              variant="outlined"
+              size="large"
             >
-              <div className="parasite-image">
-                <img 
-                  src={parasite.imageUrl || '/images/placeholder.png'} 
-                  alt={parasite.scientificName}
-                />
-              </div>
-              <div className="parasite-info">
-                <h3>{parasite.scientificName}</h3>
-                {i18n.language === 'ar' && parasite.arabicName && (
-                  <p className="arabic-name">{parasite.arabicName}</p>
-                )}
-                {i18n.language === 'fr' && parasite.frenchName && (
-                  <p className="french-name">{parasite.frenchName}</p>
-                )}
-                <p className="host">{t('host_species')}: {parasite.hostSpecies}</p>
-                <p className="year">{t('discovery_year')}: {parasite.discoveryYear}</p>
-              </div>
-            </Link>
-          ))}
-        </div>
-        <Link to="/parasites" className="view-all-button">
-          {t('view_details')} →
-        </Link>
-      </section>
-    </div>
+              {t('view_details')} →
+            </Button>
+          </Box>
+        </Box>
+      )}
+    </Container>
   );
 }

@@ -2,212 +2,233 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Search } from 'lucide-react';
-import './ParasitesList.css';
-
-interface Parasite {
-  id: number;
-  scientificName: string;
-  arabicName?: string;
-  frenchName?: string;
-  hostSpecies?: string;
-  discoveryYear?: number;
-  imageUrl?: string;
-}
+import {
+  Box,
+  Container,
+  Typography,
+  TextField,
+  Grid,
+  Card,
+  CardContent,
+  CardMedia,
+  MenuItem,
+  Select,
+  FormControl,
+  InputLabel,
+  Button,
+  Paper,
+  InputAdornment,
+} from '@mui/material';
+import { useParasites } from '../hooks/useParasites';
+import { LoadingSpinner } from '../components/core/LoadingSpinner';
 
 export default function ParasitesList() {
   const { t, i18n } = useTranslation();
-  const [parasites, setParasites] = useState<Parasite[]>([]);
-  const [filteredParasites, setFilteredParasites] = useState<Parasite[]>([]);
+  const { parasites, loading, filters, setFilters } = useParasites({ autoFetch: true });
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterHost, setFilterHost] = useState('');
-  const [filterYear, setFilterYear] = useState('');
   const [hosts, setHosts] = useState<string[]>([]);
   const [years, setYears] = useState<number[]>([]);
 
   useEffect(() => {
-    // Mock data
-    const mockParasites: Parasite[] = [
-      {
-        id: 1,
-        scientificName: 'Plasmodium falciparum',
-        arabicName: 'البلازموديوم',
-        frenchName: 'Plasmodium falciparum',
-        hostSpecies: 'Homo sapiens',
-        discoveryYear: 2020,
-        imageUrl: '/images/parasites/parasite1.png'
-      },
-      {
-        id: 2,
-        scientificName: 'Ascaris lumbricoides',
-        arabicName: 'الإسكارس',
-        frenchName: 'Ascaris lumbricoides',
-        hostSpecies: 'Homo sapiens',
-        discoveryYear: 2021,
-        imageUrl: '/images/parasites/parasite2.png'
-      },
-      {
-        id: 3,
-        scientificName: 'Entamoeba histolytica',
-        arabicName: 'الإنتاميبا',
-        frenchName: 'Entamoeba histolytica',
-        hostSpecies: 'Homo sapiens',
-        discoveryYear: 2022,
-        imageUrl: '/images/parasites/parasite3.png'
-      },
-      {
-        id: 4,
-        scientificName: 'Giardia lamblia',
-        arabicName: 'الجيارديا',
-        frenchName: 'Giardia lamblia',
-        hostSpecies: 'Homo sapiens',
-        discoveryYear: 2021,
-        imageUrl: '/images/parasites/parasite4.png'
-      },
-      {
-        id: 5,
-        scientificName: 'Trypanosoma brucei',
-        arabicName: 'التريبانوسوما',
-        frenchName: 'Trypanosoma brucei',
-        hostSpecies: 'Homo sapiens',
-        discoveryYear: 2023,
-        imageUrl: '/images/parasites/parasite1.png'
-      },
-      {
-        id: 6,
-        scientificName: 'Leishmania donovani',
-        arabicName: 'الليشمانيا',
-        frenchName: 'Leishmania donovani',
-        hostSpecies: 'Homo sapiens',
-        discoveryYear: 2022,
-        imageUrl: '/images/parasites/parasite2.png'
-      }
-    ];
-
-    setParasites(mockParasites);
-    setFilteredParasites(mockParasites);
-
-    // Extract unique hosts and years
-    const uniqueHosts = [...new Set(mockParasites.map(p => p.hostSpecies).filter(Boolean))] as string[];
-    const uniqueYears = [...new Set(mockParasites.map(p => p.discoveryYear).filter(Boolean))] as number[];
-    
+    // Extract unique hosts and years from parasites
+    const uniqueHosts = [...new Set(parasites.map(p => p.hostSpecies).filter(Boolean))] as string[];
+    const uniqueYears = [...new Set(parasites.map(p => p.discoveryYear).filter(Boolean))] as number[];
     setHosts(uniqueHosts);
     setYears(uniqueYears.sort((a, b) => b - a));
-  }, []);
+  }, [parasites]);
 
   useEffect(() => {
-    let result = parasites;
+    // Debounce search
+    const timer = setTimeout(() => {
+      setFilters({
+        ...filters,
+        search: searchTerm || undefined,
+      });
+    }, 300);
 
-    // Search filter
-    if (searchTerm) {
-      result = result.filter(p =>
-        p.scientificName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.arabicName?.includes(searchTerm) ||
-        p.frenchName?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  const handleFilterChange = (key: string, value: string | number | undefined) => {
+    setFilters({
+      ...filters,
+      [key]: value || undefined,
+    });
+  };
+
+  const resetFilters = () => {
+    setSearchTerm('');
+    setFilters({});
+  };
+
+  // Filter parasites locally (since API handles it in development mode)
+  const filteredParasites = parasites.filter((parasite) => {
+    if (filters.search) {
+      const searchLower = filters.search.toLowerCase();
+      if (
+        !parasite.scientificName.toLowerCase().includes(searchLower) &&
+        !parasite.arabicName?.includes(filters.search) &&
+        !parasite.frenchName?.toLowerCase().includes(searchLower)
+      ) {
+        return false;
+      }
     }
-
-    // Host filter
-    if (filterHost) {
-      result = result.filter(p => p.hostSpecies === filterHost);
+    if (filters.host && parasite.hostSpecies !== filters.host) {
+      return false;
     }
-
-    // Year filter
-    if (filterYear) {
-      result = result.filter(p => p.discoveryYear === parseInt(filterYear));
+    if (filters.year && parasite.discoveryYear !== filters.year) {
+      return false;
     }
+    return true;
+  });
 
-    setFilteredParasites(result);
-  }, [searchTerm, filterHost, filterYear, parasites]);
+  if (loading && parasites.length === 0) {
+    return <LoadingSpinner fullScreen message={t('loading')} />;
+  }
 
   return (
-    <div className="parasites-list-page">
-      <div className="page-header">
-        <h1>{t('nav_parasites')}</h1>
-        <p>Browse our comprehensive collection of parasites</p>
-      </div>
+    <Container maxWidth="xl">
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h4" component="h1" gutterBottom>
+          {t('nav_parasites')}
+        </Typography>
+        <Typography variant="body1" color="text.secondary">
+          Browse our comprehensive collection of parasites
+        </Typography>
+      </Box>
 
-      <div className="filters-section">
-        <div className="search-box">
-          <Search size={20} />
-          <input
-            type="text"
-            placeholder={t('search_placeholder')}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
+      {/* Filters Section */}
+      <Paper elevation={2} sx={{ p: 3, mb: 4, borderRadius: 3 }}>
+        <Grid container spacing={2} alignItems="center">
+          <Grid item xs={12} md={4}>
+            <TextField
+              fullWidth
+              placeholder={t('search_placeholder')}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Search size={20} />
+                  </InputAdornment>
+                ),
+              }}
+            />
+          </Grid>
 
-        <div className="filter-controls">
-          <div className="filter-group">
-            <label>{t('filter_by_host')}</label>
-            <select value={filterHost} onChange={(e) => setFilterHost(e.target.value)}>
-              <option value="">All Hosts</option>
-              {hosts.map(host => (
-                <option key={host} value={host}>{host}</option>
-              ))}
-            </select>
-          </div>
+          <Grid item xs={12} sm={6} md={3}>
+            <FormControl fullWidth>
+              <InputLabel>{t('filter_by_host')}</InputLabel>
+              <Select
+                value={filters.host || ''}
+                label={t('filter_by_host')}
+                onChange={(e) => handleFilterChange('host', e.target.value)}
+              >
+                <MenuItem value="">All Hosts</MenuItem>
+                {hosts.map((host) => (
+                  <MenuItem key={host} value={host}>
+                    {host}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
 
-          <div className="filter-group">
-            <label>{t('filter_by_year')}</label>
-            <select value={filterYear} onChange={(e) => setFilterYear(e.target.value)}>
-              <option value="">All Years</option>
-              {years.map(year => (
-                <option key={year} value={year}>{year}</option>
-              ))}
-            </select>
-          </div>
+          <Grid item xs={12} sm={6} md={3}>
+            <FormControl fullWidth>
+              <InputLabel>{t('filter_by_year')}</InputLabel>
+              <Select
+                value={filters.year || ''}
+                label={t('filter_by_year')}
+                onChange={(e) => handleFilterChange('year', e.target.value ? Number(e.target.value) : undefined)}
+              >
+                <MenuItem value="">All Years</MenuItem>
+                {years.map((year) => (
+                  <MenuItem key={year} value={year}>
+                    {year}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
 
-          <button 
-            className="reset-filters"
-            onClick={() => {
-              setSearchTerm('');
-              setFilterHost('');
-              setFilterYear('');
-            }}
-          >
-            Reset Filters
-          </button>
-        </div>
-      </div>
-
-      <div className="results-info">
-        <p>Found {filteredParasites.length} parasite(s)</p>
-      </div>
-
-      {filteredParasites.length > 0 ? (
-        <div className="parasites-grid">
-          {filteredParasites.map((parasite) => (
-            <Link 
-              key={parasite.id} 
-              to={`/parasites/${parasite.id}`}
-              className="parasite-card"
+          <Grid item xs={12} md={2}>
+            <Button
+              fullWidth
+              variant="outlined"
+              onClick={resetFilters}
+              sx={{ height: '56px' }}
             >
-              <div className="parasite-image">
-                <img 
-                  src={parasite.imageUrl || '/images/placeholder.png'} 
+              Reset
+            </Button>
+          </Grid>
+        </Grid>
+      </Paper>
+
+      {/* Results Info */}
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="body1" color="text.secondary">
+          Found {filteredParasites.length} parasite(s)
+        </Typography>
+      </Box>
+
+      {/* Parasites Grid */}
+      {filteredParasites.length > 0 ? (
+        <Grid container spacing={3}>
+          {filteredParasites.map((parasite) => (
+            <Grid item xs={12} sm={6} md={4} key={parasite.id}>
+              <Card
+                component={Link}
+                to={`/parasite/${parasite.id}`}
+                sx={{
+                  textDecoration: 'none',
+                  height: '100%',
+                  transition: 'transform 0.2s, box-shadow 0.2s',
+                  '&:hover': {
+                    transform: 'translateY(-4px)',
+                    boxShadow: 6,
+                  },
+                }}
+              >
+                <CardMedia
+                  component="img"
+                  height="200"
+                  image={parasite.imageUrl || '/images/placeholder.png'}
                   alt={parasite.scientificName}
+                  sx={{ objectFit: 'cover' }}
                 />
-              </div>
-              <div className="parasite-info">
-                <h3>{parasite.scientificName}</h3>
-                {i18n.language === 'ar' && parasite.arabicName && (
-                  <p className="arabic-name">{parasite.arabicName}</p>
-                )}
-                {i18n.language === 'fr' && parasite.frenchName && (
-                  <p className="french-name">{parasite.frenchName}</p>
-                )}
-                <p className="host"><strong>{t('host_species')}:</strong> {parasite.hostSpecies}</p>
-                <p className="year"><strong>{t('discovery_year')}:</strong> {parasite.discoveryYear}</p>
-              </div>
-            </Link>
+                <CardContent>
+                  <Typography variant="h6" component="h3" gutterBottom>
+                    {parasite.scientificName}
+                  </Typography>
+                  {i18n.language === 'ar' && parasite.arabicName && (
+                    <Typography variant="body2" color="text.secondary" gutterBottom>
+                      {parasite.arabicName}
+                    </Typography>
+                  )}
+                  {i18n.language === 'fr' && parasite.frenchName && (
+                    <Typography variant="body2" color="text.secondary" gutterBottom>
+                      {parasite.frenchName}
+                    </Typography>
+                  )}
+                  <Typography variant="body2" color="text.secondary">
+                    <strong>{t('host_species')}:</strong> {parasite.hostSpecies}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    <strong>{t('discovery_year')}:</strong> {parasite.discoveryYear}
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
           ))}
-        </div>
+        </Grid>
       ) : (
-        <div className="no-results">
-          <p>{t('no_results')}</p>
-        </div>
+        <Paper sx={{ p: 4, textAlign: 'center' }}>
+          <Typography variant="h6" color="text.secondary">
+            {t('no_results')}
+          </Typography>
+        </Paper>
       )}
-    </div>
+    </Container>
   );
 }

@@ -1,134 +1,171 @@
-import { useState } from 'react';
+import React from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as yup from 'yup';
+import {
+  Container,
+  Paper,
+  Box,
+  TextField,
+  Button,
+  Typography,
+  Alert,
+  Link as MuiLink,
+} from '@mui/material';
+import { UserPlus as UserPlusIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { UserPlus } from 'lucide-react';
-import './Auth.css';
+import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
+import { LoadingSpinner } from '../components/core/LoadingSpinner';
 
-interface RegisterProps {
-  setIsLoggedIn: (value: boolean) => void;
-}
+const schema = yup.object({
+  name: yup.string().required('الاسم مطلوب').min(2, 'الاسم يجب أن يكون حرفين على الأقل'),
+  email: yup
+    .string()
+    .email('البريد الإلكتروني غير صحيح')
+    .required('البريد الإلكتروني مطلوب'),
+  password: yup
+    .string()
+    .min(6, 'كلمة المرور يجب أن تكون 6 أحرف على الأقل')
+    .required('كلمة المرور مطلوبة'),
+  confirmPassword: yup
+    .string()
+    .oneOf([yup.ref('password')], 'كلمات المرور غير متطابقة')
+    .required('تأكيد كلمة المرور مطلوب'),
+});
 
-export default function Register({ setIsLoggedIn }: RegisterProps) {
+type RegisterFormData = yup.InferType<typeof schema>;
+
+export default function Register() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
+  const { register: registerUser, isLoading } = useAuth();
+  const { showError, showSuccess } = useToast();
+  const [apiError, setApiError] = React.useState<string>('');
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<RegisterFormData>({
+    resolver: yupResolver(schema),
   });
-  const [error, setError] = useState('');
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+  const onSubmit = async (data: RegisterFormData) => {
+    try {
+      setApiError('');
+      await registerUser(data);
+      showSuccess(t('success') + ' - تم إنشاء الحساب بنجاح');
+      navigate('/');
+    } catch (error: any) {
+      const errorMessage = error?.message || 'حدث خطأ أثناء إنشاء الحساب';
+      setApiError(errorMessage);
+      showError(errorMessage);
+    }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-
-    if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword) {
-      setError('Please fill in all fields');
-      return;
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
-      return;
-    }
-
-    if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters');
-      return;
-    }
-
-    // Mock registration
-    localStorage.setItem('user', JSON.stringify({
-      name: formData.name,
-      email: formData.email
-    }));
-    setIsLoggedIn(true);
-    navigate('/');
-  };
+  if (isLoading) {
+    return <LoadingSpinner fullScreen message={t('loading')} />;
+  }
 
   return (
-    <div className="auth-page">
-      <div className="auth-container">
-        <div className="auth-header">
-          <UserPlus size={40} color="#667eea" />
-          <h1>{t('register')}</h1>
-        </div>
-
-        {error && <div className="error-message">{error}</div>}
-
-        <form onSubmit={handleSubmit} className="auth-form">
-          <div className="form-group">
-            <label htmlFor="name">{t('name')}</label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              value={formData.name}
-              onChange={handleInputChange}
-              placeholder="Your name"
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="email">{t('email')}</label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
-              onChange={handleInputChange}
-              placeholder="your@email.com"
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="password">{t('password')}</label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              value={formData.password}
-              onChange={handleInputChange}
-              placeholder="••••••••"
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="confirmPassword">Confirm Password</label>
-            <input
-              type="password"
-              id="confirmPassword"
-              name="confirmPassword"
-              value={formData.confirmPassword}
-              onChange={handleInputChange}
-              placeholder="••••••••"
-              required
-            />
-          </div>
-
-          <button type="submit" className="submit-button">
+    <Container maxWidth="sm" sx={{ py: 8 }}>
+      <Paper
+        elevation={3}
+        sx={{
+          p: 4,
+          borderRadius: 3,
+        }}
+      >
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            mb: 3,
+          }}
+        >
+          <UserPlusIcon size={48} color="#1e3a8a" style={{ marginBottom: '1rem' }} />
+          <Typography variant="h4" component="h1" gutterBottom>
             {t('register')}
-          </button>
-        </form>
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            أنشئ حساباً جديداً للوصول إلى قاعدة البيانات
+          </Typography>
+        </Box>
 
-        <div className="auth-footer">
-          <p>
-            {t('already_have_account')} <Link to="/login">{t('login')}</Link>
-          </p>
-        </div>
-      </div>
-    </div>
+        {apiError && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {apiError}
+          </Alert>
+        )}
+
+        <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate>
+          <TextField
+            {...register('name')}
+            fullWidth
+            label={t('name')}
+            error={!!errors.name}
+            helperText={errors.name?.message}
+            margin="normal"
+            autoComplete="name"
+            autoFocus
+          />
+
+          <TextField
+            {...register('email')}
+            fullWidth
+            label={t('email')}
+            type="email"
+            error={!!errors.email}
+            helperText={errors.email?.message}
+            margin="normal"
+            autoComplete="email"
+          />
+
+          <TextField
+            {...register('password')}
+            fullWidth
+            label={t('password')}
+            type="password"
+            error={!!errors.password}
+            helperText={errors.password?.message}
+            margin="normal"
+            autoComplete="new-password"
+          />
+
+          <TextField
+            {...register('confirmPassword')}
+            fullWidth
+            label="تأكيد كلمة المرور"
+            type="password"
+            error={!!errors.confirmPassword}
+            helperText={errors.confirmPassword?.message}
+            margin="normal"
+            autoComplete="new-password"
+          />
+
+          <Button
+            type="submit"
+            fullWidth
+            variant="contained"
+            sx={{ mt: 3, mb: 2, py: 1.5 }}
+            disabled={isLoading}
+          >
+            {t('register')}
+          </Button>
+
+          <Box sx={{ textAlign: 'center' }}>
+            <Typography variant="body2">
+              {t('already_have_account')}{' '}
+              <MuiLink component={Link} to="/login" underline="hover">
+                {t('login')}
+              </MuiLink>
+            </Typography>
+          </Box>
+        </Box>
+      </Paper>
+    </Container>
   );
 }
