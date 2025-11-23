@@ -1,7 +1,11 @@
-import { defineConfig } from 'vite'
+﻿import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-// https://vite.dev/config/
+// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
+  server: {
+    host: true, // ✅ هذا السطر يسمح بالوصول عبر الشبكة (Wi-Fi)
+    port: 5173, // تثبيت المنفذ
+  }
 })
