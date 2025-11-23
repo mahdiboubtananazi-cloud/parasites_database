@@ -1,256 +1,181 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+﻿import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from 'yup';
-import {
-  Container,
-  Paper,
-  Box,
-  TextField,
-  Button,
-  Typography,
-  Grid,
+import { 
+  Box, Container, Paper, Typography, TextField, Button, 
+  MenuItem, Grid, Stack, Divider, IconButton 
 } from '@mui/material';
-import { Upload } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
-import { useParasites } from '../hooks/useParasites';
+import { Upload, X, Save, ArrowRight } from 'lucide-react';
 import { useToast } from '../contexts/ToastContext';
-import { LoadingSpinner } from '../components/core/LoadingSpinner';
-
-const schema = yup.object({
-  scientificName: yup.string().required('الاسم العلمي مطلوب'),
-  commonName: yup.string(),
-  arabicName: yup.string(),
-  frenchName: yup.string(),
-  hostSpecies: yup.string(),
-  discoveryYear: yup.number().min(1900).max(new Date().getFullYear()),
-  morphologicalCharacteristics: yup.string(),
-  detectionMethod: yup.string(),
-  description: yup.string(),
-});
-
-type ParasiteFormData = yup.InferType<typeof schema>;
+import { useNavigate } from 'react-router-dom';
 
 export default function AddParasite() {
-  const { t } = useTranslation();
+  const { register, handleSubmit, formState: { errors } } = useForm();
+  const { showSuccess } = useToast();
   const navigate = useNavigate();
-  const { createParasite, loading } = useParasites({ autoFetch: false });
-  const { showSuccess, showError } = useToast();
-  const [imagePreview, setImagePreview] = useState<string>('');
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<ParasiteFormData>({
-    resolver: yupResolver(schema),
-    defaultValues: {
-      discoveryYear: new Date().getFullYear(),
-    },
-  });
+  const onSubmit = (data: any) => {
+    console.log(data);
+    showSuccess('تم إرسال الطفيلي للمراجعة بنجاح!');
+    setTimeout(() => navigate('/archive'), 1500);
+  };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setImagePreview(URL.createObjectURL(file));
     }
   };
-
-  const onSubmit = async (data: ParasiteFormData) => {
-    try {
-      const parasiteData = {
-        ...data,
-        imageUrl: imagePreview || undefined,
-      };
-      
-      const result = await createParasite(parasiteData);
-      
-      if (result) {
-        showSuccess('تم إضافة الطفيلي بنجاح');
-        navigate('/parasites');
-      } else {
-        showError('فشل إضافة الطفيلي');
-      }
-    } catch (error: any) {
-      showError(error?.message || 'حدث خطأ أثناء إضافة الطفيلي');
-    }
-  };
-
-  if (loading) {
-    return <LoadingSpinner fullScreen message={t('loading')} />;
-  }
 
   return (
-    <Container maxWidth="md">
-      <Paper elevation={3} sx={{ p: 4, borderRadius: 3 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          {t('add_parasite')}
-        </Typography>
+    <Container maxWidth="lg" sx={{ py: 6 }}>
+      <Stack direction="row" alignItems="center" justifyContent="space-between" mb={4}>
+        <Box>
+          <Typography variant="h4" fontWeight="bold">إضافة طفيلي جديد</Typography>
+          <Typography color="text.secondary">أدخل البيانات العلمية الدقيقة للإضافة إلى قاعدة البيانات</Typography>
+        </Box>
+      </Stack>
 
-        <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ mt: 3 }}>
-          <Typography variant="h6" sx={{ mb: 2, mt: 3 }}>
-            Basic Information
-          </Typography>
+      <Grid container spacing={4}>
+        {/* Form Section */}
+        <Grid item xs={12} md={8}>
+          <Paper sx={{ p: 4 }}>
+            <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate>
+              <Grid container spacing={3}>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    {...register('name', { required: 'هذا الحقل مطلوب' })}
+                    fullWidth
+                    label="الاسم الشائع (Common Name)"
+                    error={!!errors.name}
+                    helperText={errors.name?.message as string}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    {...register('scientificName', { required: 'هذا الحقل مطلوب' })}
+                    fullWidth
+                    label="الاسم العلمي (Scientific Name)"
+                    dir="ltr" //  اتجاه إنجليزي للاسم العلمي
+                    error={!!errors.scientificName}
+                    helperText={errors.scientificName?.message as string}
+                  />
+                </Grid>
+                
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    {...register('type')}
+                    select
+                    fullWidth
+                    label="التصنيف (Classification)"
+                    defaultValue="protozoa"
+                  >
+                    <MenuItem value="protozoa">الأوليات (Protozoa)</MenuItem>
+                    <MenuItem value="helminths">الديدان (Helminths)</MenuItem>
+                    <MenuItem value="arthropods">المفصليات (Arthropods)</MenuItem>
+                  </TextField>
+                </Grid>
+                
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    {...register('stage')}
+                    fullWidth
+                    label="المرحلة (Stage)"
+                    placeholder="مثلاً: Cyst, Trophozoite"
+                  />
+                </Grid>
 
-          <TextField
-            {...register('scientificName')}
-            fullWidth
-            label={t('scientific_name')}
-            error={!!errors.scientificName}
-            helperText={errors.scientificName?.message}
-            margin="normal"
-            required
-          />
+                <Grid item xs={12}>
+                  <TextField
+                    {...register('description')}
+                    fullWidth
+                    multiline
+                    rows={4}
+                    label="الوصف المجهري والتشخيص"
+                    placeholder="اكتب وصفاً دقيقاً للشكل والحجم والمميزات..."
+                  />
+                </Grid>
+              </Grid>
 
-          <Grid container spacing={2} sx={{ mt: 1 }}>
-            <Grid item xs={12} md={6}>
-              <TextField
-                {...register('commonName')}
-                fullWidth
-                label="Common Name"
-                margin="normal"
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                {...register('arabicName')}
-                fullWidth
-                label={t('arabic_name')}
-                margin="normal"
-              />
-            </Grid>
-          </Grid>
+              <Box sx={{ mt: 4, display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
+                <Button variant="outlined" color="inherit" onClick={() => navigate('/')}>
+                  إلغاء
+                </Button>
+                <Button 
+                  type="submit" 
+                  variant="contained" 
+                  size="large"
+                  startIcon={<Save size={18} />}
+                >
+                  حفظ البيانات
+                </Button>
+              </Box>
+            </Box>
+          </Paper>
+        </Grid>
 
-          <TextField
-            {...register('frenchName')}
-            fullWidth
-            label={t('french_name')}
-            margin="normal"
-          />
-
-          <Typography variant="h6" sx={{ mb: 2, mt: 3 }}>
-            Scientific Details
-          </Typography>
-
-          <Grid container spacing={2}>
-            <Grid item xs={12} md={6}>
-              <TextField
-                {...register('hostSpecies')}
-                fullWidth
-                label={t('host_species')}
-                margin="normal"
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                {...register('discoveryYear', { valueAsNumber: true })}
-                fullWidth
-                label={t('discovery_year')}
-                type="number"
-                margin="normal"
-                inputProps={{ min: 1900, max: new Date().getFullYear() }}
-              />
-            </Grid>
-          </Grid>
-
-          <TextField
-            {...register('morphologicalCharacteristics')}
-            fullWidth
-            label={t('morphological_characteristics')}
-            multiline
-            rows={4}
-            margin="normal"
-          />
-
-          <TextField
-            {...register('detectionMethod')}
-            fullWidth
-            label={t('detection_method')}
-            multiline
-            rows={4}
-            margin="normal"
-          />
-
-          <TextField
-            {...register('description')}
-            fullWidth
-            label={t('description')}
-            multiline
-            rows={5}
-            margin="normal"
-          />
-
-          <Typography variant="h6" sx={{ mb: 2, mt: 3 }}>
-            {t('image')}
-          </Typography>
-
-          <Box
-            sx={{
-              border: '2px dashed',
-              borderColor: 'divider',
-              borderRadius: 2,
-              p: 3,
-              textAlign: 'center',
-              cursor: 'pointer',
-              '&:hover': {
-                borderColor: 'primary.main',
-                bgcolor: 'action.hover',
-              },
-            }}
-          >
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleImageChange}
-              style={{ display: 'none' }}
-              id="image-upload"
-            />
-            <label htmlFor="image-upload">
-              <Upload size={40} style={{ marginBottom: '1rem', cursor: 'pointer' }} />
-              <Typography variant="body2" sx={{ cursor: 'pointer' }}>
-                Click to upload or drag and drop
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                PNG, JPG, GIF up to 10MB
-              </Typography>
-            </label>
-          </Box>
-
-          {imagePreview && (
-            <Box sx={{ mt: 2 }}>
-              <img
-                src={imagePreview}
-                alt="Preview"
-                style={{ maxWidth: '100%', borderRadius: 8 }}
+        {/* Image Upload Section */}
+        <Grid item xs={12} md={4}>
+          <Paper sx={{ p: 3, textAlign: 'center' }}>
+            <Typography variant="h6" gutterBottom>الصورة المجهرية</Typography>
+            
+            <Box 
+              sx={{ 
+                border: '2px dashed', 
+                borderColor: 'divider', 
+                borderRadius: 2, 
+                p: 4,
+                mb: 2,
+                bgcolor: 'background.default',
+                cursor: 'pointer',
+                position: 'relative',
+                minHeight: 250,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+              onClick={() => document.getElementById('image-upload')?.click()}
+            >
+              {imagePreview ? (
+                <>
+                  <img 
+                    src={imagePreview} 
+                    alt="Preview" 
+                    style={{ maxWidth: '100%', maxHeight: 200, borderRadius: 8 }} 
+                  />
+                  <IconButton 
+                    size="small" 
+                    sx={{ position: 'absolute', top: 8, right: 8, bgcolor: 'white' }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setImagePreview(null);
+                    }}
+                  >
+                    <X size={16} />
+                  </IconButton>
+                </>
+              ) : (
+                <>
+                  <Upload size={40} color="#9CA3AF" />
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+                    اضغط لرفع صورة
+                    <br />
+                    JPG, PNG (Max 5MB)
+                  </Typography>
+                </>
+              )}
+              <input 
+                type="file" 
+                id="image-upload" 
+                hidden 
+                accept="image/*"
+                onChange={handleImageChange} 
               />
             </Box>
-          )}
-
-          <Box sx={{ display: 'flex', gap: 2, mt: 4 }}>
-            <Button
-              type="submit"
-              variant="contained"
-              size="large"
-              disabled={loading}
-            >
-              {t('submit')}
-            </Button>
-            <Button
-              type="button"
-              variant="outlined"
-              size="large"
-              onClick={() => navigate('/parasites')}
-            >
-              {t('cancel')}
-            </Button>
-          </Box>
-        </Box>
-      </Paper>
+          </Paper>
+        </Grid>
+      </Grid>
     </Container>
   );
 }

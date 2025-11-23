@@ -1,248 +1,225 @@
-import { Link } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { Microscope, Database, Users, BookOpen } from 'lucide-react';
-import {
-  Box,
-  Container,
-  Typography,
-  Grid,
-  Card,
-  CardContent,
-  CardMedia,
-  Button,
-  Paper,
+﻿import React from 'react';
+import { 
+  Box, 
+  Container, 
+  Typography, 
+  Paper, 
+  Button, 
+  Stack,
+  Grid, // ✅ العودة للاستيراد القياسي
+  alpha,
+  useTheme
 } from '@mui/material';
-import { useParasites } from '../hooks/useParasites';
-import { LoadingSpinner } from '../components/core/LoadingSpinner';
-import { universityColors, gradients } from '../theme/colors';
+import { useNavigate } from 'react-router-dom';
+import { Search, Plus, Database, ArrowLeft, Microscope } from 'lucide-react';
+import { useAuth } from '../hooks/useAuth';
 
-export default function Home() {
-  const { t, i18n } = useTranslation();
-  const { parasites, loading, total } = useParasites({ autoFetch: true });
+const Home = () => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const theme = useTheme();
 
-  const recentParasites = parasites.slice(0, 3);
-  const totalSamples = 15; // Mock data for now
-
-  if (loading && parasites.length === 0) {
-    return <LoadingSpinner fullScreen message={t('loading')} />;
-  }
+  const features = [
+    {
+      title: 'أرشيف الطفيليات',
+      description: 'تصفح قاعدة البيانات الشاملة وابحث عن العينات المصنفة.',
+      icon: <Database size={32} />,
+      path: '/archive',
+      color: theme.palette.primary.main,
+      bg: alpha(theme.palette.primary.main, 0.1),
+      action: 'تصفح الأرشيف'
+    },
+    {
+      title: 'إضافة عينة جديدة',
+      description: 'ساهم في إثراء قاعدة البيانات بإضافة طفيليات جديدة.',
+      icon: <Plus size={32} />,
+      path: '/add-parasite',
+      color: theme.palette.secondary.main,
+      bg: alpha(theme.palette.secondary.main, 0.1),
+      action: 'إضافة طفيلي',
+      restricted: true
+    },
+    {
+      title: 'البحث المتقدم',
+      description: 'استخدم أدوات البحث للعثور على الفصائل النادرة بدقة.',
+      icon: <Search size={32} />,
+      path: '/archive',
+      color: theme.palette.warning.main,
+      bg: alpha(theme.palette.warning.main, 0.1),
+      action: 'بحث الآن'
+    }
+  ];
 
   return (
-    <Container maxWidth="xl">
+    <Box sx={{ pb: 8 }}>
       {/* Hero Section */}
-      <Paper
-        elevation={0}
-        sx={{
-          background: gradients.hero,
+      <Box 
+        sx={{ 
+          background: 'linear-gradient(135deg, #0F62FE 0%, #0043ce 100%)',
           color: 'white',
-          p: { xs: 4, md: 6 },
-          borderRadius: 3,
-          mb: 4,
-          textAlign: 'center',
+          pt: { xs: 8, md: 12 },
+          pb: { xs: 8, md: 12 },
+          position: 'relative',
+          overflow: 'hidden',
+          borderRadius: { xs: 0, md: '0 0 40px 40px' },
+          mb: 6,
+          boxShadow: '0 10px 40px rgba(15, 98, 254, 0.2)'
         }}
       >
-        <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
-          <Microscope size={80} color="white" />
-        </Box>
-        <Typography variant="h3" component="h1" gutterBottom sx={{ fontWeight: 700 }}>
-          {t('app_title')}
-        </Typography>
-        <Typography variant="h6" sx={{ mb: 3, opacity: 0.9 }}>
-          {t('welcome_subtitle')}
-        </Typography>
-        <Button
-          component={Link}
-          to="/parasites"
-          variant="contained"
-          size="large"
-          sx={{
-            bgcolor: 'white',
-            color: universityColors.primary.main,
-            '&:hover': {
-              bgcolor: 'rgba(255, 255, 255, 0.9)',
-            },
-          }}
-        >
-          {t('nav_parasites')}
-        </Button>
-      </Paper>
-
-      {/* Stats Section */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={6} md={3}>
-          <Card
-            sx={{
-              textAlign: 'center',
-              p: 2,
-              background: `linear-gradient(135deg, ${universityColors.primary.main} 0%, ${universityColors.primary.light} 100%)`,
-              color: 'white',
-            }}
-          >
-            <Database size={40} style={{ margin: '0 auto 1rem' }} />
-            <Typography variant="h4" sx={{ fontWeight: 700 }}>
-              {total}
-            </Typography>
-            <Typography variant="body2">{t('total_parasites')}</Typography>
-          </Card>
-        </Grid>
-        <Grid item xs={6} md={3}>
-          <Card
-            sx={{
-              textAlign: 'center',
-              p: 2,
-              background: `linear-gradient(135deg, ${universityColors.secondary.main} 0%, ${universityColors.secondary.light} 100%)`,
-              color: 'white',
-            }}
-          >
-            <BookOpen size={40} style={{ margin: '0 auto 1rem' }} />
-            <Typography variant="h4" sx={{ fontWeight: 700 }}>
-              {totalSamples}
-            </Typography>
-            <Typography variant="body2">{t('total_samples')}</Typography>
-          </Card>
-        </Grid>
-        <Grid item xs={6} md={3}>
-          <Card
-            sx={{
-              textAlign: 'center',
-              p: 2,
-              background: `linear-gradient(135deg, ${universityColors.accent.green} 0%, #34d399 100%)`,
-              color: 'white',
-            }}
-          >
-            <Users size={40} style={{ margin: '0 auto 1rem' }} />
-            <Typography variant="h4" sx={{ fontWeight: 700 }}>
-              50+
-            </Typography>
-            <Typography variant="body2">Researchers</Typography>
-          </Card>
-        </Grid>
-        <Grid item xs={6} md={3}>
-          <Card
-            sx={{
-              textAlign: 'center',
-              p: 2,
-              background: `linear-gradient(135deg, ${universityColors.accent.purple} 0%, #a78bfa 100%)`,
-              color: 'white',
-            }}
-          >
-            <Microscope size={40} style={{ margin: '0 auto 1rem' }} />
-            <Typography variant="h4" sx={{ fontWeight: 700 }}>
-              100%
-            </Typography>
-            <Typography variant="body2">Digital Archive</Typography>
-          </Card>
-        </Grid>
-      </Grid>
-
-      {/* Features Section */}
-      <Paper elevation={2} sx={{ p: 4, mb: 4, borderRadius: 3 }}>
-        <Typography variant="h4" component="h2" gutterBottom sx={{ mb: 3, textAlign: 'center' }}>
-          {t('app_title')}
-        </Typography>
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={4}>
-            <Box sx={{ textAlign: 'center' }}>
-              <Microscope size={50} color={universityColors.primary.main} style={{ marginBottom: '1rem' }} />
-              <Typography variant="h6" gutterBottom>
-                {t('nav_parasites')}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Browse and search through our comprehensive collection of parasites with detailed scientific information and microscopic images.
-              </Typography>
-            </Box>
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <Box sx={{ textAlign: 'center' }}>
-              <Database size={50} color={universityColors.secondary.main} style={{ marginBottom: '1rem' }} />
-              <Typography variant="h6" gutterBottom>
-                {t('nav_samples')}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Access detailed information about collected samples, including collection dates, locations, and host species.
-              </Typography>
-            </Box>
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <Box sx={{ textAlign: 'center' }}>
-              <BookOpen size={50} color={universityColors.accent.purple} style={{ marginBottom: '1rem' }} />
-              <Typography variant="h6" gutterBottom>
-                Scientific Data
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                View morphological characteristics, detection methods, and scientific descriptions in multiple languages.
-              </Typography>
-            </Box>
-          </Grid>
-        </Grid>
-      </Paper>
-
-      {/* Recent Additions */}
-      {recentParasites.length > 0 && (
-        <Box>
-          <Typography variant="h4" component="h2" gutterBottom sx={{ mb: 3 }}>
-            {t('recent_additions')}
-          </Typography>
-          <Grid container spacing={3}>
-            {recentParasites.map((parasite) => (
-              <Grid item xs={12} sm={6} md={4} key={parasite.id}>
-                <Card
-                  component={Link}
-                  to={`/parasite/${parasite.id}`}
-                  sx={{
-                    textDecoration: 'none',
-                    height: '100%',
-                    transition: 'transform 0.2s, box-shadow 0.2s',
-                    '&:hover': {
-                      transform: 'translateY(-4px)',
-                      boxShadow: 6,
-                    },
+        <Container maxWidth="lg">
+          <Grid container spacing={4} alignItems="center">
+            <Grid item xs={12} md={7}>
+              <Stack spacing={3}>
+                <Box 
+                  sx={{ 
+                    display: 'inline-flex', 
+                    alignItems: 'center', 
+                    gap: 1,
+                    bgcolor: 'rgba(255,255,255,0.1)',
+                    width: 'fit-content',
+                    px: 2,
+                    py: 1,
+                    borderRadius: 50,
+                    backdropFilter: 'blur(10px)'
                   }}
                 >
-                  <CardMedia
-                    component="img"
-                    height="200"
-                    image={parasite.imageUrl || '/images/placeholder.png'}
-                    alt={parasite.scientificName}
-                    sx={{ objectFit: 'cover' }}
-                  />
-                  <CardContent>
-                    <Typography variant="h6" component="h3" gutterBottom>
-                      {parasite.scientificName}
-                    </Typography>
-                    {i18n.language === 'ar' && parasite.arabicName && (
-                      <Typography variant="body2" color="text.secondary" gutterBottom>
-                        {parasite.arabicName}
-                      </Typography>
-                    )}
-                    {i18n.language === 'fr' && parasite.frenchName && (
-                      <Typography variant="body2" color="text.secondary" gutterBottom>
-                        {parasite.frenchName}
-                      </Typography>
-                    )}
-                    <Typography variant="body2" color="text.secondary">
-                      <strong>{t('host_species')}:</strong> {parasite.hostSpecies}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      <strong>{t('discovery_year')}:</strong> {parasite.discoveryYear}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
-            ))}
+                  <Microscope size={20} />
+                  <Typography variant="subtitle2" fontWeight="bold">
+                    قاعدة البيانات الرقمية الجامعية
+                  </Typography>
+                </Box>
+                
+                <Typography variant="h2" sx={{ fontWeight: 800, lineHeight: 1.2 }}>
+                  اكتشف عالم <br />
+                  <span style={{ color: '#6ee7b7' }}>الطفيليات المجهرية</span>
+                </Typography>
+                
+                <Typography variant="h6" sx={{ opacity: 0.9, maxWidth: 600, fontWeight: 400 }}>
+                  منصة علمية متكاملة للطلاب والباحثين لتوثيق، تصنيف، ودراسة الطفيليات بأحدث التقنيات الرقمية.
+                </Typography>
+
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} pt={2}>
+                  <Button 
+                    variant="contained" 
+                    size="large"
+                    onClick={() => navigate('/archive')}
+                    sx={{ 
+                      bgcolor: 'white', 
+                      color: 'primary.main',
+                      fontSize: '1.1rem',
+                      px: 4,
+                      '&:hover': { bgcolor: '#f8f9fa' }
+                    }}
+                  >
+                    ابدأ التصفح
+                  </Button>
+                  {!user && (
+                    <Button 
+                      variant="outlined" 
+                      size="large"
+                      onClick={() => navigate('/register')}
+                      sx={{ 
+                        borderColor: 'rgba(255,255,255,0.5)', 
+                        color: 'white',
+                        fontSize: '1.1rem',
+                        px: 4,
+                        '&:hover': { borderColor: 'white', bgcolor: 'rgba(255,255,255,0.1)' }
+                      }}
+                    >
+                      إنشاء حساب
+                    </Button>
+                  )}
+                </Stack>
+              </Stack>
+            </Grid>
+            
+            <Grid item xs={12} md={5} sx={{ display: { xs: 'none', md: 'block' } }}>
+              <Box 
+                sx={{ 
+                  position: 'relative',
+                  '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    width: 400,
+                    height: 400,
+                    bgcolor: 'rgba(255,255,255,0.1)',
+                    borderRadius: '50%',
+                    filter: 'blur(60px)'
+                  }
+                }}
+              >
+                <Microscope size={300} strokeWidth={0.5} style={{ opacity: 0.8 }} />
+              </Box>
+            </Grid>
           </Grid>
-          <Box sx={{ textAlign: 'center', mt: 3 }}>
-            <Button
-              component={Link}
-              to="/parasites"
-              variant="outlined"
-              size="large"
-            >
-              {t('view_details')} →
-            </Button>
-          </Box>
-        </Box>
-      )}
-    </Container>
+        </Container>
+      </Box>
+
+      {/* Cards Section */}
+      <Container maxWidth="lg">
+        <Grid container spacing={3}>
+          {features.map((item, index) => (
+            (!item.restricted || user) && (
+              <Grid item xs={12} md={4} key={index}>
+                <Paper
+                  elevation={0}
+                  onClick={() => navigate(item.path)}
+                  sx={{
+                    p: 4,
+                    height: '100%',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 2,
+                    '&:hover': {
+                      transform: 'translateY(-8px)',
+                      borderColor: item.color,
+                      boxShadow: '0 10px 40px -10px ' + alpha(item.color, 0.3)
+                    }
+                  }}
+                >
+                  <Box 
+                    sx={{ 
+                      width: 60, 
+                      height: 60, 
+                      borderRadius: 4, 
+                      bgcolor: item.bg, 
+                      color: item.color,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      mb: 1
+                    }}
+                  >
+                    {item.icon}
+                  </Box>
+                  
+                  <Box>
+                    <Typography variant="h5" fontWeight="bold" gutterBottom>
+                      {item.title}
+                    </Typography>
+                    <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+                      {item.description}
+                    </Typography>
+                  </Box>
+
+                  <Box sx={{ mt: 'auto', display: 'flex', alignItems: 'center', color: item.color, fontWeight: 'bold' }}>
+                    {item.action} <ArrowLeft size={18} style={{ marginRight: 8 }} />
+                  </Box>
+                </Paper>
+              </Grid>
+            )
+          ))}
+        </Grid>
+      </Container>
+    </Box>
   );
-}
+};
+
+export default Home;

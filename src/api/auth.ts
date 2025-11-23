@@ -4,7 +4,7 @@ export interface User {
   id: number;
   name: string;
   email: string;
-  role?: 'admin' | 'researcher' | 'user';
+  role: 'student' | 'professor' | 'admin';
   createdAt?: string;
 }
 
@@ -206,4 +206,5 @@ export const authApi = {
     }
   },
 };
+
 

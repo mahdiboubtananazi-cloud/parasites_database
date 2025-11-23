@@ -1,136 +1,95 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import type { ReactNode } from 'react';
-import { authApi, type User, type LoginDto, type RegisterDto } from '../api/auth';
+﻿import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: 'student' | 'professor' | 'admin';
+}
+
+//  1. إضافة isLoading للواجهة (Interface)
 interface AuthContextType {
   user: User | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  login: (data: LoginDto) => Promise<void>;
-  register: (data: RegisterDto) => Promise<void>;
-  logout: () => Promise<void>;
-  refreshUser: () => Promise<void>;
+  isLoading: boolean; // هذا هو السطر المفقود الذي سبب الخطأ
+  login: (data: any) => Promise<void>;
+  register: (data: any) => Promise<void>;
+  logout: () => void;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType | null>(null);
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within AuthProvider');
-  }
-  return context;
-};
-
-interface AuthProviderProps {
-  children: ReactNode;
-}
-
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState<boolean>(true); // ✅ 2. حالة التحميل
   const navigate = useNavigate();
 
-  // Check if user is already logged in on mount
+  // عند تشغيل التطبيق، نحاول استرجاع المستخدم من LocalStorage
   useEffect(() => {
     const initAuth = async () => {
       try {
-        const token = localStorage.getItem('token');
-        const userStr = localStorage.getItem('user');
-        
-        if (token && userStr) {
-          try {
-            const currentUser = await authApi.getCurrentUser();
-            setUser(currentUser);
-            // Update localStorage with fresh user data
-            localStorage.setItem('user', JSON.stringify(currentUser));
-          } catch (error) {
-            // Token is invalid, clear storage
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-          }
+        const storedUser = localStorage.getItem('parasites_user');
+        if (storedUser) {
+          setUser(JSON.parse(storedUser));
         }
       } catch (error) {
-        console.error('Auth initialization error:', error);
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+        console.error('فشل استرجاع بيانات المستخدم', error);
       } finally {
-        setIsLoading(false);
+        setIsLoading(false); //  إيقاف التحميل سواء وجدنا مستخدم أم لا
       }
     };
-
     initAuth();
   }, []);
 
-  const login = async (data: LoginDto) => {
-    try {
-      setIsLoading(true);
-      const response = await authApi.login(data);
-      
-      localStorage.setItem('token', response.token);
-      localStorage.setItem('user', JSON.stringify(response.user));
-      setUser(response.user);
-      
-      navigate('/');
-    } catch (error) {
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
+  const login = async (data: any) => {
+    setIsLoading(true);
+    // محاكاة تأخير الشبكة لتسجيل الدخول
+    await new Promise(resolve => setTimeout(resolve, 800));
+    
+    const fakeUser: User = { 
+      id: '1', 
+      name: 'طالب جامعي', 
+      email: 'student@univ.edu', 
+      role: 'student' 
+    };
+    
+    setUser(fakeUser);
+    localStorage.setItem('parasites_user', JSON.stringify(fakeUser)); // حفظ المستخدم
+    setIsLoading(false);
+    navigate('/');
   };
 
-  const register = async (data: RegisterDto) => {
-    try {
-      setIsLoading(true);
-      const response = await authApi.register(data);
-      
-      localStorage.setItem('token', response.token);
-      localStorage.setItem('user', JSON.stringify(response.user));
-      setUser(response.user);
-      
-      navigate('/');
-    } catch (error) {
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
+  const register = async (data: any) => {
+    setIsLoading(true);
+    await new Promise(resolve => setTimeout(resolve, 800));
+    setIsLoading(false);
+    navigate('/login');
   };
 
-  const logout = async () => {
-    try {
-      await authApi.logout();
-      setUser(null);
-      navigate('/login');
-    } catch (error) {
-      // Even if API call fails, clear local state
-      setUser(null);
-      navigate('/login');
-    }
+  const logout = () => {
+    setUser(null);
+    localStorage.removeItem('parasites_user'); // حذف المستخدم
+    navigate('/login');
   };
 
-  const refreshUser = async () => {
-    try {
-      const currentUser = await authApi.getCurrentUser();
-      setUser(currentUser);
-      localStorage.setItem('user', JSON.stringify(currentUser));
-    } catch (error) {
-      console.error('Failed to refresh user:', error);
-      // If refresh fails, logout
-      await logout();
-    }
-  };
-
-  const value: AuthContextType = {
+  //  3. تمرير isLoading في القيمة المصدرة
+  const value = {
     user,
-    isAuthenticated: !!user,
     isLoading,
     login,
     register,
-    logout,
-    refreshUser,
+    logout
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) throw new Error('useAuth must be used within AuthProvider');
+  return context;
+};

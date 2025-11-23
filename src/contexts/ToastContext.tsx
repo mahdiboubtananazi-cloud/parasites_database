@@ -1,98 +1,56 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
-import type { ReactNode } from 'react';
+﻿import React, { createContext, useContext, useState, ReactNode, useCallback } from 'react';
 import { Snackbar, Alert } from '@mui/material';
-import type { AlertColor } from '@mui/material';
 
+type ToastSeverity = 'success' | 'info' | 'warning' | 'error';
+
+//  تحديث الواجهة لتدعم الدوال المطلوبة في Login.tsx
 interface ToastContextType {
-  showToast: (message: string, severity?: AlertColor) => void;
+  showToast: (message: string, type?: ToastSeverity) => void;
   showSuccess: (message: string) => void;
   showError: (message: string) => void;
-  showWarning: (message: string) => void;
-  showInfo: (message: string) => void;
 }
 
-const ToastContext = createContext<ToastContextType | undefined>(undefined);
+const ToastContext = createContext<ToastContextType | null>(null);
 
-export const useToast = () => {
-  const context = useContext(ToastContext);
-  if (!context) {
-    throw new Error('useToast must be used within ToastProvider');
-  }
-  return context;
-};
+export const ToastProvider = ({ children }: { children: ReactNode }) => {
+  const [open, setOpen] = useState(false);
+  const [message, setMessage] = useState('');
+  const [severity, setSeverity] = useState<ToastSeverity>('success');
 
-interface ToastProviderProps {
-  children: ReactNode;
-}
-
-interface ToastState {
-  open: boolean;
-  message: string;
-  severity: AlertColor;
-}
-
-export const ToastProvider: React.FC<ToastProviderProps> = ({ children }) => {
-  const [toast, setToast] = useState<ToastState>({
-    open: false,
-    message: '',
-    severity: 'info',
-  });
-
-  const showToast = useCallback((message: string, severity: AlertColor = 'info') => {
-    setToast({
-      open: true,
-      message,
-      severity,
-    });
+  const showToast = useCallback((msg: string, type: ToastSeverity = 'success') => {
+    setMessage(msg);
+    setSeverity(type);
+    setOpen(true);
   }, []);
 
-  const showSuccess = useCallback((message: string) => {
-    showToast(message, 'success');
-  }, [showToast]);
+  //  إضافة الدوال المساعدة
+  const showSuccess = useCallback((msg: string) => showToast(msg, 'success'), [showToast]);
+  const showError = useCallback((msg: string) => showToast(msg, 'error'), [showToast]);
 
-  const showError = useCallback((message: string) => {
-    showToast(message, 'error');
-  }, [showToast]);
-
-  const showWarning = useCallback((message: string) => {
-    showToast(message, 'warning');
-  }, [showToast]);
-
-  const showInfo = useCallback((message: string) => {
-    showToast(message, 'info');
-  }, [showToast]);
-
-  const handleClose = useCallback(() => {
-    setToast(prev => ({ ...prev, open: false }));
-  }, []);
-
-  const value: ToastContextType = {
-    showToast,
-    showSuccess,
-    showError,
-    showWarning,
-    showInfo,
+  const handleClose = (event?: React.SyntheticEvent | Event, reason?: string) => {
+    if (reason === 'clickaway') return;
+    setOpen(false);
   };
 
   return (
-    <ToastContext.Provider value={value}>
+    <ToastContext.Provider value={{ showToast, showSuccess, showError }}>
       {children}
-      <Snackbar
-        open={toast.open}
-        autoHideDuration={6000}
+      <Snackbar 
+        open={open} 
+        autoHideDuration={4000} 
         onClose={handleClose}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
-        <Alert
-          onClose={handleClose}
-          severity={toast.severity}
-          variant="filled"
-          sx={{ width: '100%' }}
-        >
-          {toast.message}
+        <Alert onClose={handleClose} severity={severity} sx={{ width: '100%', boxShadow: 3 }}>
+          {message}
         </Alert>
       </Snackbar>
     </ToastContext.Provider>
   );
 };
 
+export const useToast = () => {
+  const context = useContext(ToastContext);
+  if (!context) throw new Error('useToast must be used within ToastProvider');
+  return context;
+};

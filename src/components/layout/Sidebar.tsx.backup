@@ -69,7 +69,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
             path: '/add-parasite',
             protected: true,
           },
-          
+          {
+            text: t('nav_add_sample'),
+            icon: <AddCircleIcon />,
+            path: '/add-sample',
+            protected: true,
+          },
         ]
       : []),
   ];
@@ -341,5 +346,4 @@ export const SidebarToggle: React.FC<{ onClick: () => void }> = ({ onClick }) =>
     </IconButton>
   );
 };
-
 
