@@ -7,15 +7,14 @@ import Home from './pages/Home';
 import Archive from './pages/Archive';
 import AddParasite from './pages/AddParasite';
 import ParasiteDetails from './pages/ParasiteDetails';
+import Dashboard from './pages/Dashboard'; //  استيراد جديد
 import Login from './pages/Login';
 import Register from './pages/Register';
 import { AuthProvider } from './contexts/AuthContext';
 import { ToastProvider } from './contexts/ToastContext';
 
 const NotFound = () => (
-  <Box sx={{ textAlign: 'center', mt: 10 }}>
-    <h1>404 - الصفحة غير موجودة</h1>
-  </Box>
+  <Box sx={{ textAlign: 'center', mt: 10 }}><h1>404</h1></Box>
 );
 
 function App() {
@@ -31,6 +30,7 @@ function App() {
               <Route path="/archive" element={<Archive />} />
               <Route path="/add-parasite" element={<AddParasite />} />
               <Route path="/parasites/:id" element={<ParasiteDetails />} />
+              <Route path="/dashboard" element={<Dashboard />} /> {/*  مسار لوحة التحكم */}
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="*" element={<NotFound />} />
