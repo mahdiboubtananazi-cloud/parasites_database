@@ -7,12 +7,12 @@ interface ImageGalleryProps {
 }
 
 const ImageGallery: React.FC<ImageGalleryProps> = ({ images, title }) => {
-  // ??? ??? ?????
+  // Prevent right click (Security)
   const handleImageContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
   };
 
-  // ??? ??? ?????
+  // Prevent drag (Security)
   const handleImageDragStart = (e: React.DragEvent) => {
     e.preventDefault();
   };
@@ -21,10 +21,10 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ images, title }) => {
     return (
       <Box sx={{ textAlign: 'center', py: 4 }}>
         <Typography variant="h6" color="text.secondary">
-          ?? ???? ??? ?????
+          No images available
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-          ????? ??? ???? ??????? ??? ???????? ?????
+          No microscopic samples attached to this record.
         </Typography>
       </Box>
     );
@@ -41,30 +41,19 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ images, title }) => {
         {images.map((image, index) => (
           <ImageListItem key={index}>
             <img
-              src={\data:image/jpeg;base64,\\\}
-              alt={\???? ??????? \\\}
+              src={image} 
+              alt={\Parasite specimen \\}
               loading="lazy"
               style={{
                 borderRadius: '8px',
-                filter: 'blur(2px)', // ???? ?????? ????? ???
-                cursor: 'not-allowed'
+                cursor: 'pointer',
+                width: '100%',
+                height: '200px',
+                objectFit: 'cover'
               }}
               onContextMenu={handleImageContextMenu}
               onDragStart={handleImageDragStart}
             />
-            <Box
-              sx={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)',
-                color: 'white',
-                fontWeight: 'bold',
-                textShadow: '2px 2px 4px rgba(0,0,0,0.5)'
-              }}
-            >
-              ????? ???
-            </Box>
           </ImageListItem>
         ))}
       </ImageList>

@@ -13,14 +13,14 @@ const Navigation: React.FC = () => {
         <Link to="/" className="nav-logo">
           {t('app_title')}
         </Link>
-        <div className={\"nav-menu \\"}>
+        <ul className={isMenuOpen ? 'nav-menu active' : 'nav-menu'}>
           <li className="nav-item">
             <Link to="/" className="nav-link" onClick={() => setIsMenuOpen(false)}>
               {t('nav_home')}
             </Link>
           </li>
           <li className="nav-item">
-            <Link to="/parasites" className="nav-link" onClick={() => setIsMenuOpen(false)}>
+            <Link to="/archive" className="nav-link" onClick={() => setIsMenuOpen(false)}>
               {t('nav_parasites')}
             </Link>
           </li>
@@ -34,8 +34,8 @@ const Navigation: React.FC = () => {
               {t('nav_login')}
             </Link>
           </li>
-        </div>
-        <div className=\"nav-toggle \\" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+        </ul>
+        <div className="nav-toggle" onClick={() => setIsMenuOpen(!isMenuOpen)}>
           <span className="bar"></span>
           <span className="bar"></span>
           <span className="bar"></span>

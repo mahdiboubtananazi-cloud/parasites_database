@@ -19,7 +19,7 @@ export interface ParasiteSubmission {
 }
 
 export const submissionApi = {
-  // ????? ????? ???? ????????
+  // Submit a parasite
   submitParasite: async (data: FormData): Promise<ParasiteSubmission> => {
     const response = await apiClient.post<ParasiteSubmission>('/parasites/submissions', data, {
       headers: {
@@ -29,23 +29,23 @@ export const submissionApi = {
     return response.data;
   },
 
-  // ?????? ??? ????? ??????? (????????)
+  // Get submissions (Admin)
   getSubmissions: async (status?: string): Promise<ParasiteSubmission[]> => {
     const params = status ? { status } : {};
     const response = await apiClient.get<ParasiteSubmission[]>('/parasites/submissions', { params });
     return response.data;
   },
 
-  // ?????? ??? ????? (????????)
+  // Review submission (Admin) - Fixed URL here
   reviewSubmission: async (id: string, status: 'approved' | 'rejected', rejectionReason?: string): Promise<ParasiteSubmission> => {
-    const response = await apiClient.patch<ParasiteSubmission>(/parasites/submissions/\\/review, {
+    const response = await apiClient.patch<ParasiteSubmission>(\/parasites/submissions/\/review\, {
       status,
       rejectionReason,
     });
     return response.data;
   },
 
-  // ?????? ??? ??????? ?????? ?????????
+  // Get user submissions
   getUserSubmissions: async (): Promise<ParasiteSubmission[]> => {
     const response = await apiClient.get<ParasiteSubmission[]>('/parasites/submissions/my');
     return response.data;
