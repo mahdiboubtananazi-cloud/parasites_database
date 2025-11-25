@@ -36,9 +36,9 @@ export const submissionApi = {
     return response.data;
   },
 
-  // Review submission (Admin) - Fixed URL here
+  // Review submission (Admin)
   reviewSubmission: async (id: string, status: 'approved' | 'rejected', rejectionReason?: string): Promise<ParasiteSubmission> => {
-    const response = await apiClient.patch<ParasiteSubmission>(\/parasites/submissions/\/review\, {
+    const response = await apiClient.patch<ParasiteSubmission>(`/parasites/submissions/${id}/review`, {
       status,
       rejectionReason,
     });

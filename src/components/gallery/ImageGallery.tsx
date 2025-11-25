@@ -42,7 +42,7 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ images, title }) => {
           <ImageListItem key={index}>
             <img
               src={image} 
-              alt={\Parasite specimen \\}
+              alt={`Parasite specimen ${index + 1}`}
               loading="lazy"
               style={{
                 borderRadius: '8px',
