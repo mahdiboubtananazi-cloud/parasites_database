@@ -1,20 +1,19 @@
-﻿import { green, red, orange, blue, grey } from '@mui/material/colors';
+﻿import { green, teal, grey, red, orange, blue } from '@mui/material/colors';
 
 export const colors = {
-  // الألوان الأساسية للمشروع (الهوية البصرية)
   primary: {
-    main: '#0F62FE',
-    light: '#4589ff',
-    dark: '#0043ce',
+    main: '#047857',    // Emerald 700 (يدوياً)
+    light: '#34D399',   // Emerald 400
+    dark: '#064E3B',    // Emerald 900
     contrastText: '#ffffff',
   },
   secondary: {
-    main: '#10b981',
-    light: '#34d399',
-    dark: '#059669',
+    main: '#059669',    // Emerald 600
+    light: '#6EE7B7',   // Emerald 300
+    dark: '#065F46',    // Emerald 800
     contrastText: '#ffffff',
   },
-  // إضافة الألوان القياسية لمنع الأخطاء (هذا هو سبب المشكلة)
+  // إضافة الألوان القياسية لمنع الأخطاء
   success: {
     main: green[600],
     light: green[400],
@@ -40,27 +39,26 @@ export const colors = {
     contrastText: '#ffffff',
   },
   grey: grey,
-  green: green, // دعم الكود القديم الذي يطلب colors.green
+  green: green, 
   red: red,
   
-  // الخلفيات والنصوص
   background: {
-    default: '#F4F7FE',
+    default: '#F0FDF4', 
     paper: '#ffffff',
   },
   text: {
-    primary: '#1B254B',
-    secondary: '#A3AED0',
+    primary: '#064E3B', 
+    secondary: '#374151',
   },
   action: {
-    hover: 'rgba(15, 98, 254, 0.08)',
+    hover: 'rgba(4, 120, 87, 0.08)',
   }
 };
 
 export const gradients = {
-  primary: 'linear-gradient(45deg, #0F62FE 0%, #4589ff 100%)',
-  secondary: 'linear-gradient(45deg, #10b981 0%, #34d399 100%)',
-  dark: 'linear-gradient(135deg, #1B254B 0%, #0F62FE 100%)',
+  primary: 'linear-gradient(135deg, #047857 0%, #10B981 100%)',
+  secondary: 'linear-gradient(135deg, #059669 0%, #34D399 100%)',
+  dark: 'linear-gradient(135deg, #064E3B 0%, #047857 100%)',
 };
 
 // دعم الكود القديم

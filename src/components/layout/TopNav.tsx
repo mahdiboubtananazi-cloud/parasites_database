@@ -3,7 +3,7 @@ import {
   AppBar, Toolbar, Typography, Button, Box, Container, 
   Stack, Avatar, Menu, MenuItem, IconButton, Tooltip, Divider
 } from '@mui/material';
-import { LogOut, User, Microscope, Globe, ChevronDown } from 'lucide-react';
+import { LogOut, User, Microscope, Globe, ChevronDown, Menu as MenuIcon } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../hooks/useAuth';
@@ -17,141 +17,81 @@ const TopNav = () => {
   const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(null);
   const [anchorElLang, setAnchorElLang] = React.useState<null | HTMLElement>(null);
 
-  //  ضبط اتجاه الصفحة عند التحميل وعند تغيير اللغة
-  useEffect(() => {
-    document.dir = i18n.language === 'ar' ? 'rtl' : 'ltr';
-  }, [i18n.language]);
+  useEffect(() => { document.dir = i18n.language === 'ar' ? 'rtl' : 'ltr'; }, [i18n.language]);
 
   const isActive = (path: string) => location.pathname === path;
-  
-  const changeLanguage = (lang: string) => {
-    i18n.changeLanguage(lang);
-    setAnchorElLang(null);
-  };
-
-  const getLangLabel = () => {
-    switch(i18n.language) {
-      case 'ar': return 'العربية';
-      case 'fr': return 'Français';
-      default: return 'English';
-    }
-  };
+  const changeLanguage = (lang: string) => { i18n.changeLanguage(lang); setAnchorElLang(null); };
 
   return (
     <AppBar 
       position="sticky" 
       elevation={0}
       sx={{
-        background: 'rgba(255, 255, 255, 0.95)',
-        backdropFilter: 'blur(12px)',
-        borderBottom: '1px solid rgba(0,0,0,0.08)',
+        background: 'rgba(255, 255, 255, 0.85)', // شفافية أعلى
+        backdropFilter: 'blur(16px)',
+        borderBottom: '1px solid rgba(4, 120, 87, 0.1)', // حد أخضر خفيف
         color: 'text.primary'
       }}
     >
       <Container maxWidth="xl">
-        <Toolbar disableGutters sx={{ height: { xs: 64, md: 72 } }}> {/* ارتفاع متجاوب */}
+        <Toolbar disableGutters sx={{ height: 70, justifyContent: 'space-between' }}>
           
-          {/* Logo */}
-          <Stack 
-            direction="row" 
-            alignItems="center" 
-            spacing={1.5} 
-            sx={{ flexGrow: 0, mr: { xs: 1, md: 4 }, cursor: 'pointer' }} 
-            onClick={() => navigate('/')}
-          >
-            <Box 
-              sx={{ 
-                width: { xs: 36, md: 42 }, height: { xs: 36, md: 42 }, 
-                bgcolor: 'primary.main', 
-                borderRadius: '10px',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: 'white',
-                boxShadow: '0 4px 12px rgba(15, 98, 254, 0.2)'
-              }}
-            >
+          {/* 1. Logo Section (Left) */}
+          <Stack direction="row" alignItems="center" spacing={1.5} sx={{ cursor: 'pointer', width: 200 }} onClick={() => navigate('/')}>
+            <Box sx={{ width: 40, height: 40, bgcolor: 'primary.main', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', boxShadow: '0 4px 12px rgba(4, 120, 87, 0.2)' }}>
               <Microscope size={24} />
             </Box>
-            <Typography variant="h6" fontWeight={800} sx={{ letterSpacing: -0.5, display: { xs: 'none', sm: 'block' } }}>
-              Parasite<span style={{ color: '#0F62FE' }}>DB</span>
+            <Typography variant="h6" fontWeight={800} sx={{ letterSpacing: -0.5, color: 'primary.dark' }}>
+              Bio<span style={{ color: '#10B981' }}>Lab</span>
             </Typography>
           </Stack>
 
-          {/* Desktop Menu */}
-          <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' }, gap: 1 }}>
-            <Button onClick={() => navigate('/')} sx={{ color: isActive('/') ? 'primary.main' : 'text.secondary', fontWeight: isActive('/') ? 700 : 500 }}>
-              {t('welcome').includes('Welcome') || t('welcome').includes('Bienvenue') ? 'Home' : 'الرئيسية'}
-            </Button>
-            <Button onClick={() => navigate('/archive')} sx={{ color: isActive('/archive') ? 'primary.main' : 'text.secondary', fontWeight: isActive('/archive') ? 700 : 500 }}>
-              {t('archive')}
-            </Button>
-            <Button onClick={() => navigate('/add-parasite')} sx={{ color: isActive('/add-parasite') ? 'primary.main' : 'text.secondary', fontWeight: isActive('/add-parasite') ? 700 : 500 }}>
-              {t('add_sample')}
-            </Button>
-          </Box>
+          {/* 2. Center Menu (Centered) */}
+          <Stack direction="row" spacing={1} sx={{ display: { xs: 'none', md: 'flex' }, position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}>
+            {[
+              { title: t('welcome').includes('Welcome') || t('welcome').includes('Bienvenue') ? 'Home' : 'الرئيسية', path: '/' },
+              { title: t('archive'), path: '/archive' },
+              { title: t('add_sample'), path: '/add-parasite' }
+            ].map((link) => (
+              <Button 
+                key={link.path}
+                onClick={() => navigate(link.path)}
+                sx={{
+                  color: isActive(link.path) ? 'primary.main' : 'text.secondary',
+                  fontWeight: isActive(link.path) ? 700 : 500,
+                  bgcolor: isActive(link.path) ? 'rgba(4, 120, 87, 0.08)' : 'transparent',
+                  borderRadius: '50px', px: 3,
+                  '&:hover': { bgcolor: 'rgba(4, 120, 87, 0.04)', color: 'primary.main' }
+                }}
+              >
+                {link.title}
+              </Button>
+            ))}
+          </Stack>
 
-          {/* Right Section */}
-          <Stack direction="row" spacing={{ xs: 1, md: 2 }} alignItems="center" sx={{ ml: 'auto' }}>
-            
-            {/*  Language Switcher Dropdown */}
-            <Button
-              onClick={(e) => setAnchorElLang(e.currentTarget)}
-              startIcon={<Globe size={18} />}
-              endIcon={<ChevronDown size={14} />}
-              sx={{ 
-                color: 'text.secondary',
-                minWidth: { xs: 'auto', md: 120 },
-                '& .MuiButton-startIcon': { mr: { xs: 0, md: 1 } },
-                '& .MuiButton-endIcon': { ml: { xs: 0, md: 1 } },
-                '& span': { display: { xs: 'none', md: 'inline' } } // إخفاء النص في الموبايل
-              }}
-            >
-              {getLangLabel()}
-            </Button>
-            
-            <Menu
-              anchorEl={anchorElLang}
-              open={Boolean(anchorElLang)}
-              onClose={() => setAnchorElLang(null)}
-              PaperProps={{ sx: { mt: 1.5, minWidth: 150, borderRadius: 3 } }}
-            >
-              <MenuItem selected={i18n.language === 'fr'} onClick={() => changeLanguage('fr')}> Français</MenuItem>
-              <MenuItem selected={i18n.language === 'en'} onClick={() => changeLanguage('en')}> English</MenuItem>
-              <Divider />
-              <MenuItem selected={i18n.language === 'ar'} onClick={() => changeLanguage('ar')}> العربية</MenuItem>
+          {/* 3. Right Section (User & Lang) */}
+          <Stack direction="row" spacing={1} alignItems="center" sx={{ width: 200, justifyContent: 'flex-end' }}>
+            <IconButton onClick={(e) => setAnchorElLang(e.currentTarget)} size="small">
+              <Globe size={20} color="#047857" />
+            </IconButton>
+            <Menu anchorEl={anchorElLang} open={Boolean(anchorElLang)} onClose={() => setAnchorElLang(null)} PaperProps={{ sx: { mt: 1.5, minWidth: 150, borderRadius: 3 } }}>
+              <MenuItem onClick={() => changeLanguage('fr')}> Français</MenuItem>
+              <MenuItem onClick={() => changeLanguage('en')}> English</MenuItem>
+              <MenuItem onClick={() => changeLanguage('ar')}> العربية</MenuItem>
             </Menu>
 
-            {/* User Section */}
             {user ? (
-              <>
-                <Button 
-                  onClick={(e) => setAnchorElUser(e.currentTarget)}
-                  sx={{ minWidth: 0, p: 0.5, borderRadius: '50%' }}
-                >
-                  <Avatar sx={{ width: 36, height: 36, bgcolor: 'primary.main', fontSize: 14 }}>{user.name[0]}</Avatar>
-                </Button>
-                <Menu
-                  anchorEl={anchorElUser}
-                  open={Boolean(anchorElUser)}
-                  onClose={() => setAnchorElUser(null)}
-                  PaperProps={{ sx: { mt: 1.5, minWidth: 180, borderRadius: 3 } }}
-                >
-                   <Box sx={{ px: 2, py: 1 }}>
-                      <Typography variant="subtitle2">{user.name}</Typography>
-                      <Typography variant="caption" color="text.secondary">{user.email}</Typography>
-                   </Box>
-                   <Divider />
-                  <MenuItem onClick={() => { setAnchorElUser(null); logout(); }} sx={{ color: 'error.main', gap: 1 }}>
-                    <LogOut size={16} /> {t('logout')}
-                  </MenuItem>
-                </Menu>
-              </>
+              <IconButton onClick={(e) => setAnchorElUser(e.currentTarget)} sx={{ p: 0.5, border: '1px solid', borderColor: 'divider' }}>
+                <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main', fontSize: 14 }}>{user.name[0]}</Avatar>
+              </IconButton>
             ) : (
-              <Stack direction="row" spacing={1}>
-                <Button variant="outlined" size="small" onClick={() => navigate('/login')}>{t('login')}</Button>
-                <Button variant="contained" size="small" onClick={() => navigate('/register')} sx={{ display: { xs: 'none', sm: 'flex' } }}>{t('register')}</Button>
-              </Stack>
+              <Button variant="contained" size="small" onClick={() => navigate('/login')} sx={{ borderRadius: 50 }}>{t('login')}</Button>
             )}
+            <Menu anchorEl={anchorElUser} open={Boolean(anchorElUser)} onClose={() => setAnchorElUser(null)} PaperProps={{ sx: { mt: 1.5 } }}>
+              <MenuItem onClick={() => { setAnchorElUser(null); logout(); }} sx={{ color: 'error.main' }}><LogOut size={16} style={{ marginRight: 8 }} /> {t('logout')}</MenuItem>
+            </Menu>
           </Stack>
+
         </Toolbar>
       </Container>
     </AppBar>
