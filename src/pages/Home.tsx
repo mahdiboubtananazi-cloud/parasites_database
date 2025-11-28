@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import {
   Box, Container, Typography, Paper, Button, Stack, Grid, alpha, useTheme,
   TextField, InputAdornment, Chip
@@ -45,7 +45,7 @@ const Home = () => {
             {/* Badge */}
             <Chip 
               icon={<ShieldCheck size={16} />} 
-              label="Systeme de Base de Données Sécurisé" 
+              label="Systeme de Base de Donn�es S�curis�" 
               sx={{ 
                 bgcolor: alpha(theme.palette.primary.main, 0.1), 
                 color: 'primary.main', fontWeight: 600, px: 1 
@@ -65,7 +65,7 @@ const Home = () => {
             </Typography>
             
             <Typography variant="h5" color="text.secondary" sx={{ maxWidth: 600, lineHeight: 1.6 }}>
-              المنصة الرقمية الموحدة لتوثيق وأرشفة العينات الطفيلية للأغراض البحثية والأكاديمية.
+              ?????? ??????? ??????? ?????? ?????? ??????? ???????? ??????? ??????? ???????????.
             </Typography>
 
             {/* Search Bar */}
@@ -89,7 +89,7 @@ const Home = () => {
               </InputAdornment>
               <TextField
                 fullWidth
-                placeholder="ابحث عن اسم طفيلي فصيلة أو تاريخ..."
+                placeholder="???? ?? ??? ????? ????? ?? ?????..."
                 variant="standard"
                 value={searchQuery}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -101,7 +101,7 @@ const Home = () => {
                 variant="contained"
                 sx={{ borderRadius: 50, px: 4, py: 1.5, fontWeight: 'bold', boxShadow: 'none' }}
               >
-                بحث
+                ???
               </Button>
             </Paper>
           </Stack>
@@ -110,10 +110,10 @@ const Home = () => {
 
       {/* Floating Cards Section */}
       <Container maxWidth="lg" sx={{ mt: { xs: -12, md: -16 }, position: 'relative', zIndex: 2, mb: 10 }}>
-        <Grid container spacing={3}>
+        <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", md: "repeat(3, 1fr)" }, gap: 3 }}>
           
           {/* Stats Cards */}
-          <Grid item xs={12} md={4}>
+          <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 4" } }}>
               <Paper sx={{
                 p: 4, height: '100%', borderRadius: 5,
                 border: '1px solid', borderColor: 'rgba(255,255,255,0.6)',
@@ -134,15 +134,15 @@ const Home = () => {
                   {stats.total}
                 </Typography>
                 <Typography variant="h6" color="text.primary" fontWeight={600} gutterBottom>
-                  عينات موثقة
+                  ????? ?????
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  إجمالي العينات في قاعدة البيانات
+                  ?????? ??????? ?? ????? ????????
                 </Typography>
               </Paper>
-          </Grid>
+          </Box>
 
-          <Grid item xs={12} md={4}>
+          <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 4" } }}>
               <Paper sx={{
                 p: 4, height: '100%', borderRadius: 5,
                 border: '1px solid', borderColor: 'rgba(255,255,255,0.6)',
@@ -163,16 +163,16 @@ const Home = () => {
                   {stats.types}
                 </Typography>
                 <Typography variant="h6" color="text.primary" fontWeight={600} gutterBottom>
-                  فصائل نادرة
+                  ????? ?????
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  تنوع بيولوجي مصنف بدقة
+                  ???? ??????? ???? ????
                 </Typography>
               </Paper>
-          </Grid>
+          </Box>
 
           {/* Add Action Card */}
-          <Grid item xs={12} md={4}>
+          <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 4" } }}>
             <Paper
               onClick={() => navigate('/add-parasite')}
               sx={{
@@ -196,10 +196,10 @@ const Home = () => {
                   {t('add_sample')}
                 </Typography>
                 <Typography variant="body2" sx={{ opacity: 0.7, mb: 3 }}>
-                  المساهمة في إضافة عينة جديدة وتوثيق خصائصها المجهرية.
+                  ???????? ?? ????? ???? ????? ?????? ??????? ????????.
                 </Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#38BDF8', fontWeight: 'bold', fontSize: '0.9rem' }}>
-                  ابدأ التوثيق <ChevronRight size={16} />
+                  ???? ??????? <ChevronRight size={16} />
                 </Box>
               </Box>
               
@@ -209,12 +209,15 @@ const Home = () => {
                 borderRadius: '50%', bgcolor: 'rgba(56, 189, 248, 0.1)', zIndex: 1
               }} />
             </Paper>
-          </Grid>
+          </Box>
 
-        </Grid>
+        </Box>
       </Container>
     </Box>
   );
 };
 
 export default Home;
+
+
+

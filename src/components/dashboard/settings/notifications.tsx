@@ -10,7 +10,7 @@ import Checkbox from '@mui/material/Checkbox';
 import Divider from '@mui/material/Divider';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import FormGroup from '@mui/material/FormGroup';
-import Grid from '@mui/material/Grid';
+import { Grid, Box } from '@mui/material';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
@@ -25,13 +25,8 @@ export function Notifications(): React.JSX.Element {
         <CardHeader subheader="Manage the notifications" title="Notifications" />
         <Divider />
         <CardContent>
-          <Grid container spacing={6} wrap="wrap">
-            <Grid
-              size={{
-                md: 4,
-                sm: 6,
-                xs: 12,
-              }}
+          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+            <Box sx={{ width: "100%" }}
             >
               <Stack spacing={1}>
                 <Typography variant="h6">Email</Typography>
@@ -40,13 +35,8 @@ export function Notifications(): React.JSX.Element {
                   <FormControlLabel control={<Checkbox />} label="Security updates" />
                 </FormGroup>
               </Stack>
-            </Grid>
-            <Grid
-              size={{
-                md: 4,
-                sm: 6,
-                xs: 12,
-              }}
+            </Box>
+            <Box sx={{ width: "100%" }}
             >
               <Stack spacing={1}>
                 <Typography variant="h6">Phone</Typography>
@@ -55,8 +45,8 @@ export function Notifications(): React.JSX.Element {
                   <FormControlLabel control={<Checkbox />} label="Security updates" />
                 </FormGroup>
               </Stack>
-            </Grid>
-          </Grid>
+            </Box>
+          </Box>
         </CardContent>
         <Divider />
         <CardActions sx={{ justifyContent: 'flex-end' }}>
@@ -66,3 +56,11 @@ export function Notifications(): React.JSX.Element {
     </form>
   );
 }
+
+
+
+
+
+
+
+

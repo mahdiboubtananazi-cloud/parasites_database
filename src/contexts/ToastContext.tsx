@@ -1,9 +1,9 @@
-﻿import React, { createContext, useContext, useState, ReactNode, useCallback } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useCallback } from 'react';
 import { Snackbar, Alert } from '@mui/material';
 
 type ToastSeverity = 'success' | 'info' | 'warning' | 'error';
 
-//  تحديث الواجهة لتدعم الدوال المطلوبة في Login.tsx
+//  ????? ??????? ????? ?????? ???????? ?? Login.tsx
 interface ToastContextType {
   showToast: (message: string, type?: ToastSeverity) => void;
   showSuccess: (message: string) => void;
@@ -23,7 +23,7 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
     setOpen(true);
   }, []);
 
-  //  إضافة الدوال المساعدة
+  //  ????? ?????? ????????
   const showSuccess = useCallback((msg: string) => showToast(msg, 'success'), [showToast]);
   const showError = useCallback((msg: string) => showToast(msg, 'error'), [showToast]);
 

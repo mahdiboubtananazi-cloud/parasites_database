@@ -1,8 +1,23 @@
-'use client';
+import React from 'react';
+import ReactApexChart from 'react-apexcharts';
+import type { ApexOptions } from 'apexcharts';
 
-import dynamic from 'next/dynamic';
-import { styled } from '@mui/system';
+export interface ChartProps {
+  type?: 'line' | 'area' | 'bar' | 'pie' | 'donut' | 'radialBar';
+  series: any;
+  options: ApexOptions;
+  width?: string | number;
+  height?: string | number;
+}
 
-const ApexChart = dynamic(() => import('react-apexcharts'), { ssr: false, loading: () => null });
-
-export const Chart = styled(ApexChart)``;
+export function Chart({ type = 'line', series, options, width = '100%', height = '350' }: ChartProps) {
+  return (
+    <ReactApexChart
+      type={type}
+      series={series}
+      options={options}
+      width={width}
+      height={height}
+    />
+  );
+}

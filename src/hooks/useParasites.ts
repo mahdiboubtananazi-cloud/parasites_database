@@ -11,12 +11,15 @@ export interface Parasite {
   stage?: string;
 }
 
-//  العودة إلى localhost (الأكثر استقراراً)
-const API_URL = 'http://localhost:8000'; 
+const API_URL = 'http://localhost:8000';
 
-export const useParasites = () => {
+interface UseParasitesOptions {
+  autoFetch?: boolean;
+}
+
+export const useParasites = (options: UseParasitesOptions = { autoFetch: true }) => {
   const [parasites, setParasites] = useState<Parasite[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(options.autoFetch !== false);
   const [error, setError] = useState(null);
 
   const fetchParasites = async () => {
@@ -33,9 +36,32 @@ export const useParasites = () => {
     }
   };
 
+  const createParasite = async (data: Omit<Parasite, 'id'>) => {
+    try {
+      setLoading(true);
+      const response = await axios.post(`${API_URL}/parasites`, data);
+      setParasites(prev => [...prev, response.data]);
+      return response.data;
+    } catch (err: any) {
+      console.error(err);
+      setError(err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    fetchParasites();
+    if (options.autoFetch !== false) {
+      fetchParasites();
+    }
   }, []);
 
-  return { parasites, loading, error, refetch: fetchParasites };
+  return { 
+    parasites, 
+    loading, 
+    error, 
+    refetch: fetchParasites,
+    createParasite 
+  };
 };

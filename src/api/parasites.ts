@@ -1,7 +1,7 @@
 import apiClient, { handleApiError } from './client';
 
 export interface Parasite {
-  id: number;
+  id: number | string;
   scientificName: string;
   arabicName?: string;
   frenchName?: string;
@@ -15,6 +15,9 @@ export interface Parasite {
   discoveryYear?: number;
   imageUrl?: string;
   microscopicImageUrl?: string;
+  type?: string;
+  stage?: string;
+  status?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -33,6 +36,8 @@ export interface CreateParasiteDto {
   discoveryYear?: number;
   imageUrl?: string;
   microscopicImageUrl?: string;
+  type?: string;
+  stage?: string;
 }
 
 export interface UpdateParasiteDto extends Partial<CreateParasiteDto> {}
@@ -61,6 +66,8 @@ const mockParasites: Parasite[] = [
     discoveryYear: 2020,
     imageUrl: '/images/parasites/parasite1.png',
     microscopicImageUrl: '/images/parasites/parasite1.png',
+    type: 'Protozoa',
+    stage: 'Trophozoite'
   },
   {
     id: 2,
@@ -68,24 +75,26 @@ const mockParasites: Parasite[] = [
     arabicName: 'الإسكارس',
     frenchName: 'Ascaris lumbricoides',
     commonName: 'Roundworm',
-    description: 'Ascaris lumbricoides is a large parasitic nematode that infects the human small intestine.',
+    description: 'Ascaris lumbricoides is a large parasitic nematode that infects the human small intestine.',        
     arabicDescription: 'الإسكارس هو ديدان طفيلية كبيرة تصيب الأمعاء الدقيقة للإنسان.',
-    frenchDescription: 'Ascaris lumbricoides est un grand nématode parasite qui infecte l\'intestin grêle humain.',
+    frenchDescription: 'Ascaris lumbricoides est un grand nématode parasite qui infecte l\'intestin grêle humain.', 
     hostSpecies: 'Homo sapiens',
     morphologicalCharacteristics: 'Large roundworm (20-35 cm), cream-colored, thick cuticle, three lips around mouth',
     detectionMethod: 'Stool examination, Kato-Katz technique, Formalin-ether concentration',
     discoveryYear: 2021,
     imageUrl: '/images/parasites/parasite2.png',
     microscopicImageUrl: '/images/parasites/parasite2.png',
+    type: 'Nematode',
+    stage: 'Adult'
   },
   {
     id: 3,
     scientificName: 'Entamoeba histolytica',
-    arabicName: 'الإنتاميبا',
+    arabicName: 'الإنتاجيبا',
     frenchName: 'Entamoeba histolytica',
     commonName: 'Amoeba',
     description: 'Entamoeba histolytica is a protozoan parasite that causes amoebic dysentery and liver abscess in humans.',
-    arabicDescription: 'الإنتاميبا هي طفيلي بروتوزواني يسبب الزحار الأميبي وخراج الكبد في البشر.',
+    arabicDescription: 'الإنتاجيبا هي طفيلي بروتوزواني يسبب الزحار الأميبي وخراج الكبد في البشر.',
     frenchDescription: 'Entamoeba histolytica est un parasite protozoaire qui cause la dysenterie amibienne et l\'abcès hépatique chez l\'homme.',
     hostSpecies: 'Homo sapiens',
     morphologicalCharacteristics: 'Trophozoites 15-20 μm, cysts 10-20 μm, four nuclei in mature cysts',
@@ -93,6 +102,8 @@ const mockParasites: Parasite[] = [
     discoveryYear: 2022,
     imageUrl: '/images/parasites/parasite3.png',
     microscopicImageUrl: '/images/parasites/parasite3.png',
+    type: 'Protozoa',
+    stage: 'Cyst'
   },
   {
     id: 4,
@@ -109,6 +120,8 @@ const mockParasites: Parasite[] = [
     discoveryYear: 2021,
     imageUrl: '/images/parasites/parasite4.png',
     microscopicImageUrl: '/images/parasites/parasite4.png',
+    type: 'Protozoa',
+    stage: 'Trophozoite'
   },
   {
     id: 5,
@@ -116,7 +129,7 @@ const mockParasites: Parasite[] = [
     arabicName: 'التريبانوسوما',
     frenchName: 'Trypanosoma brucei',
     commonName: 'Sleeping Sickness Parasite',
-    description: 'Trypanosoma brucei is a species of parasitic kinetoplastid belonging to the genus Trypanosoma.',
+    description: 'Trypanosoma brucei is a species of parasitic kinetoplastid belonging to the genus Trypanosoma.',    
     arabicDescription: 'التريبانوسوما هو نوع من الطفيليات الكينيتوبلاستيدية التي تنتمي إلى جنس التريبانوسوما.',
     frenchDescription: 'Trypanosoma brucei est une espèce de kinétoplastide parasite appartenant au genre Trypanosoma.',
     hostSpecies: 'Homo sapiens',
@@ -125,6 +138,8 @@ const mockParasites: Parasite[] = [
     discoveryYear: 2023,
     imageUrl: '/images/parasites/parasite1.png',
     microscopicImageUrl: '/images/parasites/parasite1.png',
+    type: 'Protozoa',
+    stage: 'Trypomastigote'
   },
   {
     id: 6,
@@ -132,7 +147,7 @@ const mockParasites: Parasite[] = [
     arabicName: 'الليشمانيا',
     frenchName: 'Leishmania donovani',
     commonName: 'Leishmania',
-    description: 'Leishmania donovani is a species of intracellular parasites belonging to the genus Leishmania.',
+    description: 'Leishmania donovani is a species of intracellular parasites belonging to the genus Leishmania.',    
     arabicDescription: 'الليشمانيا هو نوع من الطفيليات داخل الخلايا التي تنتمي إلى جنس الليشمانيا.',
     frenchDescription: 'Leishmania donovani est une espèce de parasites intracellulaires appartenant au genre Leishmania.',
     hostSpecies: 'Homo sapiens',
@@ -141,6 +156,8 @@ const mockParasites: Parasite[] = [
     discoveryYear: 2022,
     imageUrl: '/images/parasites/parasite2.png',
     microscopicImageUrl: '/images/parasites/parasite2.png',
+    type: 'Protozoa',
+    stage: 'Amastigote'
   },
 ];
 
@@ -154,27 +171,27 @@ export const parasitesApi = {
       if (isDevelopment) {
         // Simulate API delay
         await new Promise(resolve => setTimeout(resolve, 500));
-        
+
         let filtered = [...mockParasites];
-        
+
         // Apply filters
         if (params?.search && params.search.length > 0) {
           const searchLower = params.search.toLowerCase();
-          filtered = filtered.filter(p => 
+          filtered = filtered.filter(p =>
             p.scientificName.toLowerCase().includes(searchLower) ||
-            p.arabicName?.includes(params.search) ||
-            p.frenchName?.toLowerCase().includes(searchLower)
+            (p.arabicName && p.arabicName.includes(params.search!)) ||
+            (p.frenchName && p.frenchName.toLowerCase().includes(searchLower))
           );
         }
-        
+
         if (params?.host) {
           filtered = filtered.filter(p => p.hostSpecies === params.host);
         }
-        
+
         if (params?.year) {
           filtered = filtered.filter(p => p.discoveryYear === params.year);
         }
-        
+
         return {
           data: filtered,
           total: filtered.length,
@@ -182,7 +199,7 @@ export const parasitesApi = {
           limit: params?.limit || filtered.length,
         };
       }
-      
+
       const response = await apiClient.get<ParasitesResponse>('/parasites', { params });
       return response.data;
     } catch (error) {
@@ -191,17 +208,19 @@ export const parasitesApi = {
   },
 
   // Get parasite by ID
-  getById: async (id: number): Promise<Parasite> => {
+  getById: async (id: number | string): Promise<Parasite> => {
     try {
       if (isDevelopment) {
         await new Promise(resolve => setTimeout(resolve, 300));
-        const parasite = mockParasites.find(p => p.id === id);
+        // Convert id to number for comparison if it's a string
+        const numId = typeof id === 'string' ? parseInt(id, 10) : id;
+        const parasite = mockParasites.find(p => p.id === numId);
         if (!parasite) {
           throw new Error('Parasite not found');
         }
         return parasite;
       }
-      
+
       const response = await apiClient.get<Parasite>(`/parasites/${id}`);
       return response.data;
     } catch (error) {
@@ -223,7 +242,7 @@ export const parasitesApi = {
         mockParasites.push(newParasite);
         return newParasite;
       }
-      
+
       const response = await apiClient.post<Parasite>('/parasites', data);
       return response.data;
     } catch (error) {
@@ -232,18 +251,19 @@ export const parasitesApi = {
   },
 
   // Update parasite
-  update: async (id: number, data: UpdateParasiteDto): Promise<Parasite> => {
+  update: async (id: number | string, data: UpdateParasiteDto): Promise<Parasite> => {
     try {
       if (isDevelopment) {
         await new Promise(resolve => setTimeout(resolve, 500));
-        const index = mockParasites.findIndex(p => p.id === id);
+        const numId = typeof id === 'string' ? parseInt(id, 10) : id;
+        const index = mockParasites.findIndex(p => p.id === numId);
         if (index === -1) {
           throw new Error('Parasite not found');
         }
         mockParasites[index] = { ...mockParasites[index], ...data, updatedAt: new Date().toISOString() };
         return mockParasites[index];
       }
-      
+
       const response = await apiClient.put<Parasite>(`/parasites/${id}`, data);
       return response.data;
     } catch (error) {
@@ -252,22 +272,22 @@ export const parasitesApi = {
   },
 
   // Delete parasite
-  delete: async (id: number): Promise<void> => {
+  delete: async (id: number | string): Promise<void> => {
     try {
       if (isDevelopment) {
         await new Promise(resolve => setTimeout(resolve, 300));
-        const index = mockParasites.findIndex(p => p.id === id);
+        const numId = typeof id === 'string' ? parseInt(id, 10) : id;
+        const index = mockParasites.findIndex(p => p.id === numId);
         if (index === -1) {
           throw new Error('Parasite not found');
         }
         mockParasites.splice(index, 1);
         return;
       }
-      
+
       await apiClient.delete(`/parasites/${id}`);
     } catch (error) {
       throw handleApiError(error);
     }
   },
 };
-

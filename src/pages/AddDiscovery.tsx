@@ -20,17 +20,27 @@ import { LoadingSpinner } from '../components/core/LoadingSpinner';
 
 const schema = yup.object({
   scientificName: yup.string().required('الاسم العلمي مطلوب'),
-  commonName: yup.string(),
-  arabicName: yup.string(),
-  frenchName: yup.string(),
-  hostSpecies: yup.string(),
-  discoveryYear: yup.number().min(1900).max(new Date().getFullYear()),
-  morphologicalCharacteristics: yup.string(),
-  detectionMethod: yup.string(),
-  description: yup.string(),
-});
+  commonName: yup.string().default(''),
+  arabicName: yup.string().default(''),
+  frenchName: yup.string().default(''),
+  hostSpecies: yup.string().default(''),
+  discoveryYear: yup.number().min(1900).max(new Date().getFullYear()).default(new Date().getFullYear()),
+  morphologicalCharacteristics: yup.string().default(''),
+  detectionMethod: yup.string().default(''),
+  description: yup.string().default(''),
+}).required();
 
-type ParasiteFormData = yup.InferType<typeof schema>;
+interface ParasiteFormData {
+  scientificName: string;
+  commonName?: string;
+  arabicName?: string;
+  frenchName?: string;
+  hostSpecies?: string;
+  discoveryYear?: number;
+  morphologicalCharacteristics?: string;
+  detectionMethod?: string;
+  description?: string;
+}
 
 export default function AddParasite() {
   const { t } = useTranslation();
@@ -44,9 +54,16 @@ export default function AddParasite() {
     handleSubmit,
     formState: { errors },
   } = useForm<ParasiteFormData>({
-    resolver: yupResolver(schema),
+    resolver: yupResolver(schema) as any,
     defaultValues: {
       discoveryYear: new Date().getFullYear(),
+      commonName: '',
+      arabicName: '',
+      frenchName: '',
+      hostSpecies: '',
+      morphologicalCharacteristics: '',
+      detectionMethod: '',
+      description: '',
     },
   });
 
@@ -67,9 +84,10 @@ export default function AddParasite() {
         ...data,
         imageUrl: imagePreview || undefined,
       };
-      
+
+      // @ts-ignore
       const result = await createParasite(parasiteData);
-      
+
       if (result) {
         showSuccess('تم إضافة الطفيلي بنجاح');
         navigate('/parasites');
@@ -107,24 +125,24 @@ export default function AddParasite() {
             required
           />
 
-          <Grid container spacing={2} sx={{ mt: 1 }}>
-            <Grid item xs={12} md={6}>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
+            <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 6" } }}>
               <TextField
                 {...register('commonName')}
                 fullWidth
                 label="Common Name"
                 margin="normal"
               />
-            </Grid>
-            <Grid item xs={12} md={6}>
+            </Box>
+            <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 6" } }}>
               <TextField
                 {...register('arabicName')}
                 fullWidth
                 label={t('arabic_name')}
                 margin="normal"
               />
-            </Grid>
-          </Grid>
+            </Box>
+          </Box>
 
           <TextField
             {...register('frenchName')}
@@ -137,16 +155,16 @@ export default function AddParasite() {
             Scientific Details
           </Typography>
 
-          <Grid container spacing={2}>
-            <Grid item xs={12} md={6}>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 6" } }}>
               <TextField
                 {...register('hostSpecies')}
                 fullWidth
                 label={t('host_species')}
                 margin="normal"
               />
-            </Grid>
-            <Grid item xs={12} md={6}>
+            </Box>
+            <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 6" } }}>
               <TextField
                 {...register('discoveryYear', { valueAsNumber: true })}
                 fullWidth
@@ -155,8 +173,8 @@ export default function AddParasite() {
                 margin="normal"
                 inputProps={{ min: 1900, max: new Date().getFullYear() }}
               />
-            </Grid>
-          </Grid>
+            </Box>
+          </Box>
 
           <TextField
             {...register('morphologicalCharacteristics')}
@@ -254,3 +272,9 @@ export default function AddParasite() {
     </Container>
   );
 }
+
+
+
+
+
+

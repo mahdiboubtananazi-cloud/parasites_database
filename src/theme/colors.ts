@@ -1,19 +1,18 @@
-﻿import { green, teal, grey, red, orange, blue } from '@mui/material/colors';
+﻿import { green, grey, red, orange, blue } from '@mui/material/colors';
 
 export const colors = {
   primary: {
-    main: '#047857',    // Emerald 700 (يدوياً)
-    light: '#34D399',   // Emerald 400
-    dark: '#064E3B',    // Emerald 900
+    main: '#047857',
+    light: '#34D399',
+    dark: '#064E3B',
     contrastText: '#ffffff',
   },
   secondary: {
-    main: '#059669',    // Emerald 600
-    light: '#6EE7B7',   // Emerald 300
-    dark: '#065F46',    // Emerald 800
+    main: '#059669',
+    light: '#6EE7B7',
+    dark: '#065F46',
     contrastText: '#ffffff',
   },
-  // إضافة الألوان القياسية لمنع الأخطاء
   success: {
     main: green[600],
     light: green[400],
@@ -39,15 +38,14 @@ export const colors = {
     contrastText: '#ffffff',
   },
   grey: grey,
-  green: green, 
+  green: green,
   red: red,
-  
   background: {
-    default: '#F0FDF4', 
+    default: '#F0FDF4',
     paper: '#ffffff',
   },
   text: {
-    primary: '#064E3B', 
+    primary: '#064E3B',
     secondary: '#374151',
   },
   action: {
@@ -61,9 +59,16 @@ export const gradients = {
   dark: 'linear-gradient(135deg, #064E3B 0%, #047857 100%)',
 };
 
-// دعم الكود القديم
 export const universityColors = {
-  primary: colors.primary.main,
-  secondary: colors.secondary.main,
+  primary: {
+    main: colors.primary.main,
+    light: colors.primary.light,
+    dark: colors.primary.dark,
+  },
+  secondary: {
+    main: colors.secondary.main,
+    light: colors.secondary.light,
+    dark: colors.secondary.dark,
+  },
   background: colors.background.default,
 };

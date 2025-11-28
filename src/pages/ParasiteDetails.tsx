@@ -1,28 +1,28 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   Box, Container, Typography, Paper, Grid, Button, Chip, Stack, 
-  alpha, useTheme, CircularProgress 
+  alpha, useTheme, CircularProgress
 } from '@mui/material';
 import { ArrowRight, ArrowLeft, Calendar, Tag, Microscope, Activity, Share2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 
-//  الدالة الذكية المحسنة
+//  ?????? ?????? ???????
 const fixImageUrl = (url?: string) => {
   if (!url) return 'https://placehold.co/600x400';
   
-  // 1. إذا كان الرابط خارجياً (http...) نتركه كما هو
+  // 1. ??? ??? ?????? ??????? (http...) ????? ??? ??
   if (url.startsWith('http')) {
-    // إذا كنا في الهاتف والرابط localhost، نحوله لـ IP
+    // ??? ??? ?? ?????? ??????? localhost? ????? ?? IP
     if (window.location.hostname !== 'localhost' && url.includes('localhost')) {
-      return url.replace('localhost', window.location.hostname); // استخدم نفس هوست المتصفح
+      return url.replace('localhost', window.location.hostname); // ?????? ??? ???? ???????
     }
-    // إذا كنا في الحاسوب، نتركه localhost كما جاء من السيرفر
+    // ??? ??? ?? ???????? ????? localhost ??? ??? ?? ???????
     return url;
   }
   
-  // 2. إذا كان مساراً نسبياً (/images/...)، نضيف له الهوست المناسب
+  // 2. ??? ??? ?????? ?????? (/images/...)? ???? ?? ?????? ???????
   const baseUrl = window.location.hostname === 'localhost' 
     ? 'http://localhost:8000' 
     : `http://${window.location.hostname}:8000`;
@@ -30,10 +30,10 @@ const fixImageUrl = (url?: string) => {
   return `${baseUrl}${url}`;
 };
 
-// استخدام هوست ديناميكي للاتصال بالسيرفر أيضاً
+// ??????? ???? ???????? ??????? ???????? ?????
 const getApiUrl = () => {
   const hostname = window.location.hostname;
-  return `http://${hostname}:8000`; // يعمل تلقائياً سواء كنت localhost أو IP
+  return `http://${hostname}:8000`; // ???? ???????? ???? ??? localhost ?? IP
 };
 
 export default function ParasiteDetails() {
@@ -73,7 +73,7 @@ export default function ParasiteDetails() {
   }, [id]);
 
   if (loading) return <Box sx={{ display: 'flex', justifyContent: 'center', mt: 10 }}><CircularProgress /></Box>;
-  if (!parasite) return <Box sx={{ textAlign: 'center', mt: 10 }}><Typography variant="h5">لم يتم العثور على العينة</Typography></Box>;
+  if (!parasite) return <Box sx={{ textAlign: 'center', mt: 10 }}><Typography variant="h5">?? ??? ?????? ??? ??????</Typography></Box>;
 
   const imageUrl = fixImageUrl(parasite.imageUrl);
 
@@ -92,8 +92,8 @@ export default function ParasiteDetails() {
       </Box>
 
       <Container maxWidth="lg" sx={{ mt: 4 }}>
-        <Grid container spacing={4}>
-          <Grid item xs={12} md={5}>
+        <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", md: "repeat(2, 1fr)" }, gap: 4 }}>
+          <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 5" } }}>
             <Paper elevation={0} sx={{ p: 2, borderRadius: 4, border: '1px solid', borderColor: 'divider', bgcolor: 'white' }}>
               
               <Box 
@@ -106,18 +106,18 @@ export default function ParasiteDetails() {
                 onMouseMove={handleMouseMove}
                 onMouseLeave={() => setZoomStyle({ ...zoomStyle, display: 'none' })}
               >
-                {/* الصورة الأساسية */}
+                {/* ?????? ???????? */}
                 <img 
                   src={imageUrl} 
                   alt={parasite.name} 
                   style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                   onError={(e) => {
-                    // إذا فشلت الصورة، نضع صورة بديلة
+                    // ??? ???? ??????? ??? ???? ?????
                     (e.target as HTMLImageElement).src = 'https://placehold.co/600x400?text=Image+Error';
                   }}
                 />
                 
-                {/* طبقة التكبير */}
+                {/* ???? ??????? */}
                 <Box 
                   sx={{ 
                     position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
@@ -135,55 +135,59 @@ export default function ParasiteDetails() {
               </Box>
               
               <Typography variant="caption" align="center" display="block" sx={{ mt: 1, color: 'text.secondary' }}>
-                مرر الماوس للتكبير 
+                ??? ?????? ??????? 
               </Typography>
 
               <Stack direction="row" spacing={2} sx={{ mt: 3, px: 1 }}>
-                <Button fullWidth variant="outlined" startIcon={<Share2 size={18} />}>مشاركة</Button>
+                <Button fullWidth variant="outlined" startIcon={<Share2 size={18} />}>??????</Button>
               </Stack>
             </Paper>
-          </Grid>
+          </Box>
 
-          <Grid item xs={12} md={7}>
+          <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 7" } }}>
             <Box sx={{ pl: { md: 2 } }}>
               <Box sx={{ mb: 4 }}>
                 <Typography variant="h3" fontWeight={800} color="text.primary" sx={{ mb: 1 }}>{parasite.name}</Typography>
                 <Typography variant="h5" color="primary.main" sx={{ fontStyle: 'italic', fontFamily: '"Times New Roman", serif', bgcolor: alpha(theme.palette.primary.main, 0.05), display: 'inline-block', px: 2, py: 0.5, borderRadius: 2 }}>{parasite.scientificName}</Typography>
               </Box>
 
-              <Grid container spacing={3} sx={{ mb: 4 }}>
-                <Grid item xs={6}>
+              <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", md: "repeat(3, 1fr)" }, gap: 3, mb: 4 }}>
+                <Box sx={{ gridColumn: "span 6" }}>
                   <Paper elevation={0} sx={{ p: 2.5, bgcolor: '#F8F9FC', border: '1px solid', borderColor: 'divider', borderRadius: 3 }}>
                     <Stack direction="row" spacing={2} alignItems="center">
                       <Box sx={{ p: 1, bgcolor: 'white', borderRadius: 2, color: 'secondary.main' }}><Activity size={24} /></Box>
                       <Box>
                         <Typography variant="caption" color="text.secondary" fontWeight={600}>{t('label_stage')}</Typography>
-                        <Typography variant="body1" fontWeight={700}>{parasite.stage || 'غير محدد'}</Typography>
+                        <Typography variant="body1" fontWeight={700}>{parasite.stage || '??? ????'}</Typography>
                       </Box>
                     </Stack>
                   </Paper>
-                </Grid>
-                <Grid item xs={6}>
+                </Box>
+                <Box sx={{ gridColumn: "span 6" }}>
                   <Paper elevation={0} sx={{ p: 2.5, bgcolor: '#F8F9FC', border: '1px solid', borderColor: 'divider', borderRadius: 3 }}>
                     <Stack direction="row" spacing={2} alignItems="center">
                       <Box sx={{ p: 1, bgcolor: 'white', borderRadius: 2, color: 'warning.main' }}><Calendar size={24} /></Box>
                       <Box>
-                        <Typography variant="caption" color="text.secondary" fontWeight={600}>تاريخ الإضافة</Typography>
+                        <Typography variant="caption" color="text.secondary" fontWeight={600}>????? ???????</Typography>
                         <Typography variant="body1" fontWeight={700}>{parasite.createdAt ? new Date(parasite.createdAt).toLocaleDateString() : '2023'}</Typography>
                       </Box>
                     </Stack>
                   </Paper>
-                </Grid>
-              </Grid>
+                </Box>
+              </Box>
 
               <Box>
                 <Typography variant="h6" fontWeight={700} gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><Tag size={20} /> {t('label_desc')}</Typography>
                 <Typography variant="body1" color="text.secondary" sx={{ lineHeight: 1.8, fontSize: '1.05rem' }}>{parasite.description}</Typography>
               </Box>
             </Box>
-          </Grid>
-        </Grid>
+          </Box>
+        </Box>
       </Container>
     </Box>
   );
 }
+
+
+
+

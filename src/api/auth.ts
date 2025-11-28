@@ -1,4 +1,4 @@
-import apiClient, { handleApiError } from './client';
+﻿import apiClient, { handleApiError } from './client';
 
 export interface User {
   id: number;
@@ -40,7 +40,7 @@ const mockUsers: User[] = [
     id: 2,
     name: 'Dr. Fatima',
     email: 'fatima@university.edu',
-    role: 'researcher',
+    role: 'professor',
   },
 ];
 
@@ -65,7 +65,7 @@ export const authApi = {
             id: mockUsers.length + 1,
             name: data.email.split('@')[0],
             email: data.email,
-            role: 'user',
+            role: 'student',
           };
           mockUsers.push(user);
         }
@@ -112,7 +112,7 @@ export const authApi = {
           id: mockUsers.length + 1,
           name: data.name,
           email: data.email,
-          role: 'user',
+          role: 'student',
         };
         
         mockUsers.push(newUser);
@@ -206,5 +206,6 @@ export const authApi = {
     }
   },
 };
+
 
 

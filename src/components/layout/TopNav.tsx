@@ -1,4 +1,4 @@
-﻿import React, { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { 
   AppBar, Toolbar, Typography, Button, Box, Container, 
   Stack, Avatar, Menu, MenuItem, IconButton, Tooltip, Divider
@@ -27,9 +27,9 @@ const TopNav = () => {
       position="sticky" 
       elevation={0}
       sx={{
-        background: 'rgba(255, 255, 255, 0.85)', // شفافية أعلى
+        background: 'rgba(255, 255, 255, 0.85)', // ?????? ????
         backdropFilter: 'blur(16px)',
-        borderBottom: '1px solid rgba(4, 120, 87, 0.1)', // حد أخضر خفيف
+        borderBottom: '1px solid rgba(4, 120, 87, 0.1)', // ?? ???? ????
         color: 'text.primary'
       }}
     >
@@ -49,7 +49,7 @@ const TopNav = () => {
           {/* 2. Center Menu (Centered) */}
           <Stack direction="row" spacing={1} sx={{ display: { xs: 'none', md: 'flex' }, position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}>
             {[
-              { title: t('welcome').includes('Welcome') || t('welcome').includes('Bienvenue') ? 'Home' : 'الرئيسية', path: '/' },
+              { title: t('welcome').includes('Welcome') || t('welcome').includes('Bienvenue') ? 'Home' : '????????', path: '/' },
               { title: t('archive'), path: '/archive' },
               { title: t('add_sample'), path: '/add-parasite' }
             ].map((link) => (
@@ -75,9 +75,9 @@ const TopNav = () => {
               <Globe size={20} color="#047857" />
             </IconButton>
             <Menu anchorEl={anchorElLang} open={Boolean(anchorElLang)} onClose={() => setAnchorElLang(null)} PaperProps={{ sx: { mt: 1.5, minWidth: 150, borderRadius: 3 } }}>
-              <MenuItem onClick={() => changeLanguage('fr')}> Français</MenuItem>
+              <MenuItem onClick={() => changeLanguage('fr')}> Fran�ais</MenuItem>
               <MenuItem onClick={() => changeLanguage('en')}> English</MenuItem>
-              <MenuItem onClick={() => changeLanguage('ar')}> العربية</MenuItem>
+              <MenuItem onClick={() => changeLanguage('ar')}> ???????</MenuItem>
             </Menu>
 
             {user ? (

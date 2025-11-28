@@ -8,7 +8,7 @@ import CardContent from '@mui/material/CardContent';
 import CardHeader from '@mui/material/CardHeader';
 import Divider from '@mui/material/Divider';
 import FormControl from '@mui/material/FormControl';
-import Grid from '@mui/material/Grid';
+import { Grid, Box } from '@mui/material';
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import OutlinedInput from '@mui/material/OutlinedInput';
@@ -32,56 +32,36 @@ export function AccountDetailsForm(): React.JSX.Element {
         <CardHeader subheader="The information can be edited" title="Profile" />
         <Divider />
         <CardContent>
-          <Grid container spacing={3}>
-            <Grid
-              size={{
-                md: 6,
-                xs: 12,
-              }}
+          <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", md: "repeat(3, 1fr)" }, gap: 3 }}>
+            <Box sx={{ width: "100%" }}
             >
               <FormControl fullWidth required>
                 <InputLabel>First name</InputLabel>
                 <OutlinedInput defaultValue="Sofia" label="First name" name="firstName" />
               </FormControl>
-            </Grid>
-            <Grid
-              size={{
-                md: 6,
-                xs: 12,
-              }}
+            </Box>
+            <Box sx={{ width: "100%" }}
             >
               <FormControl fullWidth required>
                 <InputLabel>Last name</InputLabel>
                 <OutlinedInput defaultValue="Rivers" label="Last name" name="lastName" />
               </FormControl>
-            </Grid>
-            <Grid
-              size={{
-                md: 6,
-                xs: 12,
-              }}
+            </Box>
+            <Box sx={{ width: "100%" }}
             >
               <FormControl fullWidth required>
                 <InputLabel>Email address</InputLabel>
                 <OutlinedInput defaultValue="sofia@devias.io" label="Email address" name="email" />
               </FormControl>
-            </Grid>
-            <Grid
-              size={{
-                md: 6,
-                xs: 12,
-              }}
+            </Box>
+            <Box sx={{ width: "100%" }}
             >
               <FormControl fullWidth>
                 <InputLabel>Phone number</InputLabel>
                 <OutlinedInput label="Phone number" name="phone" type="tel" />
               </FormControl>
-            </Grid>
-            <Grid
-              size={{
-                md: 6,
-                xs: 12,
-              }}
+            </Box>
+            <Box sx={{ width: "100%" }}
             >
               <FormControl fullWidth>
                 <InputLabel>State</InputLabel>
@@ -93,19 +73,15 @@ export function AccountDetailsForm(): React.JSX.Element {
                   ))}
                 </Select>
               </FormControl>
-            </Grid>
-            <Grid
-              size={{
-                md: 6,
-                xs: 12,
-              }}
+            </Box>
+            <Box sx={{ width: "100%" }}
             >
               <FormControl fullWidth>
                 <InputLabel>City</InputLabel>
                 <OutlinedInput label="City" />
               </FormControl>
-            </Grid>
-          </Grid>
+            </Box>
+          </Box>
         </CardContent>
         <Divider />
         <CardActions sx={{ justifyContent: 'flex-end' }}>
@@ -115,3 +91,11 @@ export function AccountDetailsForm(): React.JSX.Element {
     </form>
   );
 }
+
+
+
+
+
+
+
+

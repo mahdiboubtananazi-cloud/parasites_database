@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { Box, CssBaseline, ThemeProvider } from '@mui/material';
 import theme from './theme/theme';
@@ -7,7 +7,7 @@ import Home from './pages/Home';
 import Archive from './pages/Archive';
 import AddParasite from './pages/AddParasite';
 import ParasiteDetails from './pages/ParasiteDetails';
-import Dashboard from './pages/Dashboard'; //  استيراد جديد
+import Dashboard from './pages/Dashboard'; //  ??????? ????
 import Login from './pages/Login';
 import Register from './pages/Register';
 import { AuthProvider } from './contexts/AuthContext';
@@ -30,7 +30,7 @@ function App() {
               <Route path="/archive" element={<Archive />} />
               <Route path="/add-parasite" element={<AddParasite />} />
               <Route path="/parasites/:id" element={<ParasiteDetails />} />
-              <Route path="/dashboard" element={<Dashboard />} /> {/*  مسار لوحة التحكم */}
+              <Route path="/dashboard" element={<Dashboard />} /> {/*  ???? ???? ?????? */}
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="*" element={<NotFound />} />

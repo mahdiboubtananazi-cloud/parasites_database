@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { Box, CircularProgress, Typography } from '@mui/material';
 
 interface LoadingSpinnerProps {

@@ -1,4 +1,4 @@
-﻿import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
+import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 interface User {
@@ -8,23 +8,24 @@ interface User {
   role: 'student' | 'professor' | 'admin';
 }
 
-//  1. إضافة isLoading للواجهة (Interface)
 interface AuthContextType {
   user: User | null;
-  isLoading: boolean; // هذا هو السطر المفقود الذي سبب الخطأ
+  isLoading: boolean;
+  isAuthenticated: boolean;
   login: (data: any) => Promise<void>;
   register: (data: any) => Promise<void>;
   logout: () => void;
 }
 
-const AuthContext = createContext<AuthContextType | null>(null);
+export const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true); // ✅ 2. حالة التحميل
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const navigate = useNavigate();
 
-  // عند تشغيل التطبيق، نحاول استرجاع المستخدم من LocalStorage
+  const isAuthenticated = !!user;
+
   useEffect(() => {
     const initAuth = async () => {
       try {
@@ -33,9 +34,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           setUser(JSON.parse(storedUser));
         }
       } catch (error) {
-        console.error('فشل استرجاع بيانات المستخدم', error);
+        console.error('??? ??????? ?????? ????????', error);
       } finally {
-        setIsLoading(false); //  إيقاف التحميل سواء وجدنا مستخدم أم لا
+        setIsLoading(false);
       }
     };
     initAuth();
@@ -43,18 +44,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = async (data: any) => {
     setIsLoading(true);
-    // محاكاة تأخير الشبكة لتسجيل الدخول
     await new Promise(resolve => setTimeout(resolve, 800));
-    
-    const fakeUser: User = { 
-      id: '1', 
-      name: 'طالب جامعي', 
-      email: 'student@univ.edu', 
-      role: 'student' 
+    const fakeUser: User = {
+      id: '1',
+      name: '???? ?????',
+      email: 'student@univ.edu',
+      role: 'student'
     };
-    
     setUser(fakeUser);
-    localStorage.setItem('parasites_user', JSON.stringify(fakeUser)); // حفظ المستخدم
+    localStorage.setItem('parasites_user', JSON.stringify(fakeUser));
     setIsLoading(false);
     navigate('/');
   };
@@ -68,14 +66,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('parasites_user'); // حذف المستخدم
+    localStorage.removeItem('parasites_user');
     navigate('/login');
   };
 
-  //  3. تمرير isLoading في القيمة المصدرة
   const value = {
     user,
     isLoading,
+    isAuthenticated,
     login,
     register,
     logout

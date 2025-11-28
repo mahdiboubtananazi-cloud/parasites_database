@@ -1,7 +1,7 @@
-﻿import React from 'react'
+import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
-import './i18n/config'; //  تم إضافة هذا السطر لتفعيل الترجمة
+import './i18n/config'; //  ?? ????? ??? ????? ?????? ???????
 import App from './App'
 import './index.css'
 

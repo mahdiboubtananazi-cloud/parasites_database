@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Box, Container, Paper, Typography, TextField, Button, MenuItem, Grid, Stack, IconButton, CircularProgress } from '@mui/material';
 import { Upload, X, Save } from 'lucide-react';
@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 
-//  نفس رابط السيرفر
+//  ??? ???? ???????
 const API_URL = 'http://10.56.53.17:8000';
 
 export default function AddParasite() {
@@ -22,7 +22,7 @@ export default function AddParasite() {
 
   const onSubmit = async (data: any) => {
     if (!selectedFile) {
-      showError("يرجى اختيار صورة مجهرية أولا");
+      showError("???? ?????? ???? ?????? ????");
       return;
     }
 
@@ -46,7 +46,7 @@ export default function AddParasite() {
       
     } catch (error) {
       console.error(error);
-      showError("فشل الاتصال بالسيرفر.");
+      showError("??? ??????? ????????.");
     } finally {
       setIsSubmitting(false);
     }
@@ -69,42 +69,42 @@ export default function AddParasite() {
         </Box>
       </Stack>
 
-      <Grid container spacing={4}>
-        <Grid item xs={12} md={8}>
+      <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", md: "repeat(2, 1fr)" }, gap: 4 }}>
+        <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 8" } }}>
           <Paper sx={{ p: 4 }}>
             <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate>
-              <Grid container spacing={3}>
-                <Grid item xs={12} md={6}>
+              <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", md: "repeat(3, 1fr)" }, gap: 3 }}>
+                <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 6" } }}>
                   <TextField {...register('name', { required: true })} fullWidth label={t('label_name')} error={!!errors.name} />
-                </Grid>
-                <Grid item xs={12} md={6}>
+                </Box>
+                <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 6" } }}>
                   <TextField {...register('scientificName', { required: true })} fullWidth label={t('label_scientific')} dir="ltr" error={!!errors.scientificName} />
-                </Grid>
-                <Grid item xs={12} md={6}>
+                </Box>
+                <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 6" } }}>
                   <TextField {...register('type')} select fullWidth label={t('label_type')} defaultValue="protozoa">
                     <MenuItem value="protozoa">{t('filter_protozoa')}</MenuItem>
                     <MenuItem value="helminths">{t('filter_helminths')}</MenuItem>
                     <MenuItem value="arthropods">{t('filter_arthropods')}</MenuItem>
                   </TextField>
-                </Grid>
-                <Grid item xs={12} md={6}>
+                </Box>
+                <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 6" } }}>
                   <TextField {...register('stage')} fullWidth label={t('label_stage')} />
-                </Grid>
-                <Grid item xs={12}>
+                </Box>
+                <Box sx={{ gridColumn: "1 / -1" }}>
                   <TextField {...register('description')} fullWidth multiline rows={4} label={t('label_desc')} />
-                </Grid>
-              </Grid>
+                </Box>
+              </Box>
               <Box sx={{ mt: 4, display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
                 <Button variant="outlined" color="inherit" onClick={() => navigate('/')} disabled={isSubmitting}>{t('btn_cancel')}</Button>
                 <Button type="submit" variant="contained" size="large" disabled={isSubmitting} startIcon={isSubmitting ? <CircularProgress size={20} color="inherit" /> : <Save size={18} />}>
-                  {isSubmitting ? "جاري الحفظ..." : t('btn_save')}
+                  {isSubmitting ? "???? ?????..." : t('btn_save')}
                 </Button>
               </Box>
             </Box>
           </Paper>
-        </Grid>
+        </Box>
 
-        <Grid item xs={12} md={4}>
+        <Box sx={{ gridColumn: { xs: "1 / -1", md: "span 4" } }}>
           <Paper sx={{ p: 3, textAlign: 'center' }}>
             <Typography variant="h6" gutterBottom>{t('upload_image')}</Typography>
             <Box sx={{ border: '2px dashed', borderColor: 'divider', borderRadius: 2, p: 4, mb: 2, bgcolor: 'background.default', cursor: 'pointer', position: 'relative', minHeight: 250, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }} onClick={() => document.getElementById('image-upload')?.click()}>
@@ -122,8 +122,11 @@ export default function AddParasite() {
               <input type="file" id="image-upload" hidden accept="image/*" onChange={handleImageChange} />
             </Box>
           </Paper>
-        </Grid>
-      </Grid>
+        </Box>
+      </Box>
     </Container>
   );
 }
+
+
+

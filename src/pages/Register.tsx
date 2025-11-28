@@ -33,9 +33,14 @@ const schema = yup.object({
     .string()
     .oneOf([yup.ref('password')], 'كلمات المرور غير متطابقة')
     .required('تأكيد كلمة المرور مطلوب'),
-});
+}).required();
 
-type RegisterFormData = yup.InferType<typeof schema>;
+interface RegisterFormData {
+  name: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+}
 
 export default function Register() {
   const { t } = useTranslation();
@@ -49,7 +54,13 @@ export default function Register() {
     handleSubmit,
     formState: { errors },
   } = useForm<RegisterFormData>({
-    resolver: yupResolver(schema),
+    resolver: yupResolver(schema) as any,
+    defaultValues: {
+      name: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
+    },
   });
 
   const onSubmit = async (data: RegisterFormData) => {

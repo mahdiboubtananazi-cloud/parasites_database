@@ -28,9 +28,12 @@ const schema = yup.object({
     .string()
     .min(6, 'كلمة المرور يجب أن تكون 6 أحرف على الأقل')
     .required('كلمة المرور مطلوبة'),
-});
+}).required();
 
-type LoginFormData = yup.InferType<typeof schema>;
+interface LoginFormData {
+  email: string;
+  password: string;
+}
 
 export default function Login() {
   const { t } = useTranslation();
@@ -45,7 +48,11 @@ export default function Login() {
     handleSubmit,
     formState: { errors },
   } = useForm<LoginFormData>({
-    resolver: yupResolver(schema),
+    resolver: yupResolver(schema) as any,
+    defaultValues: {
+      email: '',
+      password: '',
+    },
   });
 
   const onSubmit = async (data: LoginFormData) => {
@@ -53,8 +60,7 @@ export default function Login() {
       setApiError('');
       await login(data);
       showSuccess(t('success') + ' - تم تسجيل الدخول بنجاح');
-      
-      // Redirect to the page user was trying to access, or home
+
       const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/';
       navigate(from, { replace: true });
     } catch (error: any) {
