@@ -1,97 +1,322 @@
-import React, { useEffect } from 'react';
-import { 
-  AppBar, Toolbar, Typography, Button, Box, Container, 
-  Stack, Avatar, Menu, MenuItem, IconButton, Tooltip, Divider
+import React, { useState } from 'react';
+import {
+  AppBar,
+  Toolbar,
+  Typography,
+  Button,
+  Box,
+  Container,
+  Stack,
+  Avatar,
+  Menu,
+  MenuItem,
+  IconButton,
+  Tooltip,
+  useTheme,
+  useMediaQuery,
 } from '@mui/material';
-import { LogOut, User, Microscope, Globe, ChevronDown, Menu as MenuIcon } from 'lucide-react';
+import {
+  Menu as MenuIcon,
+  Microscope,
+  LogOut,
+  Globe,
+  BarChart3,
+} from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../hooks/useAuth';
+import { colors, gradients } from '../../theme/colors';
 
-const TopNav = () => {
+const TopNav = ({ onMenuClick }: { onMenuClick?: () => void }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const { t, i18n } = useTranslation();
-  
-  const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(null);
-  const [anchorElLang, setAnchorElLang] = React.useState<null | HTMLElement>(null);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
-  useEffect(() => { document.dir = i18n.language === 'ar' ? 'rtl' : 'ltr'; }, [i18n.language]);
+  const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
+  const [anchorElLang, setAnchorElLang] = useState<null | HTMLElement>(null);
 
   const isActive = (path: string) => location.pathname === path;
-  const changeLanguage = (lang: string) => { i18n.changeLanguage(lang); setAnchorElLang(null); };
+
+  const changeLanguage = (lang: string) => {
+    i18n.changeLanguage(lang);
+    document.dir = lang === 'ar' ? 'rtl' : 'ltr';
+    setAnchorElLang(null);
+  };
+
+  const navItems = [
+    { label: 'Home', path: '/' },
+    { label: 'Archive', path: '/archive' },
+    { label: 'Add Sample', path: '/add-parasite' },
+    { label: 'Statistics', path: '/statistics' },
+  ];
 
   return (
-    <AppBar 
-      position="sticky" 
+    <AppBar
+      position="sticky"
       elevation={0}
       sx={{
-        background: 'rgba(255, 255, 255, 0.85)', // ?????? ????
-        backdropFilter: 'blur(16px)',
-        borderBottom: '1px solid rgba(4, 120, 87, 0.1)', // ?? ???? ????
-        color: 'text.primary'
+        background: '#ffffff',
+        borderBottom: `1px solid ${colors.primary.lighter}20`,
+        color: colors.text.primary,
       }}
     >
       <Container maxWidth="xl">
-        <Toolbar disableGutters sx={{ height: 70, justifyContent: 'space-between' }}>
-          
-          {/* 1. Logo Section (Left) */}
-          <Stack direction="row" alignItems="center" spacing={1.5} sx={{ cursor: 'pointer', width: 200 }} onClick={() => navigate('/')}>
-            <Box sx={{ width: 40, height: 40, bgcolor: 'primary.main', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', boxShadow: '0 4px 12px rgba(4, 120, 87, 0.2)' }}>
+        <Toolbar
+          disableGutters
+          sx={{
+            height: 70,
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}
+        >
+          {/* Logo Section */}
+          <Stack
+            direction="row"
+            alignItems="center"
+            spacing={1}
+            onClick={() => navigate('/')}
+            sx={{
+              cursor: 'pointer',
+              '&:hover': { opacity: 0.8 },
+              transition: 'opacity 0.2s',
+            }}
+          >
+            <Box
+              sx={{
+                width: 44,
+                height: 44,
+                background: gradients.primary,
+                borderRadius: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'white',
+                boxShadow: '0 4px 12px rgba(58, 90, 64, 0.2)',
+              }}
+            >
               <Microscope size={24} />
             </Box>
-            <Typography variant="h6" fontWeight={800} sx={{ letterSpacing: -0.5, color: 'primary.dark' }}>
-              Bio<span style={{ color: '#10B981' }}>Lab</span>
+            <Typography
+              variant="h6"
+              sx={{
+                fontWeight: 700,
+                color: colors.primary.main,
+                letterSpacing: '-0.5px',
+              }}
+            >
+              Parasites Archive
             </Typography>
           </Stack>
 
-          {/* 2. Center Menu (Centered) */}
-          <Stack direction="row" spacing={1} sx={{ display: { xs: 'none', md: 'flex' }, position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}>
-            {[
-              { title: t('welcome').includes('Welcome') || t('welcome').includes('Bienvenue') ? 'Home' : '????????', path: '/' },
-              { title: t('archive'), path: '/archive' },
-              { title: t('add_sample'), path: '/add-parasite' }
-            ].map((link) => (
-              <Button 
-                key={link.path}
-                onClick={() => navigate(link.path)}
+          {/* Navigation - Desktop Only */}
+          {!isMobile && (
+            <Stack
+              direction="row"
+              spacing={0.5}
+              sx={{
+                display: 'flex',
+                position: 'absolute',
+                left: '50%',
+                transform: 'translateX(-50%)',
+              }}
+            >
+              {navItems.map((item) => (
+                <Button
+                  key={item.path}
+                  onClick={() => navigate(item.path)}
+                  sx={{
+                    color: isActive(item.path)
+                      ? colors.primary.main
+                      : colors.text.secondary,
+                    fontWeight: isActive(item.path) ? 600 : 500,
+                    fontSize: '0.9rem',
+                    padding: '8px 16px',
+                    borderRadius: '8px',
+                    backgroundColor: isActive(item.path)
+                      ? `${colors.primary.main}10`
+                      : 'transparent',
+                    transition: 'all 0.2s',
+                    '&:hover': {
+                      backgroundColor: `${colors.primary.main}08`,
+                      color: colors.primary.main,
+                    },
+                  }}
+                >
+                  {item.label}
+                </Button>
+              ))}
+            </Stack>
+          )}
+
+          {/* Right Section */}
+          <Stack
+            direction="row"
+            spacing={1}
+            alignItems="center"
+            sx={{ display: 'flex' }}
+          >
+            {/* Language Selector */}
+            <Tooltip title="Language">
+              <IconButton
+                size="small"
+                onClick={(e) => setAnchorElLang(e.currentTarget)}
                 sx={{
-                  color: isActive(link.path) ? 'primary.main' : 'text.secondary',
-                  fontWeight: isActive(link.path) ? 700 : 500,
-                  bgcolor: isActive(link.path) ? 'rgba(4, 120, 87, 0.08)' : 'transparent',
-                  borderRadius: '50px', px: 3,
-                  '&:hover': { bgcolor: 'rgba(4, 120, 87, 0.04)', color: 'primary.main' }
+                  color: colors.primary.main,
+                  '&:hover': { backgroundColor: `${colors.primary.main}10` },
                 }}
               >
-                {link.title}
-              </Button>
-            ))}
-          </Stack>
-
-          {/* 3. Right Section (User & Lang) */}
-          <Stack direction="row" spacing={1} alignItems="center" sx={{ width: 200, justifyContent: 'flex-end' }}>
-            <IconButton onClick={(e) => setAnchorElLang(e.currentTarget)} size="small">
-              <Globe size={20} color="#047857" />
-            </IconButton>
-            <Menu anchorEl={anchorElLang} open={Boolean(anchorElLang)} onClose={() => setAnchorElLang(null)} PaperProps={{ sx: { mt: 1.5, minWidth: 150, borderRadius: 3 } }}>
-              <MenuItem onClick={() => changeLanguage('fr')}> Fran�ais</MenuItem>
-              <MenuItem onClick={() => changeLanguage('en')}> English</MenuItem>
-              <MenuItem onClick={() => changeLanguage('ar')}> ???????</MenuItem>
-            </Menu>
-
-            {user ? (
-              <IconButton onClick={(e) => setAnchorElUser(e.currentTarget)} sx={{ p: 0.5, border: '1px solid', borderColor: 'divider' }}>
-                <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main', fontSize: 14 }}>{user.name[0]}</Avatar>
+                <Globe size={20} />
               </IconButton>
-            ) : (
-              <Button variant="contained" size="small" onClick={() => navigate('/login')} sx={{ borderRadius: 50 }}>{t('login')}</Button>
-            )}
-            <Menu anchorEl={anchorElUser} open={Boolean(anchorElUser)} onClose={() => setAnchorElUser(null)} PaperProps={{ sx: { mt: 1.5 } }}>
-              <MenuItem onClick={() => { setAnchorElUser(null); logout(); }} sx={{ color: 'error.main' }}><LogOut size={16} style={{ marginRight: 8 }} /> {t('logout')}</MenuItem>
-            </Menu>
-          </Stack>
+            </Tooltip>
 
+            <Menu
+              anchorEl={anchorElLang}
+              open={Boolean(anchorElLang)}
+              onClose={() => setAnchorElLang(null)}
+              PaperProps={{
+                sx: {
+                  mt: 1.5,
+                  minWidth: 150,
+                  borderRadius: 2,
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                },
+              }}
+            >
+              <MenuItem
+                onClick={() => changeLanguage('en')}
+                selected={i18n.language === 'en'}
+                sx={{
+                  '&.Mui-selected': {
+                    backgroundColor: `${colors.primary.main}15`,
+                    color: colors.primary.main,
+                  },
+                }}
+              >
+                English
+              </MenuItem>
+              <MenuItem
+                onClick={() => changeLanguage('ar')}
+                selected={i18n.language === 'ar'}
+                sx={{
+                  '&.Mui-selected': {
+                    backgroundColor: `${colors.primary.main}15`,
+                    color: colors.primary.main,
+                  },
+                }}
+              >
+                العربية
+              </MenuItem>
+              <MenuItem
+                onClick={() => changeLanguage('fr')}
+                selected={i18n.language === 'fr'}
+                sx={{
+                  '&.Mui-selected': {
+                    backgroundColor: `${colors.primary.main}15`,
+                    color: colors.primary.main,
+                  },
+                }}
+              >
+                Français
+              </MenuItem>
+            </Menu>
+
+            {/* User Section */}
+            {user ? (
+              <>
+                <Tooltip title={user.name}>
+                  <IconButton
+                    onClick={(e) => setAnchorElUser(e.currentTarget)}
+                    sx={{ p: 0.5 }}
+                  >
+                    <Avatar
+                      sx={{
+                        width: 36,
+                        height: 36,
+                        background: gradients.primary,
+                        fontSize: '1rem',
+                        fontWeight: 600,
+                      }}
+                    >
+                      {user.name.charAt(0).toUpperCase()}
+                    </Avatar>
+                  </IconButton>
+                </Tooltip>
+
+                <Menu
+                  anchorEl={anchorElUser}
+                  open={Boolean(anchorElUser)}
+                  onClose={() => setAnchorElUser(null)}
+                  PaperProps={{
+                    sx: {
+                      mt: 1.5,
+                      minWidth: 200,
+                      borderRadius: 2,
+                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                    },
+                  }}
+                >
+                  <MenuItem disabled sx={{ fontSize: '0.85rem' }}>
+                    {user.email}
+                  </MenuItem>
+                  <MenuItem
+                    onClick={() => {
+                      setAnchorElUser(null);
+                      logout();
+                    }}
+                    sx={{
+                      color: colors.error.main,
+                      '&:hover': {
+                        backgroundColor: `${colors.error.main}10`,
+                      },
+                    }}
+                  >
+                    <LogOut size={18} style={{ marginRight: 8 }} />
+                    Logout
+                  </MenuItem>
+                </Menu>
+              </>
+            ) : (
+              <Button
+                variant="contained"
+                size="small"
+                onClick={() => navigate('/login')}
+                sx={{
+                  background: gradients.primary,
+                  borderRadius: '50px',
+                  padding: '8px 20px',
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  '&:hover': {
+                    background: `linear-gradient(135deg, #2d4733 0%, #3a5a40 100%)`,
+                    boxShadow: '0 4px 12px rgba(58, 90, 64, 0.3)',
+                  },
+                }}
+              >
+                Login
+              </Button>
+            )}
+
+            {/* Mobile Menu Toggle */}
+            {isMobile && (
+              <Tooltip title="Menu">
+                <IconButton
+                  onClick={onMenuClick}
+                  sx={{
+                    color: colors.primary.main,
+                    '&:hover': {
+                      backgroundColor: `${colors.primary.main}10`,
+                    },
+                  }}
+                >
+                  <MenuIcon size={24} />
+                </IconButton>
+              </Tooltip>
+            )}
+          </Stack>
         </Toolbar>
       </Container>
     </AppBar>
