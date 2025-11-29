@@ -3,7 +3,7 @@ import type { AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 
 // Create axios instance
 const apiClient: AxiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000/api',
+  baseURL: 'https://parasites-api-boubetana.onrender.com/api',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -59,4 +59,6 @@ export const handleApiError = (error: unknown): ApiError => {
     message: error instanceof Error ? error.message : 'حدث خطأ غير متوقع',
   };
 };
+
+
 

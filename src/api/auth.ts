@@ -1,4 +1,4 @@
-﻿import apiClient, { handleApiError } from './client';
+import apiClient, { handleApiError } from './client';
 
 export interface User {
   id: number;
@@ -26,7 +26,7 @@ export interface AuthResponse {
   refreshToken?: string;
 }
 
-const isDevelopment = !import.meta.env.VITE_API_URL;
+const isDevelopment = false;
 
 // Mock users for development
 const mockUsers: User[] = [
@@ -206,6 +206,8 @@ export const authApi = {
     }
   },
 };
+
+
 
 
 
