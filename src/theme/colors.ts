@@ -1,74 +1,47 @@
-﻿import { green, grey, red, orange, blue } from '@mui/material/colors';
-
-export const colors = {
+﻿export const colors = {
   primary: {
-    main: '#047857',
-    light: '#34D399',
-    dark: '#064E3B',
+    main: '#4d5d53',      // الأخضر الداكن
+    light: '#7ba888',     // الأخضر الفاتح
+    dark: '#3a4541',      // أغمق
     contrastText: '#ffffff',
   },
   secondary: {
-    main: '#059669',
-    light: '#6EE7B7',
-    dark: '#065F46',
-    contrastText: '#ffffff',
-  },
-  success: {
-    main: green[600],
-    light: green[400],
-    dark: green[800],
+    main: '#c9a961',      // الذهبي الدافئ
+    light: '#e0d4b8',
+    dark: '#8b7a3e',
     contrastText: '#ffffff',
   },
   error: {
-    main: red[600],
-    light: red[400],
-    dark: red[900],
-    contrastText: '#ffffff',
+    main: '#d4914d',      // برتقالي للتحذيرات
+    light: '#e8b47a',
+    dark: '#a86a2c',
   },
   warning: {
-    main: orange[500],
-    light: orange[300],
-    dark: orange[800],
-    contrastText: '#ffffff',
+    main: '#d4914d',
+    light: '#e8b47a',
+    dark: '#a86a2c',
+  },
+  success: {
+    main: '#7ba888',
+    light: '#a8c9b5',
+    dark: '#5a8a6b',
   },
   info: {
-    main: blue[500],
-    light: blue[300],
-    dark: blue[800],
-    contrastText: '#ffffff',
+    main: '#4d5d53',
+    light: '#7ba888',
+    dark: '#3a4541',
   },
-  grey: grey,
-  green: green,
-  red: red,
   background: {
-    default: '#F0FDF4',
-    paper: '#ffffff',
+    default: '#f5f5f3',   // رمادي فاتح جداً
+    paper: '#ffffff',     // أبيض نقي للبطاقات
   },
   text: {
-    primary: '#064E3B',
-    secondary: '#374151',
+    primary: '#2c2c2c',   // رمادي غامق للنصوص الرئيسية
+    secondary: '#666666', // رمادي متوسط للنصوص الثانوية
   },
-  action: {
-    hover: 'rgba(4, 120, 87, 0.08)',
-  }
 };
 
 export const gradients = {
-  primary: 'linear-gradient(135deg, #047857 0%, #10B981 100%)',
-  secondary: 'linear-gradient(135deg, #059669 0%, #34D399 100%)',
-  dark: 'linear-gradient(135deg, #064E3B 0%, #047857 100%)',
-};
-
-export const universityColors = {
-  primary: {
-    main: colors.primary.main,
-    light: colors.primary.light,
-    dark: colors.primary.dark,
-  },
-  secondary: {
-    main: colors.secondary.main,
-    light: colors.secondary.light,
-    dark: colors.secondary.dark,
-  },
-  background: colors.background.default,
+  primary: `linear-gradient(135deg, #4d5d53 0%, #7ba888 100%)`,
+  secondary: `linear-gradient(135deg, #c9a961 0%, #e0d4b8 100%)`,
 };
