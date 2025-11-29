@@ -30,7 +30,7 @@ import {
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
-import { universityColors } from '../../theme/colors';
+import { colors, gradients } from '../../theme/colors';
 
 const drawerWidth = 280;
 
@@ -69,7 +69,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
             path: '/add-parasite',
             protected: true,
           },
-          
         ]
       : []),
   ];
@@ -95,36 +94,74 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
 
   const drawerContent = (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      {/* Header */}
+      {/* Header with Logo */}
       <Toolbar
         sx={{
-          background: `linear-gradient(135deg, ${universityColors.primary.main} 0%, ${universityColors.primary.light} 100%)`,
+          background: gradients.primary,
           color: 'white',
           justifyContent: 'space-between',
-          minHeight: '80px !important',
+          minHeight: '90px !important',
+          py: 2,
+          px: 2,
+          boxShadow: '0 2px 8px rgba(77, 93, 83, 0.2)',
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <ScienceIcon sx={{ fontSize: 32 }} />
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 44,
+              height: 44,
+              bgcolor: 'rgba(255, 255, 255, 0.2)',
+              borderRadius: 2,
+              backdropFilter: 'blur(4px)',
+            }}
+          >
+            <ScienceIcon sx={{ fontSize: 28 }} />
+          </Box>
           <Box>
-            <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
-              ParasiteDB
+            <Typography 
+              variant="h6" 
+              sx={{ 
+                fontWeight: 700, 
+                lineHeight: 1.1,
+                fontSize: '1rem',
+              }}
+            >
+              Parasites
             </Typography>
-            <Typography variant="caption" sx={{ opacity: 0.9, fontSize: '0.7rem' }}>
-              {t('app_subtitle')}
+            <Typography 
+              variant="caption" 
+              sx={{ 
+                opacity: 0.85, 
+                fontSize: '0.65rem',
+                fontWeight: 500,
+              }}
+            >
+              Archive
             </Typography>
           </Box>
         </Box>
         {isMobile && (
-          <IconButton onClick={onClose} sx={{ color: 'white' }}>
+          <IconButton 
+            onClick={onClose} 
+            sx={{ 
+              color: 'white',
+              '&:hover': {
+                bgcolor: 'rgba(255, 255, 255, 0.1)',
+              },
+            }}
+          >
             <CloseIcon />
           </IconButton>
         )}
       </Toolbar>
 
-      <Divider />
+      <Divider sx={{ borderColor: colors.primary.light + '30' }} />
 
-      {/* User Info */}
+      {/* User Info Section */}
       {isAuthenticated && user && (
         <>
           <Box
@@ -133,28 +170,38 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
               display: 'flex',
               alignItems: 'center',
               gap: 2,
-              bgcolor: 'background.light',
+              bgcolor: colors.background.default,
             }}
           >
             <Avatar
               sx={{
-                bgcolor: universityColors.primary.main,
+                background: gradients.primary,
                 width: 48,
                 height: 48,
+                fontWeight: 600,
+                fontSize: '1.2rem',
               }}
             >
               {user.name.charAt(0).toUpperCase()}
             </Avatar>
             <Box sx={{ flex: 1, minWidth: 0 }}>
-              <Typography variant="subtitle2" noWrap>
+              <Typography 
+                variant="subtitle2" 
+                noWrap
+                sx={{ fontWeight: 600, color: colors.text.primary }}
+              >
                 {user.name}
               </Typography>
-              <Typography variant="caption" color="text.secondary" noWrap>
+              <Typography 
+                variant="caption" 
+                noWrap
+                sx={{ color: colors.text.secondary }}
+              >
                 {user.email}
               </Typography>
             </Box>
           </Box>
-          <Divider />
+          <Divider sx={{ borderColor: colors.primary.light + '30' }} />
         </>
       )}
 
@@ -163,29 +210,33 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
         {menuItems.map((item) => {
           const isActive = location.pathname === item.path;
           return (
-            <ListItem key={item.path} disablePadding>
+            <ListItem key={item.path} disablePadding sx={{ mb: 0.5 }}>
               <ListItemButton
                 onClick={() => handleNavigation(item.path)}
                 selected={isActive}
                 sx={{
                   mx: 1,
-                  mb: 0.5,
                   borderRadius: 2,
+                  transition: 'all 0.2s ease',
                   '&.Mui-selected': {
-                    bgcolor: `${universityColors.primary.main}15`,
-                    color: universityColors.primary.main,
+                    background: `linear-gradient(135deg, ${colors.primary.main}15 0%, ${colors.secondary.main}08 100%)`,
+                    color: colors.primary.main,
+                    fontWeight: 600,
                     '&:hover': {
-                      bgcolor: `${universityColors.primary.main}25`,
+                      background: `linear-gradient(135deg, ${colors.primary.main}25 0%, ${colors.secondary.main}15 100%)`,
                     },
                     '& .MuiListItemIcon-root': {
-                      color: universityColors.primary.main,
+                      color: colors.primary.main,
                     },
+                  },
+                  '&:hover': {
+                    background: `linear-gradient(135deg, ${colors.primary.main}08 0%, ${colors.secondary.main}04 100%)`,
                   },
                 }}
               >
                 <ListItemIcon
                   sx={{
-                    color: isActive ? universityColors.primary.main : 'text.secondary',
+                    color: isActive ? colors.primary.main : colors.text.secondary,
                     minWidth: 40,
                   }}
                 >
@@ -194,7 +245,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
                 <ListItemText
                   primary={item.text}
                   primaryTypographyProps={{
-                    fontWeight: isActive ? 600 : 400,
+                    fontWeight: isActive ? 600 : 500,
+                    fontSize: '0.95rem',
                   }}
                 />
               </ListItemButton>
@@ -203,19 +255,25 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
         })}
       </List>
 
-      <Divider />
+      <Divider sx={{ borderColor: colors.primary.light + '30' }} />
 
       {/* Footer Actions */}
-      <Box sx={{ p: 1 }}>
+      <Box sx={{ p: 1.5 }}>
         {!isAuthenticated ? (
           <ListItemButton
             onClick={() => handleNavigation('/login')}
             sx={{
               borderRadius: 2,
               mx: 1,
+              background: `linear-gradient(135deg, ${colors.primary.main}10 0%, ${colors.secondary.main}05 100%)`,
+              color: colors.primary.main,
+              fontWeight: 500,
+              '&:hover': {
+                background: `linear-gradient(135deg, ${colors.primary.main}20 0%, ${colors.secondary.main}10 100%)`,
+              },
             }}
           >
-            <ListItemIcon>
+            <ListItemIcon sx={{ color: colors.primary.main, minWidth: 40 }}>
               <LoginIcon />
             </ListItemIcon>
             <ListItemText primary={t('nav_login')} />
@@ -226,10 +284,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
             sx={{
               borderRadius: 2,
               mx: 1,
-              color: 'error.main',
+              background: 'rgba(212, 145, 77, 0.1)',
+              color: colors.error.main,
+              fontWeight: 500,
+              '&:hover': {
+                background: 'rgba(212, 145, 77, 0.2)',
+              },
             }}
           >
-            <ListItemIcon sx={{ color: 'error.main' }}>
+            <ListItemIcon sx={{ color: colors.error.main, minWidth: 40 }}>
               <LogoutIcon />
             </ListItemIcon>
             <ListItemText primary={t('nav_logout')} />
@@ -242,13 +305,25 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
           sx={{
             borderRadius: 2,
             mx: 1,
+            mt: 1,
+            background: `linear-gradient(135deg, ${colors.secondary.main}10 0%, ${colors.secondary.main}05 100%)`,
+            '&:hover': {
+              background: `linear-gradient(135deg, ${colors.secondary.main}20 0%, ${colors.secondary.main}15 100%)`,
+            },
           }}
         >
-          <ListItemIcon>
+          <ListItemIcon sx={{ color: colors.secondary.main, minWidth: 40 }}>
             <LanguageIcon />
           </ListItemIcon>
           <ListItemText
-            primary={i18n.language === 'ar' ? 'العربية' : i18n.language === 'fr' ? 'Français' : 'English'}
+            primary={
+              i18n.language === 'ar'
+                ? 'العربية'
+                : i18n.language === 'fr'
+                ? 'Français'
+                : 'English'
+            }
+            primaryTypographyProps={{ fontWeight: 500 }}
           />
         </ListItemButton>
       </Box>
@@ -262,18 +337,36 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
         <MenuItem
           selected={i18n.language === 'ar'}
           onClick={() => handleLanguageChange('ar')}
+          sx={{
+            '&.Mui-selected': {
+              backgroundColor: `${colors.primary.main}15`,
+              color: colors.primary.main,
+            },
+          }}
         >
           العربية
         </MenuItem>
         <MenuItem
           selected={i18n.language === 'fr'}
           onClick={() => handleLanguageChange('fr')}
+          sx={{
+            '&.Mui-selected': {
+              backgroundColor: `${colors.primary.main}15`,
+              color: colors.primary.main,
+            },
+          }}
         >
           Français
         </MenuItem>
         <MenuItem
           selected={i18n.language === 'en'}
           onClick={() => handleLanguageChange('en')}
+          sx={{
+            '&.Mui-selected': {
+              backgroundColor: `${colors.primary.main}15`,
+              color: colors.primary.main,
+            },
+          }}
         >
           English
         </MenuItem>
@@ -288,12 +381,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
         open={open || false}
         onClose={onClose}
         ModalProps={{
-          keepMounted: true, // Better mobile performance
+          keepMounted: true,
         }}
         sx={{
           '& .MuiDrawer-paper': {
             width: drawerWidth,
             boxSizing: 'border-box',
+            backgroundColor: colors.background.default,
           },
         }}
       >
@@ -311,8 +405,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
         '& .MuiDrawer-paper': {
           width: drawerWidth,
           boxSizing: 'border-box',
-          borderRight: '1px solid',
-          borderColor: 'divider',
+          borderRight: `1px solid ${colors.primary.light}30`,
+          backgroundColor: colors.background.default,
         },
       }}
     >
@@ -330,16 +424,17 @@ export const SidebarToggle: React.FC<{ onClick: () => void }> = ({ onClick }) =>
         top: 16,
         right: 16,
         zIndex: 1300,
-        bgcolor: 'background.paper',
-        boxShadow: 2,
+        background: gradients.primary,
+        color: 'white',
+        boxShadow: '0 4px 12px rgba(77, 93, 83, 0.25)',
         '&:hover': {
-          bgcolor: 'background.paper',
+          background: `linear-gradient(135deg, #3a4541 0%, #5a8a6b 100%)`,
+          boxShadow: '0 6px 16px rgba(77, 93, 83, 0.35)',
         },
+        transition: 'all 0.3s ease',
       }}
     >
       <MenuIcon />
     </IconButton>
   );
 };
-
-
