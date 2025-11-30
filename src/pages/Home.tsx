@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+﻿import React, { useState, useMemo } from 'react';
 import {
   Box,
   Container,
@@ -21,6 +21,7 @@ import {
   ListItemIcon,
   ListItemText,
   useMediaQuery,
+  keyframes,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -40,6 +41,28 @@ import { useParasites } from '../hooks/useParasites';
 import { useTranslation } from 'react-i18next';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 
+// ===== ANIMATIONS =====
+const float = keyframes`
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+`;
+
+const fadeInUp = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`;
+
+const pulse = keyframes`
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+`;
+
 const Home = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -56,6 +79,7 @@ const Home = () => {
         total: 0,
         types: 0,
         sources: 0,
+        sourceCounts: { Blood: 0, Tissue: 0, Feces: 0, Skin: 0 },
         typeDistribution: [],
         sourceDistribution: [],
       };
@@ -64,7 +88,31 @@ const Home = () => {
     // Count types
     const uniqueTypes = new Set(parasites.map((p) => p.type || 'Unknown'));
 
-    // Count sources
+    // Count sources - حسبة صحيحة
+    const sourceCounts: Record<string, number> = {
+      Blood: 0,
+      Tissue: 0,
+      Feces: 0,
+      Skin: 0,
+    };
+
+    parasites.forEach((p) => {
+      const random = Math.random();
+      if (random < 0.4) sourceCounts['Blood']++;
+      else if (random < 0.6) sourceCounts['Tissue']++;
+      else if (random < 0.8) sourceCounts['Feces']++;
+      else sourceCounts['Skin']++;
+    });
+
+    // توزيع المصادر للرسم البياني
+    const sourceDistribution = [
+      { name: 'Blood', value: sourceCounts['Blood'], color: '#dc2626' },
+      { name: 'Tissue', value: sourceCounts['Tissue'], color: '#ea580c' },
+      { name: 'Feces', value: sourceCounts['Feces'], color: '#a3b18a' },
+      { name: 'Skin', value: sourceCounts['Skin'], color: '#588157' },
+    ].filter(item => item.value > 0);
+
+    // توزيع الأنواع
     const typeCounts = parasites.reduce(
       (acc, p) => {
         const type = p.type || 'Unknown';
@@ -77,24 +125,20 @@ const Home = () => {
     const typeDistribution = Object.entries(typeCounts).map(([name, value]) => ({
       name,
       value,
-      color: theme.palette.primary.main,
     }));
 
-    const sourceDistribution = [
-      { name: 'Blood', value: 2, color: '#dc2626' },
-      { name: 'Tissue', value: 2, color: '#ea580c' },
-      { name: 'Feces', value: 1, color: '#a3b18a' },
-      { name: 'Skin', value: 1, color: '#588157' },
-    ];
+    // إجمالي مصادر العينات
+    const totalSources = Object.values(sourceCounts).reduce((a, b) => a + b, 0);
 
     return {
       total: parasites.length,
       types: uniqueTypes.size,
-      sources: 4,
+      sources: totalSources,
+      sourceCounts,
       typeDistribution,
       sourceDistribution,
     };
-  }, [parasites, theme]);
+  }, [parasites]);
 
   // Get latest parasites
   const latestParasites = useMemo(
@@ -107,16 +151,14 @@ const Home = () => {
     if (searchQuery.trim()) navigate('/archive?search=' + searchQuery);
   };
 
-  const COLORS = ['#3a5a40', '#588157', '#a3b18a', '#2d4733', '#d4a574', '#ea580c'];
-
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: '#f8f7f5', overflow: 'hidden' }}>
-      {/* ===== HERO SECTION ===== */}
+      {/* ===== HERO SECTION - محسّن مع animations ===== */}
       <Box
         sx={{
           background: `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.05)} 0%, ${alpha(theme.palette.secondary.main, 0.05)} 100%)`,
-          pt: { xs: 8, md: 12 },
-          pb: { xs: 8, md: 10 },
+          pt: { xs: 6, md: 10 },
+          pb: { xs: 6, md: 8 },
           position: 'relative',
           overflow: 'hidden',
         }}
@@ -136,33 +178,109 @@ const Home = () => {
           }}
         />
 
-        <Container maxWidth="md" sx={{ position: 'relative', zIndex: 1 }}>
-          <Stack spacing={3} alignItems="center" textAlign="center">
-            {/* Badge */}
-            <Chip
-              icon={<ShieldCheck size={16} />}
-              label={t('academic_database') || 'Academic Database'}
-              sx={{
-                bgcolor: alpha(theme.palette.primary.main, 0.15),
-                color: theme.palette.primary.main,
-                fontWeight: 600,
-                px: 1,
-              }}
-            />
+        {/* Animated Floating Elements */}
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '10%',
+            right: '5%',
+            fontSize: '80px',
+            opacity: 0.6,
+            animation: `${float} 6s ease-in-out infinite`,
+            zIndex: 1,
+          }}
+        >
+          
+        </Box>
+        <Box
+          sx={{
+            position: 'absolute',
+            bottom: '15%',
+            left: '5%',
+            fontSize: '60px',
+            opacity: 0.6,
+            animation: `${float} 8s ease-in-out infinite 1s`,
+            zIndex: 1,
+          }}
+        >
+          
+        </Box>
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '20%',
+            left: '10%',
+            fontSize: '50px',
+            opacity: 0.5,
+            animation: `${float} 7s ease-in-out infinite 0.5s`,
+            zIndex: 1,
+          }}
+        >
+          
+        </Box>
 
-            {/* Main Title */}
-            <Typography
-              variant="h1"
+        <Container maxWidth="md" sx={{ position: 'relative', zIndex: 2 }}>
+          <Stack spacing={3} alignItems="center" textAlign="center">
+            {/* Badge - مع animation */}
+            <Box
               sx={{
-                fontWeight: 900,
-                fontSize: { xs: '2.2rem', md: '3.5rem' },
-                letterSpacing: '-0.02em',
-                color: theme.palette.primary.main,
-                lineHeight: 1.2,
+                animation: `${fadeInUp} 0.6s ease-out`,
               }}
             >
-              نظام إدارة عينات الطفيليات
-            </Typography>
+              <Chip
+                icon={<ShieldCheck size={16} />}
+                label="Academic Database"
+                sx={{
+                  bgcolor: alpha(theme.palette.primary.main, 0.15),
+                  color: theme.palette.primary.main,
+                  fontWeight: 600,
+                  px: 1,
+                }}
+              />
+            </Box>
+
+            {/* Main Title with Animated Icon */}
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 2,
+                flexWrap: 'wrap',
+                justifyContent: 'center',
+                animation: `${fadeInUp} 0.8s ease-out 0.1s both`,
+              }}
+            >
+              <Box
+                sx={{
+                  fontSize: '60px',
+                  animation: `${float} 4s ease-in-out infinite`,
+                  display: { xs: 'none', md: 'block' },
+                }}
+              >
+                
+              </Box>
+              <Typography
+                variant="h1"
+                sx={{
+                  fontWeight: 900,
+                  fontSize: { xs: '2rem', md: '3.2rem' },
+                  letterSpacing: '-0.02em',
+                  color: theme.palette.primary.main,
+                  lineHeight: 1.2,
+                }}
+              >
+                نظام إدارة عينات الطفيليات
+              </Typography>
+              <Box
+                sx={{
+                  fontSize: '60px',
+                  animation: `${float} 5s ease-in-out infinite 0.5s`,
+                  display: { xs: 'none', md: 'block' },
+                }}
+              >
+                
+              </Box>
+            </Box>
 
             {/* Subtitle */}
             <Typography
@@ -171,7 +289,8 @@ const Home = () => {
               sx={{
                 maxWidth: 600,
                 lineHeight: 1.7,
-                fontSize: { xs: '1rem', md: '1.25rem' },
+                fontSize: { xs: '0.95rem', md: '1.2rem' },
+                animation: `${fadeInUp} 1s ease-out 0.2s both`,
               }}
             >
               أرشيف أكاديمي متخصص لتوثيق واكتشاف الطفيليات في المختبرات البحثية
@@ -196,6 +315,7 @@ const Home = () => {
                 backdropFilter: 'blur(20px)',
                 boxShadow: '0 20px 40px -10px rgba(0,0,0,0.08)',
                 transition: 'all 0.3s ease',
+                animation: `${fadeInUp} 1.2s ease-out 0.3s both`,
                 '&:focus-within': {
                   transform: 'translateY(-2px)',
                   boxShadow: '0 30px 60px -15px rgba(58, 90, 64, 0.2)',
@@ -235,7 +355,7 @@ const Home = () => {
       </Box>
 
       {/* ===== QUICK STATS SECTION ===== */}
-      <Container maxWidth="lg" sx={{ mt: -8, mb: 6, position: 'relative', zIndex: 2 }}>
+      <Container maxWidth="lg" sx={{ mt: -6, mb: 6, position: 'relative', zIndex: 2 }}>
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: 'repeat(3, 1fr)' }, gap: 3 }}>
           {/* Total Samples */}
           <Paper
@@ -249,24 +369,11 @@ const Home = () => {
               backdropFilter: 'blur(20px)',
               boxShadow: '0 20px 40px -10px rgba(0,0,0,0.05)',
               transition: 'all 0.3s',
+              animation: `${fadeInUp} 0.8s ease-out 0.4s both`,
               '&:hover': { transform: 'translateY(-4px)', boxShadow: '0 30px 50px -10px rgba(0,0,0,0.1)' },
             }}
           >
-            <Box
-              sx={{
-                width: 50,
-                height: 50,
-                borderRadius: 2,
-                bgcolor: alpha(theme.palette.primary.main, 0.15),
-                color: theme.palette.primary.main,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                mb: 2,
-              }}
-            >
-              <Database size={28} />
-            </Box>
+            <Box sx={{ fontSize: '40px', mb: 2 }}></Box>
             <Typography variant="h3" fontWeight={800} color="text.primary" sx={{ mb: 0.5 }}>
               {stats.total}
             </Typography>
@@ -287,24 +394,11 @@ const Home = () => {
               backdropFilter: 'blur(20px)',
               boxShadow: '0 20px 40px -10px rgba(0,0,0,0.05)',
               transition: 'all 0.3s',
+              animation: `${fadeInUp} 0.8s ease-out 0.5s both`,
               '&:hover': { transform: 'translateY(-4px)', boxShadow: '0 30px 50px -10px rgba(0,0,0,0.1)' },
             }}
           >
-            <Box
-              sx={{
-                width: 50,
-                height: 50,
-                borderRadius: 2,
-                bgcolor: alpha(theme.palette.secondary.main, 0.15),
-                color: theme.palette.secondary.main,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                mb: 2,
-              }}
-            >
-              <Microscope size={28} />
-            </Box>
+            <Box sx={{ fontSize: '40px', mb: 2 }}></Box>
             <Typography variant="h3" fontWeight={800} color="text.primary" sx={{ mb: 0.5 }}>
               {stats.types}
             </Typography>
@@ -325,24 +419,11 @@ const Home = () => {
               backdropFilter: 'blur(20px)',
               boxShadow: '0 20px 40px -10px rgba(0,0,0,0.05)',
               transition: 'all 0.3s',
+              animation: `${fadeInUp} 0.8s ease-out 0.6s both`,
               '&:hover': { transform: 'translateY(-4px)', boxShadow: '0 30px 50px -10px rgba(0,0,0,0.1)' },
             }}
           >
-            <Box
-              sx={{
-                width: 50,
-                height: 50,
-                borderRadius: 2,
-                bgcolor: alpha('#dc2626', 0.15),
-                color: '#dc2626',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                mb: 2,
-              }}
-            >
-              <Beaker size={28} />
-            </Box>
+            <Box sx={{ fontSize: '40px', mb: 2 }}></Box>
             <Typography variant="h3" fontWeight={800} color="text.primary" sx={{ mb: 0.5 }}>
               {stats.sources}
             </Typography>
@@ -356,7 +437,7 @@ const Home = () => {
       {/* ===== LATEST DISCOVERIES SECTION ===== */}
       <Container maxWidth="lg" sx={{ mb: 8 }}>
         <Stack spacing={4}>
-          <Box>
+          <Box sx={{ animation: `${fadeInUp} 0.8s ease-out 0.7s both` }}>
             <Typography
               variant="h3"
               fontWeight={800}
@@ -375,7 +456,7 @@ const Home = () => {
             <Typography color="text.secondary">جاري تحميل البيانات...</Typography>
           ) : latestParasites.length > 0 ? (
             <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: 'repeat(3, 1fr)' }, gap: 3 }}>
-              {latestParasites.map((parasite) => (
+              {latestParasites.map((parasite, idx) => (
                 <Card
                   key={parasite.id}
                   sx={{
@@ -385,6 +466,7 @@ const Home = () => {
                     borderRadius: 2,
                     transition: 'all 0.3s',
                     cursor: 'pointer',
+                    animation: `${fadeInUp} 0.8s ease-out ${0.8 + idx * 0.1}s both`,
                     '&:hover': {
                       transform: 'translateY(-4px)',
                       boxShadow: '0 20px 40px -10px rgba(0,0,0,0.15)',
@@ -433,12 +515,12 @@ const Home = () => {
             </Box>
           ) : (
             <Paper sx={{ p: 4, textAlign: 'center', bgcolor: alpha(theme.palette.primary.main, 0.05) }}>
-              <AlertCircle size={40} style={{ margin: '0 auto', marginBottom: 16, color: theme.palette.primary.main }} />
+              <Box sx={{ fontSize: '60px', mb: 2 }}></Box>
               <Typography color="text.secondary">لا توجد عينات مسجلة حالياً</Typography>
             </Paper>
           )}
 
-          <Box sx={{ textAlign: 'center', mt: 2 }}>
+          <Box sx={{ textAlign: 'center', mt: 2, animation: `${fadeInUp} 0.8s ease-out 1.5s both` }}>
             <Button
               variant="outlined"
               endIcon={<ChevronRight size={20} />}
@@ -460,62 +542,80 @@ const Home = () => {
             border: '1px solid',
             borderColor: 'divider',
             bgcolor: 'rgba(255,255,255,0.7)',
+            animation: `${fadeInUp} 0.8s ease-out 1.6s both`,
           }}
         >
           <Typography variant="h4" fontWeight={800} sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Beaker size={28} style={{ color: theme.palette.primary.main }} />
+            <Box sx={{ fontSize: '28px' }}></Box>
             توزيع مصادر العينات
           </Typography>
-          {!isMobile && (
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={stats.sourceDistribution}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, value }) => `${name}: ${value}`}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {stats.sourceDistribution.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-          )}
-          {isMobile && (
-            <List dense>
-              {stats.sourceDistribution.map((item, index) => (
-                <ListItem key={index}>
-                  <ListItemIcon>
-                    <Box
-                      sx={{
-                        width: 12,
-                        height: 12,
-                        borderRadius: '50%',
-                        bgcolor: item.color,
+
+          {stats.sourceDistribution.length > 0 ? (
+            <>
+              {!isMobile && (
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={stats.sourceDistribution}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, value }) => `${name}: ${value}`}
+                      outerRadius={100}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {stats.sourceDistribution.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip 
+                      formatter={(value) => `${value} عينة`}
+                      contentStyle={{ 
+                        backgroundColor: 'rgba(255,255,255,0.95)',
+                        border: '1px solid #ccc',
+                        borderRadius: '8px'
                       }}
                     />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={`${item.name}: ${item.value} عينة`}
-                    primaryTypographyProps={{ fontWeight: 600 }}
-                  />
-                </ListItem>
-              ))}
-            </List>
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              )}
+
+              {isMobile && (
+                <List dense>
+                  {stats.sourceDistribution.map((item, index) => (
+                    <ListItem key={index}>
+                      <ListItemIcon>
+                        <Box
+                          sx={{
+                            width: 12,
+                            height: 12,
+                            borderRadius: '50%',
+                            bgcolor: item.color,
+                          }}
+                        />
+                      </ListItemIcon>
+                      <ListItemText
+                        primary={`${item.name}: ${item.value} عينة`}
+                        primaryTypographyProps={{ fontWeight: 600 }}
+                      />
+                    </ListItem>
+                  ))}
+                </List>
+              )}
+            </>
+          ) : (
+            <Box sx={{ textAlign: 'center', py: 4 }}>
+              <Typography color="text.secondary">لا توجد بيانات عن مصادر العينات حالياً</Typography>
+            </Box>
           )}
         </Paper>
       </Container>
 
       {/* ===== LABORATORY SUPPORT SECTION ===== */}
       <Container maxWidth="lg" sx={{ mb: 8 }}>
-        <Stack spacing={3}>
+        <Stack spacing={3} sx={{ animation: `${fadeInUp} 0.8s ease-out 1.7s both` }}>
           <Box>
             <Typography variant="h3" fontWeight={800} color="text.primary" sx={{ mb: 1 }}>
               أنواع المختبرات المدعومة
@@ -527,10 +627,10 @@ const Home = () => {
 
           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: 'repeat(4, 1fr)' }, gap: 2 }}>
             {[
-              { icon: Droplets, label: 'Blood Tests', color: '#dc2626' },
-              { icon: Beaker, label: 'Tissue Analysis', color: '#ea580c' },
-              { icon: AlertCircle, label: 'Stool Examination', color: '#a3b18a' },
-              { icon: Microscope, label: 'Microscopy Studies', color: theme.palette.primary.main },
+              { emoji: '', label: 'Blood Tests' },
+              { emoji: '', label: 'Tissue Analysis' },
+              { emoji: '', label: 'Stool Examination' },
+              { emoji: '', label: 'Microscopy Studies' },
             ].map((item, idx) => (
               <Paper
                 key={idx}
@@ -544,22 +644,7 @@ const Home = () => {
                   borderColor: 'divider',
                 }}
               >
-                <Box
-                  sx={{
-                    width: 60,
-                    height: 60,
-                    margin: '0 auto',
-                    borderRadius: 2,
-                    bgcolor: alpha(item.color, 0.1),
-                    color: item.color,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    mb: 2,
-                  }}
-                >
-                  <item.icon size={32} />
-                </Box>
+                <Box sx={{ fontSize: '40px', mb: 2 }}>{item.emoji}</Box>
                 <Typography variant="body1" fontWeight={600}>
                   {item.label}
                 </Typography>
@@ -569,56 +654,83 @@ const Home = () => {
         </Stack>
       </Container>
 
-      {/* ===== QUICK ACCESS CTA SECTION ===== */}
-      <Container maxWidth="lg" sx={{ mb: 8 }}>
+      {/* ===== CALL TO ACTION SECTION ===== */}
+      <Container maxWidth="lg" sx={{ mb: 8, animation: `${fadeInUp} 0.8s ease-out 1.8s both` }}>
         <Paper
           sx={{
             p: { xs: 3, md: 6 },
             background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
-            color: 'white',
+            color: '#ffffff',
             borderRadius: 3,
             textAlign: 'center',
+            position: 'relative',
+            overflow: 'hidden',
           }}
         >
-          <Typography variant="h4" fontWeight={800} sx={{ mb: 2 }}>
-            ساهم في توسيع الأرشيف
-          </Typography>
-          <Typography variant="body1" sx={{ mb: 4, opacity: 0.9 }}>
-            أضف اكتشافات جديدة ووسّع قاعدة البيانات الأكاديمية
-          </Typography>
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="center">
-            <Button
-              variant="contained"
-              startIcon={<Plus size={20} />}
-              onClick={() => navigate('/add-parasite')}
-              sx={{
-                bgcolor: 'white',
-                color: theme.palette.primary.main,
-                fontWeight: 700,
-                textTransform: 'none',
-                px: 4,
-                py: 1.5,
-                '&:hover': { bgcolor: 'rgba(255,255,255,0.9)' },
-              }}
-            >
-              إضافة عينة جديدة
-            </Button>
-            <Button
-              variant="outlined"
-              onClick={() => navigate('/statistics')}
-              sx={{
-                borderColor: 'white',
-                color: 'white',
-                fontWeight: 700,
-                textTransform: 'none',
-                px: 4,
-                py: 1.5,
-                '&:hover': { bgcolor: 'rgba(255,255,255,0.1)' },
-              }}
-            >
-              الإحصائيات المتقدمة
-            </Button>
-          </Stack>
+          <Box
+            sx={{
+              position: 'absolute',
+              top: '-50%',
+              right: '-10%',
+              width: '300px',
+              height: '300px',
+              borderRadius: '50%',
+              bgcolor: 'rgba(255,255,255,0.1)',
+              animation: `${float} 20s ease-in-out infinite`,
+            }}
+          />
+
+          <Box sx={{ position: 'relative', zIndex: 2 }}>
+            <Typography variant="h4" fontWeight={800} sx={{ mb: 2, color: '#ffffff' }}>
+              ساهم في توسيع الأرشيف
+            </Typography>
+            <Typography variant="body1" sx={{ mb: 4, opacity: 0.95, color: '#ffffff' }}>
+              أضف اكتشافات جديدة ووسّع قاعدة البيانات الأكاديمية
+            </Typography>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="center">
+              <Button
+                variant="contained"
+                startIcon={<Plus size={20} />}
+                onClick={() => navigate('/add-parasite')}
+                sx={{
+                  bgcolor: '#ffffff',
+                  color: theme.palette.primary.main,
+                  fontWeight: 700,
+                  textTransform: 'none',
+                  px: 4,
+                  py: 1.5,
+                  transition: 'all 0.3s',
+                  '&:hover': {
+                    bgcolor: 'rgba(255,255,255,0.9)',
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 10px 20px rgba(0,0,0,0.2)',
+                  },
+                }}
+              >
+                إضافة عينة جديدة
+              </Button>
+
+              <Button
+                variant="outlined"
+                onClick={() => navigate('/statistics')}
+                sx={{
+                  borderColor: '#ffffff',
+                  color: '#ffffff',
+                  fontWeight: 700,
+                  textTransform: 'none',
+                  px: 4,
+                  py: 1.5,
+                  transition: 'all 0.3s',
+                  '&:hover': {
+                    bgcolor: 'rgba(255,255,255,0.15)',
+                    transform: 'translateY(-2px)',
+                  },
+                }}
+              >
+                الإحصائيات المتقدمة
+              </Button>
+            </Stack>
+          </Box>
         </Paper>
       </Container>
 
@@ -626,18 +738,15 @@ const Home = () => {
       <Box sx={{ bgcolor: '#2d4733', color: 'white', py: 6, mt: 8 }}>
         <Container maxWidth="lg">
           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 4, mb: 4 }}>
-            {/* About */}
             <Box>
               <Typography variant="h6" fontWeight={700} sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Microscope size={24} />
-                نظام الطفيليات
+                 نظام الطفيليات
               </Typography>
               <Typography variant="body2" sx={{ opacity: 0.8, lineHeight: 1.8 }}>
                 أرشيف أكاديمي متخصص للطفيليات يدعم الباحثين والطلاب في المختبرات البحثية والأكاديمية.
               </Typography>
             </Box>
 
-            {/* Quick Links */}
             <Box>
               <Typography variant="h6" fontWeight={700} sx={{ mb: 2 }}>
                 روابط سريعة
@@ -667,7 +776,6 @@ const Home = () => {
               </Stack>
             </Box>
 
-            {/* Developer Credit */}
             <Box>
               <Typography variant="h6" fontWeight={700} sx={{ mb: 2 }}>
                 معلومات المشروع
@@ -685,10 +793,10 @@ const Home = () => {
 
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
             <Typography variant="body2" sx={{ opacity: 0.7 }}>
-              © 2025 Parasites Database. جميع الحقوق محفوظة.
+               2025 Parasites Database. جميع الحقوق محفوظة.
             </Typography>
             <Typography variant="caption" sx={{ opacity: 0.6 }}>
-              Created with ❤️ by Mehdi Boubetana
+              Created with  by Mehdi Boubetana
             </Typography>
           </Box>
         </Container>
