@@ -13,7 +13,6 @@ import {
   CircularProgress,
   Pagination,
   Paper,
-  Drawer,
   Stack,
   FormControlLabel,
   Checkbox,
@@ -21,8 +20,9 @@ import {
   IconButton,
   useTheme,
   alpha,
+  Collapse,
 } from "@mui/material";
-import { Search, Filter, X } from "lucide-react";
+import { Search, ChevronDown, ChevronUp, X } from "lucide-react";
 import { useParasites } from "../hooks/useParasites";
 import { useTranslation } from "react-i18next";
 
@@ -49,11 +49,15 @@ const Archive = () => {
   const { parasites, loading } = useParasites();
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [filtersOpen, setFiltersOpen] = useState(false);
   const [filters, setFilters] = useState<Filters>({
     types: [],
     hosts: [],
     dateRange: "all",
+  });
+  const [expandedSections, setExpandedSections] = useState({
+    types: true,
+    hosts: true,
+    date: false,
   });
 
   const itemsPerPage = 12;
@@ -141,6 +145,13 @@ const Archive = () => {
     }));
   };
 
+  const toggleSection = (section: "types" | "hosts" | "date") => {
+    setExpandedSections((prev) => ({
+      ...prev,
+      [section]: !prev[section],
+    }));
+  };
+
   const clearFilters = () => {
     setFilters({ types: [], hosts: [], dateRange: "all" });
     setSearchTerm("");
@@ -153,7 +164,7 @@ const Archive = () => {
       <Container maxWidth="lg">
         {/* Search & Filter Section */}
         <Paper sx={{ p: 3, mb: 4, borderRadius: 3, border: "1px solid", borderColor: "divider" }}>
-          <Stack spacing={2}>
+          <Stack spacing={3}>
             {/* Title */}
             <Typography variant="h5" fontWeight={700} color="text.primary">
               Academic Archive
@@ -194,128 +205,222 @@ const Archive = () => {
               }}
             />
 
-            {/* Filter Button + Results Count */}
-            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <Button
-                startIcon={<Filter size={16} />}
-                onClick={() => setFiltersOpen(true)}
-                variant={hasActiveFilters ? "contained" : "outlined"}
-                sx={{ textTransform: "none", fontWeight: 600, borderRadius: 2 }}
-              >
-                Filters
-                {(filters.types.length > 0 || filters.hosts.length > 0) && (
-                  <Box sx={{ ml: 1, bgcolor: alpha(theme.palette.primary.main, 0.3), px: 1, borderRadius: 1, fontSize: "0.75rem" }}>
-                    {filters.types.length + filters.hosts.length}
-                  </Box>
-                )}
-              </Button>
+            <Divider />
 
-              <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
-                <strong>{filteredResults.length}</strong> results
+            {/* Collapsible Filters */}
+            <Stack spacing={1}>
+              {/* Types Filter */}
+              <Box>
+                <Button
+                  fullWidth
+                  onClick={() => toggleSection("types")}
+                  sx={{
+                    justifyContent: "space-between",
+                    textTransform: "none",
+                    color: "text.primary",
+                    fontWeight: 600,
+                    fontSize: "0.95rem",
+                    p: 1.5,
+                    bgcolor: expandedSections.types ? alpha(theme.palette.primary.main, 0.05) : "transparent",
+                    border: "1px solid",
+                    borderColor: "divider",
+                    borderRadius: 2,
+                    "&:hover": {
+                      bgcolor: alpha(theme.palette.primary.main, 0.08),
+                    },
+                  }}
+                >
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <Typography fontWeight={600}>Parasite Type</Typography>
+                    {filters.types.length > 0 && (
+                      <Box
+                        sx={{
+                          px: 1,
+                          py: 0.25,
+                          bgcolor: theme.palette.primary.main,
+                          color: "white",
+                          borderRadius: 1,
+                          fontSize: "0.75rem",
+                          fontWeight: 700,
+                        }}
+                      >
+                        {filters.types.length}
+                      </Box>
+                    )}
+                  </Box>
+                  {expandedSections.types ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                </Button>
+
+                <Collapse in={expandedSections.types}>
+                  <Stack spacing={1.5} sx={{ p: 2, bgcolor: alpha(theme.palette.primary.main, 0.02), borderRadius: "0 0 8px 8px", borderLeft: "1px solid", borderRight: "1px solid", borderBottom: "1px solid", borderColor: "divider" }}>
+                    {availableTypes.map((type) => (
+                      <FormControlLabel
+                        key={type}
+                        control={
+                          <Checkbox
+                            checked={filters.types.includes(type)}
+                            onChange={() => handleTypeToggle(type)}
+                            size="small"
+                          />
+                        }
+                        label={<Typography variant="body2">{type}</Typography>}
+                      />
+                    ))}
+                  </Stack>
+                </Collapse>
+              </Box>
+
+              {/* Hosts Filter */}
+              <Box>
+                <Button
+                  fullWidth
+                  onClick={() => toggleSection("hosts")}
+                  sx={{
+                    justifyContent: "space-between",
+                    textTransform: "none",
+                    color: "text.primary",
+                    fontWeight: 600,
+                    fontSize: "0.95rem",
+                    p: 1.5,
+                    bgcolor: expandedSections.hosts ? alpha(theme.palette.primary.main, 0.05) : "transparent",
+                    border: "1px solid",
+                    borderColor: "divider",
+                    borderRadius: 2,
+                    "&:hover": {
+                      bgcolor: alpha(theme.palette.primary.main, 0.08),
+                    },
+                  }}
+                >
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <Typography fontWeight={600}>Host Species</Typography>
+                    {filters.hosts.length > 0 && (
+                      <Box
+                        sx={{
+                          px: 1,
+                          py: 0.25,
+                          bgcolor: theme.palette.primary.main,
+                          color: "white",
+                          borderRadius: 1,
+                          fontSize: "0.75rem",
+                          fontWeight: 700,
+                        }}
+                      >
+                        {filters.hosts.length}
+                      </Box>
+                    )}
+                  </Box>
+                  {expandedSections.hosts ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                </Button>
+
+                <Collapse in={expandedSections.hosts}>
+                  <Stack spacing={1.5} sx={{ p: 2, bgcolor: alpha(theme.palette.primary.main, 0.02), borderRadius: "0 0 8px 8px", borderLeft: "1px solid", borderRight: "1px solid", borderBottom: "1px solid", borderColor: "divider" }}>
+                    {availableHosts.map((host) => (
+                      <FormControlLabel
+                        key={host}
+                        control={
+                          <Checkbox
+                            checked={filters.hosts.includes(host)}
+                            onChange={() => handleHostToggle(host)}
+                            size="small"
+                          />
+                        }
+                        label={<Typography variant="body2">{host}</Typography>}
+                      />
+                    ))}
+                  </Stack>
+                </Collapse>
+              </Box>
+
+              {/* Date Filter */}
+              <Box>
+                <Button
+                  fullWidth
+                  onClick={() => toggleSection("date")}
+                  sx={{
+                    justifyContent: "space-between",
+                    textTransform: "none",
+                    color: "text.primary",
+                    fontWeight: 600,
+                    fontSize: "0.95rem",
+                    p: 1.5,
+                    bgcolor: expandedSections.date ? alpha(theme.palette.primary.main, 0.05) : "transparent",
+                    border: "1px solid",
+                    borderColor: "divider",
+                    borderRadius: 2,
+                    "&:hover": {
+                      bgcolor: alpha(theme.palette.primary.main, 0.08),
+                    },
+                  }}
+                >
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <Typography fontWeight={600}>Date Added</Typography>
+                    {filters.dateRange !== "all" && (
+                      <Box
+                        sx={{
+                          px: 1,
+                          py: 0.25,
+                          bgcolor: theme.palette.primary.main,
+                          color: "white",
+                          borderRadius: 1,
+                          fontSize: "0.75rem",
+                          fontWeight: 700,
+                        }}
+                      >
+                        1
+                      </Box>
+                    )}
+                  </Box>
+                  {expandedSections.date ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                </Button>
+
+                <Collapse in={expandedSections.date}>
+                  <Stack spacing={1.5} sx={{ p: 2, bgcolor: alpha(theme.palette.primary.main, 0.02), borderRadius: "0 0 8px 8px", borderLeft: "1px solid", borderRight: "1px solid", borderBottom: "1px solid", borderColor: "divider" }}>
+                    {[
+                      { label: "This Week", value: "week" },
+                      { label: "This Month", value: "month" },
+                      { label: "This Year", value: "year" },
+                      { label: "All Time", value: "all" },
+                    ].map((item) => (
+                      <FormControlLabel
+                        key={item.value}
+                        control={
+                          <Checkbox
+                            checked={filters.dateRange === item.value}
+                            onChange={() => handleDateToggle(item.value as any)}
+                            size="small"
+                          />
+                        }
+                        label={<Typography variant="body2">{item.label}</Typography>}
+                      />
+                    ))}
+                  </Stack>
+                </Collapse>
+              </Box>
+            </Stack>
+
+            {/* Clear Button */}
+            {hasActiveFilters && (
+              <>
+                <Divider />
+                <Button
+                  fullWidth
+                  variant="outlined"
+                  onClick={clearFilters}
+                  sx={{ textTransform: "none", fontWeight: 600, borderRadius: 2 }}
+                >
+                  Clear All Filters
+                </Button>
+              </>
+            )}
+
+            {/* Results Count */}
+            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", bgcolor: alpha(theme.palette.primary.main, 0.03), p: 2, borderRadius: 2 }}>
+              <Typography variant="body2" fontWeight={500}>
+                <strong>{filteredResults.length}</strong> results found
               </Typography>
             </Box>
           </Stack>
         </Paper>
-
-        {/* Filters Drawer */}
-        <Drawer anchor={isRtl ? "right" : "left"} open={filtersOpen} onClose={() => setFiltersOpen(false)}>
-          <Box sx={{ width: 300, p: 3 }}>
-            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
-              <Typography variant="h6" fontWeight={700}>
-                Filters
-              </Typography>
-              <IconButton onClick={() => setFiltersOpen(false)} size="small">
-                <X size={18} />
-              </IconButton>
-            </Box>
-
-            <Divider sx={{ my: 2 }} />
-
-            {/* Types */}
-            <Box sx={{ mb: 3 }}>
-              <Typography variant="subtitle2" fontWeight={700} sx={{ mb: 1 }}>
-                Parasite Type
-              </Typography>
-              <Stack spacing={1}>
-                {availableTypes.map((type) => (
-                  <FormControlLabel
-                    key={type}
-                    control={
-                      <Checkbox
-                        checked={filters.types.includes(type)}
-                        onChange={() => handleTypeToggle(type)}
-                        size="small"
-                      />
-                    }
-                    label={<Typography variant="body2">{type}</Typography>}
-                  />
-                ))}
-              </Stack>
-            </Box>
-
-            <Divider sx={{ my: 2 }} />
-
-            {/* Hosts */}
-            <Box sx={{ mb: 3 }}>
-              <Typography variant="subtitle2" fontWeight={700} sx={{ mb: 1 }}>
-                Host Species
-              </Typography>
-              <Stack spacing={1}>
-                {availableHosts.map((host) => (
-                  <FormControlLabel
-                    key={host}
-                    control={
-                      <Checkbox
-                        checked={filters.hosts.includes(host)}
-                        onChange={() => handleHostToggle(host)}
-                        size="small"
-                      />
-                    }
-                    label={<Typography variant="body2">{host}</Typography>}
-                  />
-                ))}
-              </Stack>
-            </Box>
-
-            <Divider sx={{ my: 2 }} />
-
-            {/* Date Range */}
-            <Box sx={{ mb: 3 }}>
-              <Typography variant="subtitle2" fontWeight={700} sx={{ mb: 1 }}>
-                Date Added
-              </Typography>
-              <Stack spacing={1}>
-                {[
-                  { label: "This Week", value: "week" },
-                  { label: "This Month", value: "month" },
-                  { label: "This Year", value: "year" },
-                  { label: "All Time", value: "all" },
-                ].map((item) => (
-                  <FormControlLabel
-                    key={item.value}
-                    control={
-                      <Checkbox
-                        checked={filters.dateRange === item.value}
-                        onChange={() => handleDateToggle(item.value as any)}
-                        size="small"
-                      />
-                    }
-                    label={<Typography variant="body2">{item.label}</Typography>}
-                  />
-                ))}
-              </Stack>
-            </Box>
-
-            {hasActiveFilters && (
-              <>
-                <Divider sx={{ my: 2 }} />
-                <Button fullWidth variant="outlined" onClick={clearFilters}>
-                  Clear All
-                </Button>
-              </>
-            )}
-          </Box>
-        </Drawer>
 
         {/* Results */}
         {loading ? (
