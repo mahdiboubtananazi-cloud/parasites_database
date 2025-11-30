@@ -40,7 +40,7 @@ const Archive = () => {
     return parasites.filter(p => {
       if ((p as any).status === 'pending') return false;
       const term = searchTerm.toLowerCase();
-      const nameMatch = (p.name || '').toLowerCase().includes(term) || (p.scientificName || '').toLowerCase().includes(term);
+      const nameMatch = (p.scientificName || '').toLowerCase().includes(term) || (p.arabicName || '').toLowerCase().includes(term);
       const typeMatch = activeFilter === 'all' || (p.type || '').toLowerCase() === activeFilter.toLowerCase();
       return nameMatch && typeMatch;
     });
@@ -81,9 +81,9 @@ const Archive = () => {
           {filteredResults.map((p) => (
             <Box sx={{ gridColumn: { xs: "1 / -1", sm: "span 6", md: "span 4", lg: "span 3" } }} key={p.id}>
               <Card onClick={() => navigate(`/parasites/${p.id}`)} sx={{ height: '100%', display: 'flex', flexDirection: 'column', cursor: 'pointer', borderRadius: 4, '&:hover': { transform: 'translateY(-5px)', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' } }}>
-                <CardMedia component="img" height="220" image={fixImageUrl(p.imageUrl)} alt={p.name} />
+              <CardMedia component="img" height="220" image={fixImageUrl(p.imageUrl)} alt={p.scientificName} />
                 <CardContent sx={{ flexGrow: 1 }}>
-                  <Typography variant="h6" fontWeight="bold">{p.name}</Typography>
+                <Typography variant="h6" fontWeight="bold">{p.scientificName}</Typography>
                   <Typography variant="body2" color="primary" sx={{ fontStyle: 'italic' }}>{p.scientificName}</Typography>
                 </CardContent>
                 <Box sx={{ p: 2 }}><Button fullWidth endIcon={<ArrowIcon size={16} />}>{t('view_details')}</Button></Box>

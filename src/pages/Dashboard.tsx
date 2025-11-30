@@ -73,7 +73,7 @@ export default function Dashboard() {
                       <TableCell>
                         <Stack direction="row" spacing={2} alignItems="center">
                           <Avatar src={item.imageUrl} variant="rounded" sx={{ width: 50, height: 50 }} />
-                          <Typography fontWeight={600}>{item.name}</Typography>
+                          <Typography fontWeight={600}>{item.scientificName}</Typography>
                         </Stack>
                       </TableCell>
                       <TableCell sx={{ fontStyle: 'italic', fontFamily: 'serif' }}>{item.scientificName}</TableCell>
@@ -85,7 +85,7 @@ export default function Dashboard() {
                             variant="contained" color="success" size="small" 
                             startIcon={<Check size={16} />}
                             disabled={processing === item.id}
-                            onClick={() => handleStatusChange(item.id, 'approved')}
+                            onClick={() => handleStatusChange(String(item.id), 'approved')}
                           >
                             ????
                           </Button>
@@ -93,7 +93,7 @@ export default function Dashboard() {
                             variant="outlined" color="error" size="small"
                             startIcon={<X size={16} />}
                             disabled={processing === item.id}
-                            onClick={() => handleStatusChange(item.id, 'rejected')}
+                            onClick={() => handleStatusChange(String(item.id), 'rejected')}
                           >
                             ???
                           </Button>
