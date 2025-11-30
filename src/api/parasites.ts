@@ -162,7 +162,7 @@ const mockParasites: Parasite[] = [
 ];
 
 // Check if we're in development mode (no API URL set)
-const isDevelopment = false;
+const isDevelopment = import.meta.env.VITE_ENABLE_MOCK_DATA === 'true';
 
 export const parasitesApi = {
   // Get all parasites
