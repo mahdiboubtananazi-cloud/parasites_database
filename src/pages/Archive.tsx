@@ -1,93 +1,80 @@
-﻿import React, { useState, useMemo, useEffect } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+﻿import React, { useState, useMemo, useEffect } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import {
   Container,
-  Typography,
   Box,
   TextField,
   InputAdornment,
   Card,
+  CardMedia,
   CardContent,
-  Chip,
-  Stack,
+  Typography,
   Button,
   CircularProgress,
-  alpha,
-  useTheme,
-  IconButton,
-  Paper,
   Pagination,
+  Paper,
   Drawer,
-  Divider,
+  Stack,
   FormControlLabel,
   Checkbox,
-  Breadcrumbs,
-  Link,
-  useMediaQuery,
-} from '@mui/material';
-import {
-  Search,
-  ChevronRight,
-  ChevronLeft,
-  Sliders,
-  X,
-  Home,
-} from 'lucide-react';
-import { useParasites } from '../hooks/useParasites';
-import { useTranslation } from 'react-i18next';
+  Divider,
+  IconButton,
+  useTheme,
+  alpha,
+} from "@mui/material";
+import { Search, Filter, X } from "lucide-react";
+import { useParasites } from "../hooks/useParasites";
+import { useTranslation } from "react-i18next";
 
 const fixImageUrl = (url?: string) => {
-  if (!url) return 'https://placehold.co/400x300?text=No+Image';
-  if (url.includes('localhost')) {
+  if (!url) return "https://placehold.co/400x300?text=No+Image";
+  if (url.includes("localhost")) {
     return url.replace(
-      'localhost',
-      window.location.hostname === 'localhost' ? 'localhost' : window.location.hostname
+      "localhost",
+      window.location.hostname === "localhost" ? "localhost" : window.location.hostname
     );
   }
   return url;
 };
 
-interface FilterState {
+interface Filters {
   types: string[];
   hosts: string[];
-  dateRange: 'all' | 'month' | 'year';
+  dateRange: "all" | "week" | "month" | "year";
 }
 
 const Archive = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { parasites, loading } = useParasites();
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [filters, setFilters] = useState<FilterState>({
+  const [filters, setFilters] = useState<Filters>({
     types: [],
     hosts: [],
-    dateRange: 'all',
+    dateRange: "all",
   });
-  const itemsPerPage = 20;
+
+  const itemsPerPage = 12;
   const { t, i18n } = useTranslation();
   const theme = useTheme();
-  const isRtl = i18n.language === 'ar';
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isRtl = i18n.language === "ar";
 
-  // حمّل البحث من URL
   useEffect(() => {
-    const query = searchParams.get('search');
+    const query = searchParams.get("search");
     if (query) setSearchTerm(query);
   }, [searchParams]);
 
   // احسب الفلاتر المتاحة
   const availableTypes = useMemo(() => {
     if (!parasites) return [];
-    const types = new Set(parasites.map((p) => p.type).filter(Boolean));
-    return Array.from(types).sort();
+    return Array.from(new Set(parasites.map((p) => p.type).filter(Boolean))).sort();
   }, [parasites]);
 
   const availableHosts = useMemo(() => {
     if (!parasites) return [];
-    const hosts = new Set(parasites.map((p) => p.hostSpecies).filter(Boolean));
-    return Array.from(hosts).sort();
+    return Array.from(new Set(parasites.map((p) => p.hostSpecies).filter(Boolean))).sort();
   }, [parasites]);
 
   // نتائج البحث والفلتر
@@ -95,24 +82,24 @@ const Archive = () => {
     if (!parasites) return [];
 
     return parasites.filter((p) => {
-      if ((p as any).status === 'pending') return false;
+      if ((p as any).status === "pending") return false;
 
       // البحث
       const term = searchTerm.toLowerCase();
       const searchMatch =
-        (p.scientificName || '').toLowerCase().includes(term) ||
-        (p.arabicName || '').toLowerCase().includes(term) ||
-        (p.hostSpecies || '').toLowerCase().includes(term) ||
-        (p.type || '').toLowerCase().includes(term);
+        (p.scientificName || "").toLowerCase().includes(term) ||
+        (p.arabicName || "").toLowerCase().includes(term) ||
+        (p.hostSpecies || "").toLowerCase().includes(term) ||
+        (p.type || "").toLowerCase().includes(term);
 
       if (!searchMatch) return false;
 
       // الفلاتر
-      if (filters.types.length > 0 && !filters.types.includes(p.type || '')) {
+      if (filters.types.length > 0 && !filters.types.includes(p.type || "")) {
         return false;
       }
 
-      if (filters.hosts.length > 0 && !filters.hosts.includes(p.hostSpecies || '')) {
+      if (filters.hosts.length > 0 && !filters.hosts.includes(p.hostSpecies || "")) {
         return false;
       }
 
@@ -125,7 +112,6 @@ const Archive = () => {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedResults = filteredResults.slice(startIndex, startIndex + itemsPerPage);
 
-  // ريسيت pagination
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, filters]);
@@ -148,64 +134,30 @@ const Archive = () => {
     }));
   };
 
+  const handleDateToggle = (date: "all" | "week" | "month" | "year") => {
+    setFilters((prev) => ({
+      ...prev,
+      dateRange: prev.dateRange === date ? "all" : date,
+    }));
+  };
+
   const clearFilters = () => {
-    setFilters({ types: [], hosts: [], dateRange: 'all' });
-    setSearchTerm('');
+    setFilters({ types: [], hosts: [], dateRange: "all" });
+    setSearchTerm("");
   };
 
   const hasActiveFilters = filters.types.length > 0 || filters.hosts.length > 0 || searchTerm;
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: '#f8f7f5' }}>
-      {/* ===== BREADCRUMBS ===== */}
-      <Box sx={{ bgcolor: 'white', py: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
-        <Container maxWidth="xl">
-          <Breadcrumbs>
-            <Link
-              component="button"
-              variant="body2"
-              onClick={() => navigate('/')}
-              sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 0.5 }}
-            >
-              <Home size={16} />
-              Home
-            </Link>
-            <Typography variant="body2" color="text.secondary">
-              Archive
-            </Typography>
-            {hasActiveFilters && (
-              <Typography variant="body2" color="primary" sx={{ fontWeight: 600 }}>
-                {filteredResults.length} Results
-              </Typography>
-            )}
-          </Breadcrumbs>
-        </Container>
-      </Box>
-
-      {/* ===== SEARCH & FILTERS SECTION ===== */}
-      <Paper
-        elevation={0}
-        sx={{
-          bgcolor: 'white',
-          borderBottom: '1px solid',
-          borderColor: 'divider',
-          py: 3,
-          position: 'sticky',
-          top: 0,
-          zIndex: 9,
-        }}
-      >
-        <Container maxWidth="xl">
+    <Box sx={{ minHeight: "100vh", bgcolor: "#f8f7f5", py: 4 }}>
+      <Container maxWidth="lg">
+        {/* Search & Filter Section */}
+        <Paper sx={{ p: 3, mb: 4, borderRadius: 3, border: "1px solid", borderColor: "divider" }}>
           <Stack spacing={2}>
             {/* Title */}
-            <Box>
-              <Typography variant="h5" fontWeight={700} color="text.primary">
-                Academic Archive
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Explore {parasites?.length || 0} parasitological specimens
-              </Typography>
-            </Box>
+            <Typography variant="h5" fontWeight={700} color="text.primary">
+              Academic Archive
+            </Typography>
 
             {/* Search Bar */}
             <TextField
@@ -215,14 +167,14 @@ const Archive = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               sx={{
-                '& .MuiOutlinedInput-root': {
+                "& .MuiOutlinedInput-root": {
                   borderRadius: 2,
-                  backgroundColor: 'rgba(58, 90, 64, 0.02)',
-                  border: '1px solid',
-                  borderColor: 'divider',
-                  transition: 'all 0.2s',
-                  '&:focus-within': {
-                    backgroundColor: 'white',
+                  backgroundColor: alpha(theme.palette.primary.main, 0.02),
+                  border: "1px solid",
+                  borderColor: "divider",
+                  transition: "all 0.2s",
+                  "&:focus-within": {
+                    backgroundColor: "white",
                     borderColor: theme.palette.primary.main,
                     boxShadow: `0 0 0 3px ${alpha(theme.palette.primary.main, 0.1)}`,
                   },
@@ -235,222 +187,248 @@ const Archive = () => {
                   </InputAdornment>
                 ),
                 endAdornment: searchTerm && (
-                  <IconButton onClick={() => setSearchTerm('')} size="small">
+                  <IconButton onClick={() => setSearchTerm("")} size="small">
                     <X size={14} />
                   </IconButton>
                 ),
               }}
             />
 
-            {/* Filter Button + Results Info */}
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+            {/* Filter Button + Results Count */}
+            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <Button
-                startIcon={<Sliders size={16} />}
+                startIcon={<Filter size={16} />}
                 onClick={() => setFiltersOpen(true)}
-                variant={hasActiveFilters ? 'contained' : 'outlined'}
-                sx={{
-                  textTransform: 'none',
-                  fontWeight: 600,
-                  borderRadius: 2,
-                }}
+                variant={hasActiveFilters ? "contained" : "outlined"}
+                sx={{ textTransform: "none", fontWeight: 600, borderRadius: 2 }}
               >
                 Filters
                 {(filters.types.length > 0 || filters.hosts.length > 0) && (
-                  <Box
-                    sx={{
-                      ml: 1,
-                      px: 1.5,
-                      py: 0.5,
-                      bgcolor: alpha(theme.palette.primary.main, 0.2),
-                      borderRadius: 1,
-                      fontSize: '0.75rem',
-                      fontWeight: 700,
-                    }}
-                  >
+                  <Box sx={{ ml: 1, bgcolor: alpha(theme.palette.primary.main, 0.3), px: 1, borderRadius: 1, fontSize: "0.75rem" }}>
                     {filters.types.length + filters.hosts.length}
                   </Box>
                 )}
               </Button>
 
               <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
-                Showing {startIndex + 1}-{Math.min(startIndex + itemsPerPage, filteredResults.length)} of{' '}
                 <strong>{filteredResults.length}</strong> results
               </Typography>
             </Box>
           </Stack>
-        </Container>
-      </Paper>
+        </Paper>
 
-      {/* ===== FILTERS DRAWER ===== */}
-      <Drawer
-        anchor={isRtl ? 'right' : 'left'}
-        open={filtersOpen}
-        onClose={() => setFiltersOpen(false)}
-      >
-        <Box sx={{ width: { xs: 280, sm: 320 }, p: 3 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-            <Typography variant="h6" fontWeight={700}>
-              Advanced Filters
-            </Typography>
-            <IconButton onClick={() => setFiltersOpen(false)} size="small">
-              <X size={18} />
-            </IconButton>
+        {/* Filters Drawer */}
+        <Drawer anchor={isRtl ? "right" : "left"} open={filtersOpen} onClose={() => setFiltersOpen(false)}>
+          <Box sx={{ width: 300, p: 3 }}>
+            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+              <Typography variant="h6" fontWeight={700}>
+                Filters
+              </Typography>
+              <IconButton onClick={() => setFiltersOpen(false)} size="small">
+                <X size={18} />
+              </IconButton>
+            </Box>
+
+            <Divider sx={{ my: 2 }} />
+
+            {/* Types */}
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="subtitle2" fontWeight={700} sx={{ mb: 1 }}>
+                Parasite Type
+              </Typography>
+              <Stack spacing={1}>
+                {availableTypes.map((type) => (
+                  <FormControlLabel
+                    key={type}
+                    control={
+                      <Checkbox
+                        checked={filters.types.includes(type)}
+                        onChange={() => handleTypeToggle(type)}
+                        size="small"
+                      />
+                    }
+                    label={<Typography variant="body2">{type}</Typography>}
+                  />
+                ))}
+              </Stack>
+            </Box>
+
+            <Divider sx={{ my: 2 }} />
+
+            {/* Hosts */}
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="subtitle2" fontWeight={700} sx={{ mb: 1 }}>
+                Host Species
+              </Typography>
+              <Stack spacing={1}>
+                {availableHosts.map((host) => (
+                  <FormControlLabel
+                    key={host}
+                    control={
+                      <Checkbox
+                        checked={filters.hosts.includes(host)}
+                        onChange={() => handleHostToggle(host)}
+                        size="small"
+                      />
+                    }
+                    label={<Typography variant="body2">{host}</Typography>}
+                  />
+                ))}
+              </Stack>
+            </Box>
+
+            <Divider sx={{ my: 2 }} />
+
+            {/* Date Range */}
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="subtitle2" fontWeight={700} sx={{ mb: 1 }}>
+                Date Added
+              </Typography>
+              <Stack spacing={1}>
+                {[
+                  { label: "This Week", value: "week" },
+                  { label: "This Month", value: "month" },
+                  { label: "This Year", value: "year" },
+                  { label: "All Time", value: "all" },
+                ].map((item) => (
+                  <FormControlLabel
+                    key={item.value}
+                    control={
+                      <Checkbox
+                        checked={filters.dateRange === item.value}
+                        onChange={() => handleDateToggle(item.value as any)}
+                        size="small"
+                      />
+                    }
+                    label={<Typography variant="body2">{item.label}</Typography>}
+                  />
+                ))}
+              </Stack>
+            </Box>
+
+            {hasActiveFilters && (
+              <>
+                <Divider sx={{ my: 2 }} />
+                <Button fullWidth variant="outlined" onClick={clearFilters}>
+                  Clear All
+                </Button>
+              </>
+            )}
           </Box>
+        </Drawer>
 
-          <Divider sx={{ my: 2 }} />
-
-          {/* Types Filter */}
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="subtitle2" fontWeight={700} sx={{ mb: 1 }}>
-              Parasite Type
-            </Typography>
-            <Stack spacing={1}>
-              {availableTypes.map((type) => (
-                <FormControlLabel
-                  key={type}
-                  control={
-                    <Checkbox
-                      checked={filters.types.includes(type)}
-                      onChange={() => handleTypeToggle(type)}
-                      size="small"
-                    />
-                  }
-                  label={<Typography variant="body2">{type}</Typography>}
-                />
-              ))}
-            </Stack>
+        {/* Results */}
+        {loading ? (
+          <Box sx={{ display: "flex", justifyContent: "center", py: 10 }}>
+            <CircularProgress />
           </Box>
-
-          <Divider sx={{ my: 2 }} />
-
-          {/* Host Species Filter */}
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="subtitle2" fontWeight={700} sx={{ mb: 1 }}>
-              Host Species
-            </Typography>
-            <Stack spacing={1}>
-              {availableHosts.map((host) => (
-                <FormControlLabel
-                  key={host}
-                  control={
-                    <Checkbox
-                      checked={filters.hosts.includes(host)}
-                      onChange={() => handleHostToggle(host)}
-                      size="small"
-                    />
-                  }
-                  label={<Typography variant="body2">{host}</Typography>}
-                />
-              ))}
-            </Stack>
-          </Box>
-
-          <Divider sx={{ my: 2 }} />
-
-          {/* Clear Filters */}
-          {hasActiveFilters && (
-            <Button
-              fullWidth
-              variant="outlined"
-              onClick={clearFilters}
-              sx={{ mt: 2 }}
-            >
-              Clear All Filters
-            </Button>
-          )}
-        </Box>
-      </Drawer>
-
-      {/* ===== MAIN CONTENT ===== */}
-      <Container maxWidth="xl" sx={{ py: 4 }}>
-        {/* Loading State */}
-        {loading && (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 10 }}>
-            <CircularProgress sx={{ color: theme.palette.primary.main }} />
-          </Box>
-        )}
-
-        {/* Empty State */}
-        {!loading && filteredResults.length === 0 && (
-          <Paper
-            sx={{
-              p: 6,
-              textAlign: 'center',
-              bgcolor: alpha(theme.palette.primary.main, 0.03),
-              borderRadius: 2,
-              border: '1px solid',
-              borderColor: 'divider',
-            }}
-          >
+        ) : filteredResults.length === 0 ? (
+          <Paper sx={{ p: 6, textAlign: "center", bgcolor: alpha(theme.palette.primary.main, 0.03), borderRadius: 2 }}>
             <Search size={48} style={{ color: theme.palette.primary.main, marginBottom: 16 }} />
-            <Typography variant="h6" fontWeight={600} sx={{ mb: 1 }}>
+            <Typography variant="h6" fontWeight={600}>
               No Results Found
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Try adjusting your search terms or filters
+              Try adjusting your search or filters
             </Typography>
           </Paper>
-        )}
-
-        {/* Results Grid */}
-        {!loading && filteredResults.length > 0 && (
+        ) : (
           <>
-            <Stack spacing={2}>
+            {/* Cards Grid */}
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", md: "repeat(3, 1fr)" },
+                gap: 3,
+                mb: 4,
+              }}
+            >
               {paginatedResults.map((p) => (
                 <Card
                   key={p.id}
                   onClick={() => navigate(`/parasites/${p.id}`)}
                   sx={{
-                    cursor: 'pointer',
+                    cursor: "pointer",
                     borderRadius: 2,
-                    border: '1px solid',
-                    borderColor: 'divider',
-                    transition: 'all 0.2s',
-                    '&:hover': {
+                    border: "1px solid",
+                    borderColor: "divider",
+                    transition: "all 0.2s",
+                    overflow: "hidden",
+                    "&:hover": {
+                      transform: "translateY(-2px)",
                       borderColor: theme.palette.primary.main,
-                      boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.1)}`,
+                      boxShadow: `0 8px 16px ${alpha(theme.palette.primary.main, 0.15)}`,
                     },
                   }}
                 >
-                  <CardContent sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 2 }}>
-                    <Box sx={{ flex: 1 }}>
-                      <Typography
-                        variant="body1"
-                        fontWeight={600}
-                        sx={{ mb: 0.5, color: theme.palette.primary.main }}
-                      >
-                        {p.scientificName}
+                  {/* Image */}
+                  <CardMedia
+                    component="img"
+                    height="200"
+                    image={fixImageUrl(p.imageUrl)}
+                    alt={p.scientificName}
+                    sx={{ objectFit: "cover" }}
+                  />
+
+                  {/* Content */}
+                  <CardContent>
+                    <Typography
+                      variant="body2"
+                      fontWeight={700}
+                      color="primary"
+                      sx={{ mb: 1, minHeight: "2.4em", lineHeight: 1.2 }}
+                    >
+                      {p.scientificName}
+                    </Typography>
+
+                    {p.arabicName && (
+                      <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 1 }}>
+                        {p.arabicName}
                       </Typography>
-                      {p.arabicName && (
-                        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                          {p.arabicName}
-                        </Typography>
-                      )}
-                      {p.hostSpecies && (
-                        <Typography variant="caption" color="text.secondary">
-                          Host: <strong>{p.hostSpecies}</strong>
-                        </Typography>
-                      )}
-                    </Box>
-                    <ChevronRight size={20} color={theme.palette.primary.main} />
+                    )}
+
+                    {(p as any).description && (
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        sx={{
+                          display: "-webkit-box",
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: "vertical",
+                          overflow: "hidden",
+                          mb: 2,
+                        }}
+                      >
+                        {(p as any).description}
+                      </Typography>
+                    )}
+
+                    <Button
+                      fullWidth
+                      size="small"
+                      variant="contained"
+                      sx={{ mt: 1, textTransform: "none", borderRadius: 1.5 }}
+                    >
+                      View Details
+                    </Button>
                   </CardContent>
                 </Card>
               ))}
-            </Stack>
+            </Box>
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+              <Box sx={{ display: "flex", justifyContent: "center" }}>
                 <Pagination
                   count={totalPages}
                   page={currentPage}
                   onChange={(_, page) => setCurrentPage(page)}
                   color="primary"
                   sx={{
-                    '& .MuiPaginationItem-root': {
+                    "& .MuiPaginationItem-root": {
                       borderRadius: 2,
-                      border: '1px solid',
-                      borderColor: 'divider',
+                      border: "1px solid",
+                      borderColor: "divider",
                     },
                   }}
                 />
