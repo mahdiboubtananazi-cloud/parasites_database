@@ -15,7 +15,6 @@ import {
   Paper,
   Stack,
   Chip,
-  Divider,
   IconButton,
   useTheme,
   alpha,
@@ -59,11 +58,9 @@ const Archive = () => {
     years: [],
   });
 
-  const filterRef = useRef<HTMLDivElement>(null);
   const itemsPerPage = 12;
   const { t, i18n } = useTranslation();
   const theme = useTheme();
-  const isRtl = i18n.language === "ar";
 
   useEffect(() => {
     const query = searchParams.get("search");
@@ -149,11 +146,11 @@ const Archive = () => {
   };
 
   const FilterSection = ({ title, options, category }: { title: string, options: string[], category: keyof Filters }) => (
-    <Box sx={{ mb: 3, flex: 1, minWidth: "250px" }}>
-      <Typography variant="subtitle2" fontWeight="bold" color="text.primary" sx={{ mb: 1.5 }}>
+    <Box sx={{ mb: 1 }}>
+      <Typography variant="subtitle2" fontWeight="600" color="text.primary" sx={{ mb: 1, fontSize: "0.9rem" }}>
         {title}
       </Typography>
-      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.8 }}>
         {options.map((option) => {
           const isSelected = filters[category].includes(option);
           return (
@@ -161,14 +158,17 @@ const Archive = () => {
               key={option}
               label={option}
               onClick={() => toggleFilter(category, option)}
-              icon={isSelected ? <Check size={14} /> : undefined}
+              size="small"
+              icon={isSelected ? <Check size={12} /> : undefined}
               sx={{
                 bgcolor: isSelected ? alpha(theme.palette.primary.main, 0.1) : "white",
-                color: isSelected ? theme.palette.primary.main : "text.primary",
+                color: isSelected ? theme.palette.primary.main : "text.secondary",
                 borderColor: isSelected ? theme.palette.primary.main : "divider",
                 borderWidth: "1px",
                 borderStyle: "solid",
                 fontWeight: isSelected ? 600 : 400,
+                fontSize: "0.75rem",
+                height: "26px",
                 "&:hover": {
                   bgcolor: isSelected ? alpha(theme.palette.primary.main, 0.2) : alpha(theme.palette.common.black, 0.05),
                 },
@@ -190,7 +190,7 @@ const Archive = () => {
               <Box sx={{ display: "flex", gap: 1 }}>
                 <TextField
                   fullWidth
-                  placeholder="ابحث بالاسم العلمي اسم الطالب الأستاذ أو السنة"
+                  placeholder="ابحث بالاسم العلمي، اسم الطالب، الأستاذ أو السنة"
                   size="medium"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -218,58 +218,69 @@ const Archive = () => {
                     borderRadius: 2,
                     borderColor: "divider",
                     color: filtersOpen ? "white" : "text.primary",
+                    boxShadow: filtersOpen ? 2 : 0,
                   }}
                 >
                   {filtersOpen ? t("close") : t("filters")}
                 </Button>
               </Box>
 
-              {/* Collapsible Filter Panel */}
+              {/* Organised Filter Content */}
               <Collapse in={filtersOpen}>
                 <Box sx={{ 
-                  pt: 2, 
-                  borderTop: "1px solid", 
+                  pt: 3, 
+                  mt: 1,
+                  borderTop: "1px dashed", 
                   borderColor: "divider",
-                  mt: 1 
                 }}>
-                  <Box sx={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
-                    <FilterSection 
-                      title={t("parasite_type")} 
-                      options={availableTypes} 
-                      category="types" 
-                    />
-                    <FilterSection 
-                      title={t("year_added")} 
-                      options={availableYears} 
-                      category="years" 
-                    />
-                    <FilterSection 
-                      title={t("parasite_stage")} 
-                      options={["بيض", "يرقة", "طور متحوصل", "طور متحرك"]} 
-                      category="stages" 
-                    />
-                    <FilterSection 
-                      title={t("stain_color")} 
-                      options={["بدون تلوين", "Lugol", "Ziehl Neelsen", "Giemsa"]} 
-                      category="stainColors" 
-                    />
-                    <FilterSection 
-                      title={t("sample_type")} 
-                      options={["براز", "دم", "بول", "مسحة", "جلد"]} 
-                      category="sampleTypes" 
-                    />
-                  </Box>
-                  
-                  <Box sx={{ mt: 4, display: "flex", justifyContent: "flex-end" }}>
-                      <Button 
-                        variant="text" 
-                        color="error" 
-                        onClick={clearFilters}
-                        disabled={!searchTerm && Object.values(filters).every(arr => arr.length === 0)}
-                      >
-                        {t("clear_all_filters")}
-                      </Button>
-                  </Box>
+                   {/* 3 Columns Layout for Desktop */}
+                   <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "repeat(3, 1fr)" }, gap: 4 }}>
+                      
+                      {/* Column 1 */}
+                      <Box>
+                        <Typography variant="caption" fontWeight={800} color="primary" sx={{ mb: 2, display: "block", textTransform: "uppercase", letterSpacing: 1 }}>
+                          {t("parasite_info") || "معلومات الطفيلي"}
+                        </Typography>
+                        <Stack spacing={2}>
+                          <FilterSection title={t("parasite_type")} options={availableTypes} category="types" />
+                          <FilterSection title={t("parasite_stage")} options={["بيض", "يرقة", "طور متحوصل", "طور متحرك"]} category="stages" />
+                        </Stack>
+                      </Box>
+
+                      {/* Column 2 */}
+                      <Box sx={{ borderLeft: { md: "1px solid" }, borderRight: { md: "1px solid" }, borderColor: { md: "divider" }, px: { md: 3 } }}>
+                        <Typography variant="caption" fontWeight={800} color="primary" sx={{ mb: 2, display: "block", textTransform: "uppercase", letterSpacing: 1 }}>
+                          {t("sample_details") || "تفاصيل العينة"}
+                        </Typography>
+                        <Stack spacing={2}>
+                          <FilterSection title={t("sample_type")} options={["براز", "دم", "بول", "مسحة", "جلد"]} category="sampleTypes" />
+                          <FilterSection title={t("stain_color")} options={["بدون تلوين", "Lugol", "Ziehl Neelsen", "Giemsa"]} category="stainColors" />
+                        </Stack>
+                      </Box>
+
+                      {/* Column 3 */}
+                      <Box>
+                        <Typography variant="caption" fontWeight={800} color="primary" sx={{ mb: 2, display: "block", textTransform: "uppercase", letterSpacing: 1 }}>
+                          {t("timeline") || "التاريخ"}
+                        </Typography>
+                        <Stack spacing={2}>
+                          <FilterSection title={t("year_added")} options={availableYears} category="years" />
+                        </Stack>
+
+                        <Box sx={{ mt: 4, display: "flex", justifyContent: "flex-end" }}>
+                           <Button 
+                             variant="outlined" 
+                             color="error" 
+                             size="small"
+                             onClick={clearFilters}
+                             disabled={!searchTerm && Object.values(filters).every(arr => arr.length === 0)}
+                             sx={{ borderRadius: 2, textTransform: "none" }}
+                           >
+                             {t("clear_all_filters")}
+                           </Button>
+                        </Box>
+                      </Box>
+                   </Box>
                 </Box>
               </Collapse>
             </Stack>
