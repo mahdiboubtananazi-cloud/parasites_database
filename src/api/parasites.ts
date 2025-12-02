@@ -2,6 +2,7 @@ import apiClient, { handleApiError } from './client';
 
 export interface Parasite {
   id: number | string;
+  name?: string; // ✅ أضفت هذا
   scientificName: string;
   arabicName?: string;
   frenchName?: string;
@@ -53,6 +54,7 @@ export interface ParasitesResponse {
 const mockParasites: Parasite[] = [
   {
     id: 1,
+    name: 'Plasmodium falciparum', // ✅ أضفت هذا
     scientificName: 'Plasmodium falciparum',
     arabicName: 'البلازموديوم',
     frenchName: 'Plasmodium falciparum',
@@ -71,13 +73,14 @@ const mockParasites: Parasite[] = [
   },
   {
     id: 2,
+    name: 'Ascaris lumbricoides', // ✅ أضفت هذا
     scientificName: 'Ascaris lumbricoides',
     arabicName: 'الإسكارس',
     frenchName: 'Ascaris lumbricoides',
     commonName: 'Roundworm',
-    description: 'Ascaris lumbricoides is a large parasitic nematode that infects the human small intestine.',        
+    description: 'Ascaris lumbricoides is a large parasitic nematode that infects the human small intestine.',
     arabicDescription: 'الإسكارس هو ديدان طفيلية كبيرة تصيب الأمعاء الدقيقة للإنسان.',
-    frenchDescription: 'Ascaris lumbricoides est un grand nématode parasite qui infecte l\'intestin grêle humain.', 
+    frenchDescription: 'Ascaris lumbricoides est un grand nématode parasite qui infecte l\'intestin grêle humain.',
     hostSpecies: 'Homo sapiens',
     morphologicalCharacteristics: 'Large roundworm (20-35 cm), cream-colored, thick cuticle, three lips around mouth',
     detectionMethod: 'Stool examination, Kato-Katz technique, Formalin-ether concentration',
@@ -89,6 +92,7 @@ const mockParasites: Parasite[] = [
   },
   {
     id: 3,
+    name: 'Entamoeba histolytica', // ✅ أضفت هذا
     scientificName: 'Entamoeba histolytica',
     arabicName: 'الإنتاجيبا',
     frenchName: 'Entamoeba histolytica',
@@ -107,6 +111,7 @@ const mockParasites: Parasite[] = [
   },
   {
     id: 4,
+    name: 'Giardia lamblia', // ✅ أضفت هذا
     scientificName: 'Giardia lamblia',
     arabicName: 'الجيارديا',
     frenchName: 'Giardia lamblia',
@@ -125,11 +130,12 @@ const mockParasites: Parasite[] = [
   },
   {
     id: 5,
+    name: 'Trypanosoma brucei', // ✅ أضفت هذا
     scientificName: 'Trypanosoma brucei',
     arabicName: 'التريبانوسوما',
     frenchName: 'Trypanosoma brucei',
     commonName: 'Sleeping Sickness Parasite',
-    description: 'Trypanosoma brucei is a species of parasitic kinetoplastid belonging to the genus Trypanosoma.',    
+    description: 'Trypanosoma brucei is a species of parasitic kinetoplastid belonging to the genus Trypanosoma.',
     arabicDescription: 'التريبانوسوما هو نوع من الطفيليات الكينيتوبلاستيدية التي تنتمي إلى جنس التريبانوسوما.',
     frenchDescription: 'Trypanosoma brucei est une espèce de kinétoplastide parasite appartenant au genre Trypanosoma.',
     hostSpecies: 'Homo sapiens',
@@ -143,11 +149,12 @@ const mockParasites: Parasite[] = [
   },
   {
     id: 6,
+    name: 'Leishmania donovani', // ✅ أضفت هذا
     scientificName: 'Leishmania donovani',
     arabicName: 'الليشمانيا',
     frenchName: 'Leishmania donovani',
     commonName: 'Leishmania',
-    description: 'Leishmania donovani is a species of intracellular parasites belonging to the genus Leishmania.',    
+    description: 'Leishmania donovani is a species of intracellular parasites belonging to the genus Leishmania.',
     arabicDescription: 'الليشمانيا هو نوع من الطفيليات داخل الخلايا التي تنتمي إلى جنس الليشمانيا.',
     frenchDescription: 'Leishmania donovani est une espèce de parasites intracellulaires appartenant au genre Leishmania.',
     hostSpecies: 'Homo sapiens',
@@ -291,4 +298,3 @@ export const parasitesApi = {
     }
   },
 };
-
