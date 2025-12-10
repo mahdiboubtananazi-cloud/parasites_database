@@ -23,7 +23,6 @@ import { Search, Filter, X, Check } from "lucide-react";
 import { useParasites } from "../hooks/useParasites";
 import { useTranslation } from "react-i18next";
 
-
 const fixImageUrl = (url?: string) => {
   if (!url) return "https://placehold.co/400x300?text=No+Image";
   if (url.includes("localhost")) {
@@ -35,15 +34,12 @@ const fixImageUrl = (url?: string) => {
   return url;
 };
 
-
 interface Filters {
   types: string[];
   stages: string[];
-  sampleTypes: string[];
-  stainColors: string[];
+  statuses: string[];
   years: string[];
 }
-
 
 const Archive = () => {
   const navigate = useNavigate();
@@ -55,126 +51,116 @@ const Archive = () => {
   const [filters, setFilters] = useState<Filters>({
     types: [],
     stages: [],
-    sampleTypes: [],
-    stainColors: [],
+    statuses: [],
     years: [],
   });
-
 
   const itemsPerPage = 12;
   const { t } = useTranslation();
   const theme = useTheme();
-
 
   useEffect(() => {
     const query = searchParams.get("search");
     if (query) setSearchTerm(query);
   }, [searchParams]);
 
-
-  // ✅ احسّن: احصل على الخيارات المتاحة بناءً على البيانات المصفاة الحالية
+  // ✅ احصل على الخيارات المتاحة بناءً على البيانات
   const availableTypes = useMemo(() => {
     if (!parasites || parasites.length === 0) return [];
     return Array.from(new Set(parasites.map((p) => p.type).filter(Boolean)))
       .sort()
-      .map(type => ({
+      .map((type) => ({
         value: type,
-        count: parasites.filter(p => p.type === type).length
+        count: parasites.filter((p) => p.type === type).length,
       }));
   }, [parasites]);
-
 
   const availableStages = useMemo(() => {
     if (!parasites || parasites.length === 0) return [];
-    const stages = ["يرقة", "خادرة", "حوريات", "حشرة بالغة"];
-    return stages.map(stage => ({
-      value: stage,
-      count: parasites.filter(p => (p as any).stage === stage).length
-    })).filter(s => s.count > 0);
+    const stagesMap = new Map();
+    parasites.forEach((p) => {
+      const stage = (p as any).stage;
+      if (stage) {
+        stagesMap.set(stage, (stagesMap.get(stage) || 0) + 1);
+      }
+    });
+    return Array.from(stagesMap.entries()).map(([value, count]) => ({
+      value,
+      count,
+    }));
   }, [parasites]);
 
-
-  const availableSampleTypes = useMemo(() => {
+  const availableStatuses = useMemo(() => {
     if (!parasites || parasites.length === 0) return [];
-    const types = ["دم", "براز", "بول", "لعاب", "أخرى"];
-    return types.map(type => ({
-      value: type,
-      count: parasites.filter(p => (p as any).sampleType === type).length
-    })).filter(t => t.count > 0);
+    const statusLabels: Record<string, string> = {
+      approved: "معتمد",
+      pending: "قيد المراجعة",
+      rejected: "مرفوض",
+    };
+    const statusMap = new Map();
+    parasites.forEach((p) => {
+      const status = (p as any).status || "approved";
+      statusMap.set(status, (statusMap.get(status) || 0) + 1);
+    });
+    return Array.from(statusMap.entries())
+      .map(([value, count]) => ({
+        value,
+        label: statusLabels[value] || value,
+        count,
+      }))
+      .sort((a, b) => b.count - a.count);
   }, [parasites]);
-
-
-  const availableStainColors = useMemo(() => {
-    if (!parasites || parasites.length === 0) return [];
-    const stains = ["صبغة طبيعية", "Lugol", "Ziehl Neelsen", "Giemsa"];
-    return stains.map(stain => ({
-      value: stain,
-      count: parasites.filter(p => (p as any).stainColor === stain).length
-    })).filter(s => s.count > 0);
-  }, [parasites]);
-
 
   const availableYears = useMemo(() => {
     if (!parasites || parasites.length === 0) return [];
-    return Array.from(
-      new Set(
-        parasites
-          .map((p) => {
-            const d = new Date((p as any).createdAt);
-            return isNaN(d.getTime()) ? null : d.getFullYear().toString();
-          })
-          .filter(Boolean)
-      )
-    )
-      .sort((a, b) => Number(b) - Number(a))
-      .map(year => ({
-        value: year,
-        count: parasites.filter(p => {
-          const d = new Date((p as any).createdAt);
-          return !isNaN(d.getTime()) && d.getFullYear().toString() === year;
-        }).length
+    const yearsMap = new Map();
+    parasites.forEach((p) => {
+      const year = (p as any).createdat?.slice(0, 4);
+      if (year) {
+        yearsMap.set(year, (yearsMap.get(year) || 0) + 1);
+      }
+    });
+    return Array.from(yearsMap.entries())
+      .sort((a, b) => Number(b[0]) - Number(a[0]))
+      .map(([value, count]) => ({
+        value,
+        count,
       }));
   }, [parasites]);
 
-
-  // ✅ احسّن: تصفية آمنة وفعالة
+  // ✅ تصفية آمنة وفعالة
   const filteredResults = useMemo(() => {
     if (!parasites || parasites.length === 0) return [];
     const term = searchTerm.toLowerCase().trim();
-    
-    return parasites.filter((p) => {
-      // استبعد pending و rejected
-      if ((p as any).status === "pending" || (p as any).status === "rejected") {
-        return false;
-      }
 
+    return parasites.filter((p) => {
       // البحث النصي
       if (term.length > 0) {
         const searchMatch =
           (p.scientificName || "").toLowerCase().includes(term) ||
           (p.name || "").toLowerCase().includes(term) ||
-          ((p as any).studentName || "").toLowerCase().includes(term) ||
-          ((p as any).supervisorName || "").toLowerCase().includes(term) ||
-          ((p as any).createdAt?.slice(0, 4) || "").includes(term);
+          (p.type || "").toLowerCase().includes(term) ||
+          ((p as any).createdat?.slice(0, 4) || "").includes(term);
 
         if (!searchMatch) return false;
       }
 
-      // تطبيق الفلاتر - تحسين الأداء
+      // تطبيق الفلاتر
       if (filters.types.length > 0 && !filters.types.includes(p.type || "")) {
         return false;
       }
-      if (filters.stages.length > 0 && !filters.stages.includes((p as any).stage || "")) {
+      if (
+        filters.stages.length > 0 &&
+        !filters.stages.includes((p as any).stage || "")
+      ) {
         return false;
       }
-      if (filters.sampleTypes.length > 0 && !filters.sampleTypes.includes((p as any).sampleType || "")) {
-        return false;
-      }
-      if (filters.stainColors.length > 0 && !filters.stainColors.includes((p as any).stainColor || "")) {
-        return false;
+      if (filters.statuses.length > 0) {
+        const status = (p as any).status || "approved";
+        if (!filters.statuses.includes(status)) return false;
       }
       if (filters.years.length > 0) {
-        const year = (p as any).createdAt?.slice(0, 4);
+        const year = (p as any).createdat?.slice(0, 4);
         if (!year || !filters.years.includes(year)) return false;
       }
 
@@ -182,18 +168,18 @@ const Archive = () => {
     });
   }, [parasites, searchTerm, filters]);
 
-
   const totalPages = Math.ceil(filteredResults.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedResults = filteredResults.slice(startIndex, startIndex + itemsPerPage);
-
+  const paginatedResults = filteredResults.slice(
+    startIndex,
+    startIndex + itemsPerPage
+  );
 
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, filters]);
 
-
-  // ✅ احسّن: تحديث الفلاتر بكفاءة
+  // ✅ تحديث الفلاتر بكفاءة
   const toggleFilter = (category: keyof Filters, value: string) => {
     setFilters((prev) => {
       const currentArr = prev[category];
@@ -206,28 +192,27 @@ const Archive = () => {
     });
   };
 
-
   const clearFilters = () => {
     setFilters({
       types: [],
       stages: [],
-      sampleTypes: [],
-      stainColors: [],
+      statuses: [],
       years: [],
     });
     setSearchTerm("");
   };
 
-
-  // ✅ احسّن: مكون FilterSection محسّن مع العد
+  // ✅ مكون FilterSection
   const FilterSection = ({
     title,
     options,
     category,
+    labelMap,
   }: {
     title: string;
-    options: Array<{ value: string; count: number }>;
+    options: Array<{ value: string; count: number; label?: string }>;
     category: keyof Filters;
+    labelMap?: Record<string, string>;
   }) => (
     <Box sx={{ mb: 2.5 }}>
       <Typography
@@ -248,24 +233,38 @@ const Archive = () => {
         {options.length > 0 ? (
           options.map((option) => {
             const isSelected = filters[category].includes(option.value);
+            const displayLabel = option.label || labelMap?.[option.value] || option.value;
             return (
               <Chip
                 key={`${category}-${option.value}`}
                 label={
                   <span>
-                    {option.value} <span style={{ opacity: 0.6, fontSize: "0.8em" }}>({option.count})</span>
+                    {displayLabel}{" "}
+                    <span style={{ opacity: 0.6, fontSize: "0.8em" }}>
+                      ({option.count})
+                    </span>
                   </span>
                 }
                 onClick={() => toggleFilter(category, option.value)}
                 size="medium"
-                icon={isSelected ? <Check size={14} style={{ marginRight: 4 }} /> : undefined}
-                onDelete={isSelected ? () => toggleFilter(category, option.value) : undefined}
+                icon={
+                  isSelected ? (
+                    <Check size={14} style={{ marginRight: 4 }} />
+                  ) : undefined
+                }
+                onDelete={
+                  isSelected ? () => toggleFilter(category, option.value) : undefined
+                }
                 sx={{
                   bgcolor: isSelected
                     ? alpha(theme.palette.primary.main, 0.15)
                     : alpha(theme.palette.grey[500], 0.08),
-                  color: isSelected ? theme.palette.primary.main : "text.secondary",
-                  borderColor: isSelected ? theme.palette.primary.main : alpha(theme.palette.divider, 0.5),
+                  color: isSelected
+                    ? theme.palette.primary.main
+                    : "text.secondary",
+                  borderColor: isSelected
+                    ? theme.palette.primary.main
+                    : alpha(theme.palette.divider, 0.5),
                   borderWidth: "1px",
                   borderStyle: "solid",
                   fontWeight: isSelected ? 600 : 500,
@@ -294,10 +293,11 @@ const Archive = () => {
     </Box>
   );
 
-
-  // ✅ احسّن: عداد الفلاتر النشطة
-  const activeFiltersCount = Object.values(filters).reduce((sum, arr) => sum + arr.length, 0);
-
+  // ✅ عداد الفلاتر النشطة
+  const activeFiltersCount = Object.values(filters).reduce(
+    (sum, arr) => sum + arr.length,
+    0
+  );
 
   return (
     <Box sx={{ minHeight: "100vh", py: 4, bgcolor: "#F8F9FC" }}>
@@ -319,10 +319,7 @@ const Archive = () => {
               <Box sx={{ display: "flex", gap: 1.5, alignItems: "center" }}>
                 <TextField
                   fullWidth
-                  placeholder={
-                    t("search_placeholder") ||
-                    "ابحث بالاسم العلمي أو اسم الطالب أو السنة"
-                  }
+                  placeholder="ابحث بالاسم العلمي أو الاسم الشائع أو نوع الطفيلي"
                   size="medium"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -338,7 +335,9 @@ const Archive = () => {
                   sx={{
                     bgcolor: "transparent",
                     "& .MuiInputBase-root": { fontSize: "1rem" },
-                    "& .MuiInput-underline:before": { borderBottomColor: "transparent" },
+                    "& .MuiInput-underline:before": {
+                      borderBottomColor: "transparent",
+                    },
                     "& .MuiInput-underline:hover:not(.Mui-disabled):before": {
                       borderBottomColor: "transparent",
                     },
@@ -358,7 +357,7 @@ const Archive = () => {
                     position: "relative",
                   }}
                 >
-                  {filtersOpen ? t("close") : t("filters")}
+                  {filtersOpen ? "إغلاق" : "الفلاتر"}
                   {activeFiltersCount > 0 && (
                     <Box
                       sx={{
@@ -393,110 +392,54 @@ const Archive = () => {
                     borderColor: alpha(theme.palette.divider, 0.5),
                   }}
                 >
-                  {/* 3 Columns Layout for Desktop */}
+                  {/* 4 Columns Layout for Desktop */}
                   <Box
                     sx={{
                       display: "grid",
-                      gridTemplateColumns: { xs: "1fr", md: "repeat(3, 1fr)" },
-                      gap: 4,
+                      gridTemplateColumns: { xs: "1fr", md: "repeat(4, 1fr)" },
+                      gap: 3,
                     }}
                   >
-                    {/* Column 1 */}
+                    {/* Column 1: نوع الطفيلي */}
                     <Box>
-                      <Typography
-                        variant="caption"
-                        fontWeight={900}
-                        color="primary"
-                        sx={{
-                          mb: 2.5,
-                          display: "block",
-                          textTransform: "uppercase",
-                          letterSpacing: 1.5,
-                          fontSize: "0.75rem",
-                        }}
-                      >
-                        {t("parasite_info") || "معلومات الطفيلي"}
-                      </Typography>
-                      <Stack spacing={2.5}>
-                        <FilterSection
-                          title={t("parasite_type") || "نوع الطفيلي"}
-                          options={availableTypes}
-                          category="types"
-                        />
-                        <FilterSection
-                          title={t("parasite_stage") || "مرحلة الطفيلي"}
-                          options={availableStages}
-                          category="stages"
-                        />
-                      </Stack>
+                      <FilterSection
+                        title="نوع الطفيلي"
+                        options={availableTypes}
+                        category="types"
+                      />
                     </Box>
 
-                    {/* Column 2 */}
-                    <Box
-                      sx={{
-                        borderLeft: { md: "1px solid" },
-                        borderRight: { md: "1px solid" },
-                        borderColor: { md: alpha(theme.palette.divider, 0.3) },
-                        px: { md: 3 },
-                      }}
-                    >
-                      <Typography
-                        variant="caption"
-                        fontWeight={900}
-                        color="primary"
-                        sx={{
-                          mb: 2.5,
-                          display: "block",
-                          textTransform: "uppercase",
-                          letterSpacing: 1.5,
-                          fontSize: "0.75rem",
-                        }}
-                      >
-                        {t("sample_details") || "تفاصيل العينة"}
-                      </Typography>
-                      <Stack spacing={2.5}>
-                        <FilterSection
-                          title={t("sample_type") || "نوع العينة"}
-                          options={availableSampleTypes}
-                          category="sampleTypes"
-                        />
-                        <FilterSection
-                          title={t("stain_color") || "نوع الصبغة"}
-                          options={availableStainColors}
-                          category="stainColors"
-                        />
-                      </Stack>
+                    {/* Column 2: مرحلة الطفيلي */}
+                    <Box>
+                      <FilterSection
+                        title="مرحلة الطفيلي"
+                        options={availableStages}
+                        category="stages"
+                      />
                     </Box>
 
-                    {/* Column 3 */}
+                    {/* Column 3: حالة العينة */}
                     <Box>
-                      <Typography
-                        variant="caption"
-                        fontWeight={900}
-                        color="primary"
-                        sx={{
-                          mb: 2.5,
-                          display: "block",
-                          textTransform: "uppercase",
-                          letterSpacing: 1.5,
-                          fontSize: "0.75rem",
-                        }}
-                      >
-                        {t("timeline") || "الفترة الزمنية"}
-                      </Typography>
-                      <Stack spacing={2.5}>
-                        <FilterSection
-                          title={t("year_added") || "السنة"}
-                          options={availableYears}
-                          category="years"
-                        />
-                      </Stack>
+                      <FilterSection
+                        title="حالة العينة"
+                        options={availableStatuses as any}
+                        category="statuses"
+                      />
+                    </Box>
 
-                      <Box sx={{ mt: 4, display: "flex", gap: 1, justifyContent: "flex-end" }}>
+                    {/* Column 4: السنة */}
+                    <Box>
+                      <FilterSection
+                        title="سنة الإضافة"
+                        options={availableYears}
+                        category="years"
+                      />
+                      <Box sx={{ mt: 3, display: "flex", gap: 1 }}>
                         <Button
                           variant="outlined"
                           color="error"
                           size="small"
+                          fullWidth
                           onClick={clearFilters}
                           disabled={
                             !searchTerm &&
@@ -508,7 +451,7 @@ const Archive = () => {
                             fontWeight: 600,
                           }}
                         >
-                          {t("clear_all_filters") || "مسح جميع الفلاتر"}
+                          مسح الفلاتر
                         </Button>
                       </Box>
                     </Box>
@@ -519,9 +462,16 @@ const Archive = () => {
           </Paper>
 
           {/* Results count */}
-          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", px: 1 }}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              px: 1,
+            }}
+          >
             <Typography variant="body2" color="text.secondary" fontWeight={600}>
-              {filteredResults.length} {t("results_found")}
+              {filteredResults.length} عينة
             </Typography>
             {activeFiltersCount > 0 && (
               <Typography variant="caption" color="primary" fontWeight={600}>
@@ -550,7 +500,7 @@ const Archive = () => {
               <Typography variant="h6" color="text.secondary" gutterBottom>
                 {searchTerm || activeFiltersCount > 0
                   ? "لم يتم العثور على نتائج"
-                  : "لا توجد طفيليات متاحة"}
+                  : "لا توجد عينات متاحة"}
               </Typography>
               <Typography variant="body2" color="text.disabled">
                 {searchTerm
@@ -593,7 +543,7 @@ const Archive = () => {
                   <CardMedia
                     component="img"
                     height="200"
-                    image={fixImageUrl(sample.imageUrl)}
+                    image={fixImageUrl((sample as any).imageurl)}
                     alt={sample.scientificName}
                     sx={{ objectFit: "cover" }}
                   />
@@ -607,6 +557,16 @@ const Archive = () => {
                     >
                       {sample.scientificName}
                     </Typography>
+                    {sample.name && sample.name !== sample.scientificName && (
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        noWrap
+                        sx={{ mb: 1, fontSize: "0.85rem" }}
+                      >
+                        {sample.name}
+                      </Typography>
+                    )}
                     {(sample as any).description && (
                       <Typography
                         variant="body2"
@@ -626,7 +586,7 @@ const Archive = () => {
                     )}
                     <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap>
                       <Chip
-                        label={(sample as any).createdAt?.slice(0, 10) || "تاريخ غير متوفر"}
+                        label={(sample as any).createdat?.slice(0, 10) || "---"}
                         size="small"
                         variant="outlined"
                         sx={{
