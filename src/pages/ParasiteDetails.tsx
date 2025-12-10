@@ -8,7 +8,6 @@ import { ArrowRight, ArrowLeft, Calendar, Tag, Activity, Share2, Microscope } fr
 import { useTranslation } from 'react-i18next';
 import { useParasites } from '../hooks/useParasites';
 
-
 // تصحيح روابط الصور
 const fixImageUrl = (url?: string) => {
   if (!url) return 'https://placehold.co/600x400?text=No+Image';
@@ -22,7 +21,6 @@ const fixImageUrl = (url?: string) => {
   const apiBase = process.env.REACT_APP_API_URL || 'https://parasites-api.onrender.com/api';
   return `${apiBase}${url}`;
 };
-
 
 export default function ParasiteDetails() {
   const { id } = useParams<{ id: string }>();
@@ -41,14 +39,12 @@ export default function ParasiteDetails() {
   // Zoom Logic
   const [zoomStyle, setZoomStyle] = useState({ display: 'none', backgroundPosition: '0% 0%' });
 
-
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
     const x = ((e.pageX - left) / width) * 100;
     const y = ((e.pageY - top) / height) * 100;
     setZoomStyle({ display: 'block', backgroundPosition: `${x}% ${y}%` });
   };
-
 
   useEffect(() => {
     setLoading(loadingParasites);
@@ -74,7 +70,6 @@ export default function ParasiteDetails() {
       }
     }
   }, [id, parasites, loadingParasites]);
-
 
   if (loading) {
     return (
@@ -113,9 +108,8 @@ export default function ParasiteDetails() {
     );
   }
 
-
-  const imageUrl = fixImageUrl(parasite.imageUrl);
-
+  // ✅ استخدم imageurl (lowercase) من Database
+  const imageUrl = fixImageUrl((parasite as any).imageurl);
 
   return (
     <Box sx={{ minHeight: '100vh', pb: 8, bgcolor: '#F8F9FC' }}>
@@ -268,8 +262,8 @@ export default function ParasiteDetails() {
                       تاريخ الإضافة
                     </Typography>
                     <Typography variant="body1" fontWeight={700}>
-                      {(parasite as any).createdAt 
-                        ? new Date((parasite as any).createdAt).toLocaleDateString('ar-SA') 
+                      {(parasite as any).createdat 
+                        ? new Date((parasite as any).createdat).toLocaleDateString('ar-SA') 
                         : 'غير محدد'}
                     </Typography>
                   </Box>
@@ -300,16 +294,16 @@ export default function ParasiteDetails() {
             </Box>
 
             {/* Sample Details */}
-            {((parasite as any).sampleType || (parasite as any).stainColor) && (
+            {((parasite as any).sampletype || (parasite as any).stainColor) && (
               <Box sx={{ mb: 4, p: 3, bgcolor: alpha(theme.palette.warning.main, 0.05), borderRadius: 3, border: '1px solid', borderColor: alpha(theme.palette.warning.main, 0.2) }}>
                 <Typography variant="subtitle2" fontWeight={700} gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'warning.main' }}>
                   <Microscope size={18} />
                   تفاصيل العينة
                 </Typography>
                 <Stack spacing={1.5} sx={{ mt: 2 }}>
-                  {(parasite as any).sampleType && (
+                  {(parasite as any).sampletype && (
                     <Typography variant="body2">
-                      <Typography component="span" fontWeight={700}>نوع العينة:</Typography> {(parasite as any).sampleType}
+                      <Typography component="span" fontWeight={700}>نوع العينة:</Typography> {(parasite as any).sampletype}
                     </Typography>
                   )}
                   {(parasite as any).stainColor && (
