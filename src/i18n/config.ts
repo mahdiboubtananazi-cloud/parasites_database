@@ -210,21 +210,40 @@ const resources = {
       "btn_back": "Retour aux Archives",
       
       // ===== ADD PARASITE PAGE =====
-      "add_title": "Ajouter un Parasite",
-      "add_subtitle": "Entrez les données scientifiques de l'échantillon",
-      "add_name": "Nom Commun",
-      "add_scientific_name": "Nom Scientifique",
-      "add_type": "Type",
-      "add_stage": "Stade",
-      "add_description": "Description",
-      "add_sample_type": "Type d'Échantillon",
-      "add_stain_color": "Couleur de Teinture",
-      "add_student_name": "Nom de l'Étudiant",
-      "add_supervisor_name": "Nom du Superviseur",
-      "add_image": "Image Microscopique",
-      "add_image_hint": "Télécharger image (JPG, PNG)",
-      "btn_save": "Enregistrer",
-      "btn_cancel": "Annuler",
+      // في ملف config.ts، قسم اللغة العربية (ar):
+
+// ===== ADD PARASITE PAGE =====
+"add_page_title": "توثيق عينة طفيلية جديدة",
+"add_page_subtitle": "يرجى إدخال البيانات العلمية الدقيقة والصورة المجهرية للعينة المكتشفة",
+
+"card_taxonomy": "التصنيف العلمي",
+"card_sample_data": "بيانات العينة والفحص",
+"card_responsibility": "التوثيق والمسؤولية",
+
+"label_name": "الاسم الشائع (Common Name)",
+"label_scientific": "الاسم العلمي (Scientific Name)",
+"label_type": "مجموعة الطفيلي",
+"label_stage": "المرحلة التشخيصية",
+"label_sample_type": "نوع العينة",
+"label_stain": "الصبغة المستخدمة",
+"label_desc": "الوصف المجهري والملاحظات",
+"label_student": "اسم الباحث / الطالب",
+"label_supervisor": "المشرف الأكاديمي",
+
+"upload_image": "الصورة المجهرية",
+"upload_hint": "اضغط لرفع صورة",
+
+"btn_save": "حفظ في الأرشيف",
+"btn_cancel": "إلغاء",
+"saving": "جاري الحفظ...",
+
+"error_required": "هذا الحقل مطلوب",
+"error_image_required": "الصورة المجهرية مطلوبة للتوثيق العلمي",
+"error_scientific_name": "الاسم العلمي مطلوب",
+"error_save": "حدث خطأ أثناء حفظ العينة",
+
+"success_added": "تمت إضافة العينة للأرشيف بنجاح",
+
       
       // ===== LOGIN PAGE =====
       "login_title": "Connexion",
@@ -234,9 +253,9 @@ const resources = {
       "login_register": "Pas de compte? Créer un",
       
       // ===== MESSAGES =====
-      "success_added": "Échantillon ajouté avec succès",
+      "success_added_fr": "Échantillon ajouté avec succès",
       "error_loading": "Erreur lors du chargement",
-      "no_results": "Aucun résultat trouvé",
+      "no_results": "Aucun résultat trouvé"
     }
   }
 };
