@@ -12,7 +12,6 @@ import {
   MenuItem,
   IconButton,
   Tooltip,
-  useTheme,
   useMediaQuery,
   Drawer,
   Divider,
@@ -39,8 +38,7 @@ const TopNav = ({ onMenuClick }: { onMenuClick?: () => void }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { t, i18n } = useTranslation();
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isMobile = useMediaQuery('(max-width:960px)');
 
   const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
   const [anchorElLang, setAnchorElLang] = useState<null | HTMLElement>(null);
@@ -72,100 +70,87 @@ const TopNav = ({ onMenuClick }: { onMenuClick?: () => void }) => {
         position="sticky"
         elevation={0}
         sx={{
-          background: `linear-gradient(135deg, ${alpha('#ffffff', 0.85)} 0%, ${alpha(colors.primary.lighter, 0.6)} 100%)`,
-          backdropFilter: 'blur(12px)',
-          borderBottom: `1px solid ${alpha(colors.primary.main, 0.08)}`,
-          color: colors.text.primary,
+          background: `linear-gradient(135deg, #2d4a3f 0%, #3a5a40 100%)`,
+          backdropFilter: 'blur(15px)',
+          borderBottom: `1px solid ${alpha('#ffffff', 0.1)}`,
+          color: '#ffffff',
           transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-          boxShadow: `0 4px 12px ${alpha(colors.primary.main, 0.05)}`,
+          boxShadow: `0 8px 32px ${alpha('#2d4a3f', 0.1)}`,
         }}
       >
-        <Container maxWidth="xl">
+        <Container maxWidth="lg">
           <Toolbar
             disableGutters
             sx={{
-              height: { xs: 64, md: 76 },
+              height: { xs: 64, md: 80 },
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              gap: 2,
+              gap: 3,
             }}
           >
-            {/* Logo & Title */}
+            {/* Logo - Left Side */}
             <Stack
               direction="row"
               alignItems="center"
-              spacing={1.2}
+              spacing={1}
               onClick={() => handleNavigation('/')}
               sx={{
                 cursor: 'pointer',
                 transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                 flexShrink: 0,
                 '&:hover': {
-                  transform: 'translateY(-1px)',
+                  transform: 'translateY(-2px)',
                 },
               }}
             >
-              {/* Icon Box */}
+              {/* Icon */}
               <Box
                 sx={{
-                  width: 44,
-                  height: 44,
-                  background: gradients.primary,
-                  borderRadius: '10px',
+                  width: 48,
+                  height: 48,
+                  background: alpha('#ffffff', 0.15),
+                  borderRadius: '12px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: 'white',
-                  boxShadow: `0 4px 12px ${alpha(colors.primary.main, 0.25)}`,
+                  color: '#ffffff',
+                  border: `1.5px solid ${alpha('#ffffff', 0.2)}`,
                   transition: 'all 0.3s ease',
+                  backdropFilter: 'blur(8px)',
                   '&:hover': {
-                    transform: 'scale(1.05)',
-                    boxShadow: `0 6px 16px ${alpha(colors.primary.main, 0.35)}`,
+                    background: alpha('#ffffff', 0.25),
+                    border: `1.5px solid ${alpha('#ffffff', 0.4)}`,
+                    transform: 'scale(1.08)',
                   },
                 }}
               >
-                <Microscope size={24} strokeWidth={2.5} />
+                <Microscope size={26} strokeWidth={2} />
               </Box>
 
-              {/* Title */}
-              <Stack spacing={0}>
-                <Typography
-                  variant="h6"
-                  sx={{
-                    fontWeight: 800,
-                    color: colors.primary.main,
-                    fontSize: { xs: '1.1rem', md: '1.3rem' },
-                    letterSpacing: '-0.5px',
-                    lineHeight: 1,
-                    transition: 'all 0.3s ease',
-                  }}
-                >
-                  {t('app_title') || 'أرشيف الطفيليات'}
-                </Typography>
-                <Typography
-                  variant="caption"
-                  sx={{
-                    color: alpha(colors.text.secondary, 0.7),
-                    fontSize: '0.7rem',
-                    fontWeight: 500,
-                    letterSpacing: '0.5px',
-                    textTransform: 'uppercase',
-                  }}
-                >
-                  Academic Database
-                </Typography>
-              </Stack>
+              {/* Logo Text */}
+              <Typography
+                sx={{
+                  fontWeight: 800,
+                  fontSize: { xs: '1.1rem', md: '1.3rem' },
+                  color: '#ffffff',
+                  letterSpacing: '-0.5px',
+                  transition: 'all 0.3s ease',
+                }}
+              >
+                {t('app_title') || 'أرشيف الطفيليات'}
+              </Typography>
             </Stack>
 
-            {/* Navigation - Desktop Only */}
+            {/* Navigation - CENTER - Desktop Only */}
             {!isMobile && (
-              <Stack
-                direction="row"
-                spacing={0.5}
+              <Box
                 sx={{
+                  position: 'absolute',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
                   display: 'flex',
-                  gap: { md: '6px', lg: '8px' },
+                  gap: '8px',
                 }}
               >
                 {navItems.map((item) => {
@@ -178,10 +163,10 @@ const TopNav = ({ onMenuClick }: { onMenuClick?: () => void }) => {
                       slotProps={{
                         tooltip: {
                           sx: {
-                            backgroundColor: alpha(colors.primary.main, 0.9),
+                            backgroundColor: alpha('#000000', 0.8),
                             color: 'white',
                             borderRadius: '8px',
-                            fontSize: '0.8rem',
+                            fontSize: '0.75rem',
                             fontWeight: 600,
                             padding: '6px 12px',
                           },
@@ -190,28 +175,29 @@ const TopNav = ({ onMenuClick }: { onMenuClick?: () => void }) => {
                     >
                       <Button
                         onClick={() => navigate(item.path)}
-                        startIcon={<IconComponent size={19} />}
+                        startIcon={<IconComponent size={18} />}
                         sx={{
                           color: isActive(item.path)
-                            ? colors.primary.main
-                            : colors.text.secondary,
+                            ? '#ffffff'
+                            : alpha('#ffffff', 0.7),
                           fontWeight: isActive(item.path) ? 700 : 600,
                           fontSize: '0.9rem',
-                          padding: '9px 14px',
-                          borderRadius: '9px',
+                          padding: '10px 16px',
+                          borderRadius: '10px',
                           backgroundColor: isActive(item.path)
-                            ? alpha(colors.primary.main, 0.1)
+                            ? alpha('#ffffff', 0.15)
                             : 'transparent',
                           border: isActive(item.path)
-                            ? `1.5px solid ${alpha(colors.primary.main, 0.25)}`
+                            ? `1.5px solid ${alpha('#ffffff', 0.3)}`
                             : '1.5px solid transparent',
                           transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                          backdropFilter: isActive(item.path) ? 'blur(8px)' : 'none',
                           '&:hover': {
-                            backgroundColor: alpha(colors.primary.main, 0.08),
-                            color: colors.primary.main,
-                            borderColor: alpha(colors.primary.main, 0.25),
+                            backgroundColor: alpha('#ffffff', 0.1),
+                            color: '#ffffff',
+                            borderColor: alpha('#ffffff', 0.3),
                             transform: 'translateY(-2px)',
-                            boxShadow: `0 4px 12px ${alpha(colors.primary.main, 0.12)}`,
+                            boxShadow: `inset 0 1px 2px ${alpha('#ffffff', 0.1)}`,
                           },
                         }}
                       >
@@ -220,38 +206,37 @@ const TopNav = ({ onMenuClick }: { onMenuClick?: () => void }) => {
                     </Tooltip>
                   );
                 })}
-              </Stack>
+              </Box>
             )}
 
-            {/* Right Controls - Language, User, Menu */}
+            {/* Right Controls */}
             <Stack
               direction="row"
-              spacing={0.5}
+              spacing={1.5}
               alignItems="center"
               sx={{
                 display: 'flex',
-                gap: { xs: '2px', md: '6px' },
                 ml: 'auto',
+                gap: { xs: '6px', md: '12px' },
               }}
             >
               {/* Language Selector */}
               <Tooltip title={t('language') || 'اللغة'} arrow>
                 <IconButton
-                  size="small"
                   onClick={(e) => setAnchorElLang(e.currentTarget)}
                   sx={{
-                    color: colors.primary.main,
-                    backgroundColor: alpha(colors.primary.main, 0.08),
-                    borderRadius: '9px',
-                    width: 40,
-                    height: 40,
+                    color: '#ffffff',
+                    backgroundColor: alpha('#ffffff', 0.1),
+                    borderRadius: '10px',
+                    width: 42,
+                    height: 42,
                     transition: 'all 0.3s ease',
-                    border: `1.5px solid ${alpha(colors.primary.main, 0.12)}`,
+                    border: `1.5px solid ${alpha('#ffffff', 0.15)}`,
+                    backdropFilter: 'blur(8px)',
                     '&:hover': {
-                      backgroundColor: alpha(colors.primary.main, 0.14),
-                      borderColor: alpha(colors.primary.main, 0.25),
+                      backgroundColor: alpha('#ffffff', 0.2),
+                      borderColor: alpha('#ffffff', 0.3),
                       transform: 'translateY(-2px)',
-                      boxShadow: `0 4px 12px ${alpha(colors.primary.main, 0.12)}`,
                     },
                   }}
                 >
@@ -266,13 +251,13 @@ const TopNav = ({ onMenuClick }: { onMenuClick?: () => void }) => {
                 onClose={() => setAnchorElLang(null)}
                 PaperProps={{
                   sx: {
-                    mt: 1.2,
+                    mt: 1.5,
                     minWidth: 160,
                     borderRadius: '12px',
-                    boxShadow: `0 8px 32px ${alpha(colors.primary.main, 0.15)}`,
-                    border: `1px solid ${alpha(colors.primary.main, 0.1)}`,
-                    background: `linear-gradient(135deg, ${alpha('#ffffff', 0.95)} 0%, ${alpha(colors.primary.lighter, 0.4)} 100%)`,
-                    backdropFilter: 'blur(8px)',
+                    boxShadow: `0 16px 48px ${alpha('#2d4a3f', 0.2)}`,
+                    border: `1px solid ${alpha('#ffffff', 0.1)}`,
+                    background: `linear-gradient(135deg, ${alpha('#2d4a3f', 0.95)} 0%, ${alpha('#3a5a40', 0.95)} 100%)`,
+                    backdropFilter: 'blur(12px)',
                   },
                 }}
                 TransitionProps={{ timeout: 200 }}
@@ -287,16 +272,16 @@ const TopNav = ({ onMenuClick }: { onMenuClick?: () => void }) => {
                       px: 2,
                       fontWeight: i18n.language === lang ? 700 : 600,
                       fontSize: '0.9rem',
+                      color: '#ffffff',
                       '&.Mui-selected': {
-                        backgroundColor: alpha(colors.primary.main, 0.15),
-                        color: colors.primary.main,
+                        backgroundColor: alpha('#ffffff', 0.15),
                         '&:hover': {
-                          backgroundColor: alpha(colors.primary.main, 0.2),
+                          backgroundColor: alpha('#ffffff', 0.2),
                         },
                       },
                       transition: 'all 0.2s ease',
                       '&:hover': {
-                        backgroundColor: alpha(colors.primary.main, 0.08),
+                        backgroundColor: alpha('#ffffff', 0.1),
                       },
                     }}
                   >
@@ -317,23 +302,24 @@ const TopNav = ({ onMenuClick }: { onMenuClick?: () => void }) => {
                         p: 0.5,
                         transition: 'all 0.3s ease',
                         '&:hover': {
-                          transform: 'scale(1.08)',
+                          transform: 'scale(1.1)',
                         },
                       }}
                     >
                       <Avatar
                         sx={{
-                          width: 40,
-                          height: 40,
-                          background: gradients.primary,
+                          width: 42,
+                          height: 42,
+                          background: alpha('#ffffff', 0.15),
                           fontSize: '0.95rem',
                           fontWeight: 700,
                           color: 'white',
-                          border: `2px solid ${alpha(colors.primary.main, 0.2)}`,
-                          boxShadow: `0 2px 8px ${alpha(colors.primary.main, 0.15)}`,
+                          border: `2px solid ${alpha('#ffffff', 0.3)}`,
+                          backdropFilter: 'blur(8px)',
                           transition: 'all 0.3s ease',
                           '&:hover': {
-                            boxShadow: `0 4px 16px ${alpha(colors.primary.main, 0.25)}`,
+                            background: alpha('#ffffff', 0.25),
+                            borderColor: alpha('#ffffff', 0.5),
                           },
                         }}
                       >
@@ -349,38 +335,38 @@ const TopNav = ({ onMenuClick }: { onMenuClick?: () => void }) => {
                     onClose={() => setAnchorElUser(null)}
                     PaperProps={{
                       sx: {
-                        mt: 1.2,
+                        mt: 1.5,
                         minWidth: 220,
                         borderRadius: '12px',
-                        boxShadow: `0 8px 32px ${alpha(colors.primary.main, 0.15)}`,
-                        border: `1px solid ${alpha(colors.primary.main, 0.1)}`,
-                        background: `linear-gradient(135deg, ${alpha('#ffffff', 0.95)} 0%, ${alpha(colors.primary.lighter, 0.4)} 100%)`,
-                        backdropFilter: 'blur(8px)',
+                        boxShadow: `0 16px 48px ${alpha('#2d4a3f', 0.2)}`,
+                        border: `1px solid ${alpha('#ffffff', 0.1)}`,
+                        background: `linear-gradient(135deg, ${alpha('#2d4a3f', 0.95)} 0%, ${alpha('#3a5a40', 0.95)} 100%)`,
+                        backdropFilter: 'blur(12px)',
                       },
                     }}
                     TransitionProps={{ timeout: 200 }}
                   >
-                    <MenuItem disabled sx={{ fontSize: '0.85rem', py: 1.2, color: colors.text.primary }}>
+                    <MenuItem disabled sx={{ fontSize: '0.85rem', py: 1.2, color: '#ffffff' }}>
                       <Typography variant="body2" sx={{ fontWeight: 700 }}>
                         {user.name}
                       </Typography>
                     </MenuItem>
-                    <MenuItem disabled sx={{ fontSize: '0.8rem', color: 'text.disabled', py: 0.8 }}>
+                    <MenuItem disabled sx={{ fontSize: '0.8rem', color: alpha('#ffffff', 0.6), py: 0.8 }}>
                       <Typography variant="caption">{user.email}</Typography>
                     </MenuItem>
-                    <Divider sx={{ my: 0.5 }} />
+                    <Divider sx={{ my: 0.5, borderColor: alpha('#ffffff', 0.1) }} />
                     <MenuItem
                       onClick={() => {
                         setAnchorElUser(null);
                         logout();
                       }}
                       sx={{
-                        color: colors.error.main,
+                        color: '#ff6b6b',
                         fontWeight: 700,
                         py: 1.2,
                         fontSize: '0.9rem',
                         '&:hover': {
-                          backgroundColor: alpha(colors.error.main, 0.1),
+                          backgroundColor: alpha('#ff6b6b', 0.1),
                         },
                         transition: 'all 0.2s ease',
                       }}
@@ -392,22 +378,25 @@ const TopNav = ({ onMenuClick }: { onMenuClick?: () => void }) => {
                 </>
               ) : (
                 <Button
-                  variant="contained"
-                  size="small"
+                  variant="outlined"
                   onClick={() => navigate('/login')}
                   sx={{
-                    background: gradients.primary,
+                    color: '#ffffff',
+                    borderColor: alpha('#ffffff', 0.4),
                     borderRadius: '50px',
-                    padding: '10px 24px',
+                    padding: '10px 26px',
                     textTransform: 'none',
                     fontWeight: 700,
                     fontSize: '0.95rem',
-                    boxShadow: `0 4px 12px ${alpha(colors.primary.main, 0.25)}`,
+                    border: '1.5px solid',
+                    backgroundColor: alpha('#ffffff', 0.08),
+                    backdropFilter: 'blur(8px)',
                     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                     '&:hover': {
-                      background: `linear-gradient(135deg, #2d4733 0%, #3a5a40 100%)`,
-                      boxShadow: `0 8px 24px ${alpha(colors.primary.main, 0.35)}`,
+                      borderColor: alpha('#ffffff', 0.8),
+                      backgroundColor: alpha('#ffffff', 0.15),
                       transform: 'translateY(-2px)',
+                      boxShadow: `0 8px 24px ${alpha('#ffffff', 0.15)}`,
                     },
                   }}
                 >
@@ -421,15 +410,16 @@ const TopNav = ({ onMenuClick }: { onMenuClick?: () => void }) => {
                   <IconButton
                     onClick={() => setMobileDrawerOpen(!mobileDrawerOpen)}
                     sx={{
-                      color: colors.primary.main,
-                      backgroundColor: alpha(colors.primary.main, 0.08),
-                      borderRadius: '9px',
-                      width: 40,
-                      height: 40,
+                      color: '#ffffff',
+                      backgroundColor: alpha('#ffffff', 0.1),
+                      borderRadius: '10px',
+                      width: 42,
+                      height: 42,
                       transition: 'all 0.3s ease',
-                      border: `1.5px solid ${alpha(colors.primary.main, 0.12)}`,
+                      border: `1.5px solid ${alpha('#ffffff', 0.15)}`,
+                      backdropFilter: 'blur(8px)',
                       '&:hover': {
-                        backgroundColor: alpha(colors.primary.main, 0.14),
+                        backgroundColor: alpha('#ffffff', 0.2),
                         transform: 'translateY(-2px)',
                       },
                     }}
@@ -455,10 +445,10 @@ const TopNav = ({ onMenuClick }: { onMenuClick?: () => void }) => {
         PaperProps={{
           sx: {
             width: 280,
-            background: `linear-gradient(135deg, ${alpha('#ffffff', 0.95)} 0%, ${alpha(colors.primary.lighter, 0.3)} 100%)`,
-            backdropFilter: 'blur(10px)',
-            borderRight: i18n.language === 'ar' ? 'none' : `1px solid ${alpha(colors.primary.main, 0.1)}`,
-            borderLeft: i18n.language === 'ar' ? `1px solid ${alpha(colors.primary.main, 0.1)}` : 'none',
+            background: `linear-gradient(135deg, #2d4a3f 0%, #3a5a40 100%)`,
+            backdropFilter: 'blur(15px)',
+            borderRight: i18n.language === 'ar' ? 'none' : `1px solid ${alpha('#ffffff', 0.1)}`,
+            borderLeft: i18n.language === 'ar' ? `1px solid ${alpha('#ffffff', 0.1)}` : 'none',
           },
         }}
         SlideProps={{ timeout: 300 }}
@@ -475,24 +465,23 @@ const TopNav = ({ onMenuClick }: { onMenuClick?: () => void }) => {
                   startIcon={<IconComponent size={20} />}
                   fullWidth
                   sx={{
-                    color: isActive(item.path)
-                      ? colors.primary.main
-                      : colors.text.secondary,
+                    color: isActive(item.path) ? '#ffffff' : alpha('#ffffff', 0.7),
                     fontWeight: isActive(item.path) ? 700 : 600,
                     fontSize: '0.95rem',
                     padding: '12px 16px',
                     borderRadius: '10px',
                     backgroundColor: isActive(item.path)
-                      ? alpha(colors.primary.main, 0.1)
+                      ? alpha('#ffffff', 0.15)
                       : 'transparent',
                     border: isActive(item.path)
-                      ? `1.5px solid ${alpha(colors.primary.main, 0.25)}`
+                      ? `1.5px solid ${alpha('#ffffff', 0.3)}`
                       : '1.5px solid transparent',
                     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                     justifyContent: i18n.language === 'ar' ? 'flex-end' : 'flex-start',
+                    backdropFilter: isActive(item.path) ? 'blur(8px)' : 'none',
                     '&:hover': {
-                      backgroundColor: alpha(colors.primary.main, 0.08),
-                      color: colors.primary.main,
+                      backgroundColor: alpha('#ffffff', 0.1),
+                      color: '#ffffff',
                       transform: i18n.language === 'ar' ? 'translateX(-8px)' : 'translateX(8px)',
                     },
                   }}
@@ -504,14 +493,14 @@ const TopNav = ({ onMenuClick }: { onMenuClick?: () => void }) => {
           </Stack>
 
           {/* Divider */}
-          <Divider sx={{ my: 2 }} />
+          <Divider sx={{ my: 2, borderColor: alpha('#ffffff', 0.1) }} />
 
           {/* Footer Info */}
           <Typography
             variant="caption"
             sx={{
               textAlign: 'center',
-              color: alpha(colors.text.secondary, 0.6),
+              color: alpha('#ffffff', 0.5),
               fontSize: '0.8rem',
               fontWeight: 500,
             }}
