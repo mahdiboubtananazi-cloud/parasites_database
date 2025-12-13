@@ -1,22 +1,44 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { 
-  Box, Container, Typography, Paper, Button, Chip, Stack, 
-  alpha, useTheme, CircularProgress, Divider
+import {
+  Box,
+  Container,
+  Typography,
+  Paper,
+  Button,
+  Chip,
+  Stack,
+  alpha,
+  useTheme,
+  CircularProgress,
+  Divider,
+  Grid,
 } from '@mui/material';
-import { ArrowRight, ArrowLeft, Calendar, Tag, Activity, Share2, Microscope } from 'lucide-react';
+import {
+  ArrowRight,
+  ArrowLeft,
+  Calendar,
+  Tag,
+  Activity,
+  Share2,
+  Microscope,
+  Beaker,
+  MapPin,
+  User,
+  Download,
+} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useParasites } from '../hooks/useParasites';
 
 // تصحيح روابط الصور
 const fixImageUrl = (url?: string) => {
   if (!url) return 'https://placehold.co/600x400?text=No+Image';
-  
+
   // إذا كان الرابط كاملاً (http/https) استخدمه مباشرة
   if (url.startsWith('http')) {
     return url;
   }
-  
+
   // إذا كان رابط نسبي، أضف الـ base URL للـ API
   const apiBase = process.env.REACT_APP_API_URL || 'https://parasites-api.onrender.com/api';
   return `${apiBase}${url}`;
@@ -29,15 +51,18 @@ export default function ParasiteDetails() {
   const theme = useTheme();
   const isRtl = i18n.language === 'ar';
   const ArrowIcon = isRtl ? ArrowRight : ArrowLeft;
-  
+
   const { parasites, loading: loadingParasites } = useParasites();
-  
+
   const [parasite, setParasite] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Zoom Logic
-  const [zoomStyle, setZoomStyle] = useState({ display: 'none', backgroundPosition: '0% 0%' });
+  const [zoomStyle, setZoomStyle] = useState({
+    display: 'none',
+    backgroundPosition: '0% 0%',
+  });
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
@@ -48,23 +73,16 @@ export default function ParasiteDetails() {
 
   useEffect(() => {
     setLoading(loadingParasites);
-    
+
     if (!loadingParasites && parasites && parasites.length > 0) {
-      console.log('All parasites:', parasites);
-      console.log('Looking for ID:', id);
-      
-      // ابحث عن الطفيلي في الـ list
       const found = parasites.find((p: any) => {
-        console.log('Comparing:', p.id, '===', id);
         return p.id === id;
       });
-      
+
       if (found) {
-        console.log('Found parasite:', found);
         setParasite(found);
         setError(null);
       } else {
-        console.error('Parasite not found');
         setError('لم يتم العثور على الطفيلي في قاعدة البيانات');
         setParasite(null);
       }
@@ -73,7 +91,14 @@ export default function ParasiteDetails() {
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: '100vh',
+        }}
+      >
         <Stack alignItems="center" spacing={2}>
           <CircularProgress />
           <Typography color="text.secondary">جاري تحميل البيانات...</Typography>
@@ -84,9 +109,32 @@ export default function ParasiteDetails() {
 
   if (error || !parasite) {
     return (
-      <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: '#F8F9FC' }}>
-        <Paper elevation={0} sx={{ p: 4, textAlign: 'center', maxWidth: 500, borderRadius: 4, border: '1px solid', borderColor: 'divider' }}>
-          <Typography variant="h4" color="error" gutterBottom sx={{ mb: 2 }}>
+      <Box
+        sx={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          bgcolor: alpha(theme.palette.primary.main, 0.02),
+        }}
+      >
+        <Paper
+          elevation={0}
+          sx={{
+            p: 4,
+            textAlign: 'center',
+            maxWidth: 500,
+            borderRadius: 4,
+            border: '1px solid',
+            borderColor: 'divider',
+          }}
+        >
+          <Typography
+            variant="h4"
+            color="error"
+            gutterBottom
+            sx={{ mb: 2, fontWeight: 900 }}
+          >
             ❌ خطأ في التحميل
           </Typography>
           <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
@@ -95,7 +143,11 @@ export default function ParasiteDetails() {
           <Typography variant="caption" color="text.disabled" sx={{ display: 'block', mb: 3 }}>
             ID: {id}
           </Typography>
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="center">
+          <Stack
+            direction={{ xs: 'column', sm: 'row' }}
+            spacing={2}
+            justifyContent="center"
+          >
             <Button onClick={() => navigate('/archive')} variant="contained">
               العودة للأرشيف
             </Button>
@@ -111,15 +163,39 @@ export default function ParasiteDetails() {
   // ✅ استخدم imageurl (lowercase) من Database
   const imageUrl = fixImageUrl((parasite as any).imageurl);
 
+  // بيانات العينة
+  const sampleType = (parasite as any).sampleType || (parasite as any).sampletype;
+  const stainColor = (parasite as any).stainColor;
+  const stage = (parasite as any).stage;
+  const host = (parasite as any).host;
+  const location = (parasite as any).location;
+  const studentName = (parasite as any).studentName;
+  const supervisorName = (parasite as any).supervisorName;
+  const createdAt = (parasite as any).createdAt || (parasite as any).createdat;
+
   return (
-    <Box sx={{ minHeight: '100vh', pb: 8, bgcolor: '#F8F9FC' }}>
+    <Box sx={{ minHeight: '100vh', pb: 8, bgcolor: alpha(theme.palette.primary.main, 0.02) }}>
       {/* Header Navigation */}
-      <Box sx={{ bgcolor: 'white', borderBottom: '1px solid', borderColor: 'divider', py: 2, position: 'sticky', top: 0, zIndex: 100 }}>
+      <Box
+        sx={{
+          bgcolor: 'white',
+          borderBottom: `1px solid ${theme.palette.divider}`,
+          py: 2,
+          position: 'sticky',
+          top: 0,
+          zIndex: 100,
+          boxShadow: theme.shadows[1],
+        }}
+      >
         <Container maxWidth="lg">
-          <Button 
-            startIcon={<ArrowIcon size={18} />} 
+          <Button
+            startIcon={<ArrowIcon size={18} />}
             onClick={() => navigate('/archive')}
-            sx={{ fontWeight: 600, color: 'text.secondary', '&:hover': { color: 'primary.main' } }}
+            sx={{
+              fontWeight: 600,
+              color: 'text.secondary',
+              '&:hover': { color: 'primary.main' },
+            }}
           >
             {t('archive') || 'الأرشيف'}
           </Button>
@@ -131,39 +207,57 @@ export default function ParasiteDetails() {
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 4 }}>
           {/* Image Section */}
           <Box>
-            <Paper elevation={0} sx={{ p: 2, borderRadius: 4, border: '1px solid', borderColor: 'divider', bgcolor: 'white', position: 'sticky', top: 100 }}>
-              
-              <Box 
-                sx={{ 
-                  borderRadius: 3, 
-                  overflow: 'hidden', 
-                  height: { xs: 300, md: 400 }, 
-                  bgcolor: '#f1f5f9', 
-                  position: 'relative', 
-                  border: '1px solid', 
-                  borderColor: 'divider',
-                  cursor: 'crosshair'
+            <Paper
+              elevation={0}
+              sx={{
+                p: 2,
+                borderRadius: 3,
+                border: `1px solid ${theme.palette.divider}`,
+                bgcolor: 'white',
+                position: 'sticky',
+                top: 100,
+                overflow: 'hidden',
+              }}
+            >
+              {/* Main Image Container */}
+              <Box
+                sx={{
+                  borderRadius: 2.5,
+                  overflow: 'hidden',
+                  height: { xs: 300, md: 500 },
+                  bgcolor: '#f1f5f9',
+                  position: 'relative',
+                  border: `1px solid ${theme.palette.divider}`,
+                  cursor: 'crosshair',
+                  mb: 2,
                 }}
                 onMouseMove={handleMouseMove}
-                onMouseLeave={() => setZoomStyle({ ...zoomStyle, display: 'none' })}
+                onMouseLeave={() =>
+                  setZoomStyle({ ...zoomStyle, display: 'none' })
+                }
               >
                 {/* Main Image */}
-                <img 
-                  src={imageUrl} 
-                  alt={parasite.name || parasite.scientificName} 
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                <img
+                  src={imageUrl}
+                  alt={parasite.name || parasite.scientificName}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                  }}
                   onError={(e) => {
-                    (e.target as HTMLImageElement).src = 'https://placehold.co/600x400?text=No+Image';
+                    (e.target as HTMLImageElement).src =
+                      'https://placehold.co/600x400?text=No+Image';
                   }}
                 />
-                
+
                 {/* Zoom Image */}
-                <Box 
-                  sx={{ 
-                    position: 'absolute', 
-                    top: 0, 
-                    left: 0, 
-                    width: '100%', 
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
                     height: '100%',
                     backgroundImage: `url('${imageUrl}')`,
                     backgroundRepeat: 'no-repeat',
@@ -172,33 +266,51 @@ export default function ParasiteDetails() {
                     display: zoomStyle.display,
                     backgroundPosition: zoomStyle.backgroundPosition,
                     boxShadow: 'inset 0 0 20px rgba(0,0,0,0.5)',
-                    borderRadius: 3
-                  }} 
+                    borderRadius: 2.5,
+                  }}
                 />
 
                 {/* Type Badge */}
-                <Chip 
-                  label={(parasite.type || 'غير محدد').toUpperCase()} 
-                  sx={{ 
-                    position: 'absolute', 
-                    top: 16, 
-                    [isRtl ? 'right' : 'left']: 16, 
-                    bgcolor: 'rgba(255,255,255,0.95)', 
-                    fontWeight: 800, 
-                    color: 'primary.main', 
-                    backdropFilter: 'blur(4px)',
-                    zIndex: 10
-                  }} 
-                />
+                {parasite.type && (
+                  <Chip
+                    label={parasite.type.toUpperCase()}
+                    sx={{
+                      position: 'absolute',
+                      top: 16,
+                      [isRtl ? 'right' : 'left']: 16,
+                      bgcolor: alpha(theme.palette.primary.main, 0.95),
+                      color: 'white',
+                      fontWeight: 800,
+                      backdropFilter: 'blur(4px)',
+                      zIndex: 10,
+                    }}
+                  />
+                )}
               </Box>
-              
-              <Typography variant="caption" align="center" display="block" sx={{ mt: 1, color: 'text.secondary' }}>
+
+              <Typography
+                variant="caption"
+                align="center"
+                display="block"
+                sx={{ mb: 2, color: 'text.secondary' }}
+              >
                 💡 حرك الماوس لتكبير الصورة
               </Typography>
 
-              <Stack direction="row" spacing={2} sx={{ mt: 3, px: 1 }}>
-                <Button fullWidth variant="outlined" startIcon={<Share2 size={18} />} disabled>
-                  مشاركة
+              {/* Action Buttons */}
+              <Stack direction="row" spacing={1.5}>
+                <Button
+                  fullWidth
+                  variant="outlined"
+                  startIcon={<Download size={18} />}
+                  onClick={() => {
+                    const link = document.createElement('a');
+                    link.href = imageUrl;
+                    link.download = `${parasite.scientificName}.jpg`;
+                    link.click();
+                  }}
+                >
+                  تحميل
                 </Button>
               </Stack>
             </Paper>
@@ -206,135 +318,368 @@ export default function ParasiteDetails() {
 
           {/* Info Section */}
           <Box>
-            {/* Title Section */}
-            <Box sx={{ mb: 4 }}>
-              <Typography 
-                variant="h3" 
-                fontWeight={800} 
-                color="text.primary" 
-                sx={{ mb: 2, fontSize: { xs: '1.6rem', md: '2.2rem' } }}
-              >
-                {parasite.name || parasite.scientificName || 'بدون اسم'}
-              </Typography>
-              <Typography 
-                variant="h6" 
-                color="primary.main" 
-                sx={{ 
-                  fontStyle: 'italic', 
-                  fontFamily: '"Times New Roman", serif', 
-                  bgcolor: alpha(theme.palette.primary.main, 0.08), 
-                  display: 'inline-block', 
-                  px: 2, 
-                  py: 1, 
-                  borderRadius: 2,
-                  fontSize: { xs: '0.9rem', md: '1rem' }
-                }}
-              >
-                {parasite.scientificName || 'غير محدد'}
-              </Typography>
-            </Box>
-
-            {/* Basic Info Cards */}
-            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2, mb: 4 }}>
-              <Paper elevation={0} sx={{ p: 2.5, bgcolor: '#F8F9FC', border: '1px solid', borderColor: 'divider', borderRadius: 3, transition: 'all 0.2s', '&:hover': { borderColor: 'primary.main', boxShadow: 2 } }}>
-                <Stack direction="row" spacing={2} alignItems="flex-start">
-                  <Box sx={{ p: 1.2, bgcolor: 'white', borderRadius: 2, color: 'secondary.main', display: 'flex', alignItems: 'center' }}>
-                    <Activity size={24} />
-                  </Box>
-                  <Box sx={{ flex: 1 }}>
-                    <Typography variant="caption" color="text.secondary" fontWeight={600} display="block" sx={{ mb: 0.5 }}>
-                      مرحلة الطفيلي
-                    </Typography>
-                    <Typography variant="body1" fontWeight={700}>
-                      {(parasite as any).stage || 'غير محدد'}
-                    </Typography>
-                  </Box>
-                </Stack>
-              </Paper>
-
-              <Paper elevation={0} sx={{ p: 2.5, bgcolor: '#F8F9FC', border: '1px solid', borderColor: 'divider', borderRadius: 3, transition: 'all 0.2s', '&:hover': { borderColor: 'primary.main', boxShadow: 2 } }}>
-                <Stack direction="row" spacing={2} alignItems="flex-start">
-                  <Box sx={{ p: 1.2, bgcolor: 'white', borderRadius: 2, color: 'warning.main', display: 'flex', alignItems: 'center' }}>
-                    <Calendar size={24} />
-                  </Box>
-                  <Box sx={{ flex: 1 }}>
-                    <Typography variant="caption" color="text.secondary" fontWeight={600} display="block" sx={{ mb: 0.5 }}>
-                      تاريخ الإضافة
-                    </Typography>
-                    <Typography variant="body1" fontWeight={700}>
-                      {(parasite as any).createdat 
-                        ? new Date((parasite as any).createdat).toLocaleDateString('ar-SA') 
-                        : 'غير محدد'}
-                    </Typography>
-                  </Box>
-                </Stack>
-              </Paper>
-            </Box>
-
-            <Divider sx={{ my: 3 }} />
-
-            {/* Description */}
-            <Box sx={{ mb: 4 }}>
-              <Typography 
-                variant="h6" 
-                fontWeight={700} 
-                gutterBottom 
-                sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2, color: 'primary.main' }}
-              >
-                <Tag size={20} /> 
-                الوصف
-              </Typography>
-              <Typography 
-                variant="body1" 
-                color="text.secondary" 
-                sx={{ lineHeight: 1.8, fontSize: '1.05rem' }}
-              >
-                {(parasite as any).description || 'لا يوجد وصف متاح'}
-              </Typography>
-            </Box>
-
-            {/* Sample Details */}
-            {((parasite as any).sampletype || (parasite as any).stainColor) && (
-              <Box sx={{ mb: 4, p: 3, bgcolor: alpha(theme.palette.warning.main, 0.05), borderRadius: 3, border: '1px solid', borderColor: alpha(theme.palette.warning.main, 0.2) }}>
-                <Typography variant="subtitle2" fontWeight={700} gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'warning.main' }}>
-                  <Microscope size={18} />
-                  تفاصيل العينة
+            <Stack spacing={3.5}>
+              {/* Title Section */}
+              <Box>
+                <Typography
+                  variant="h3"
+                  fontWeight={900}
+                  sx={{
+                    mb: 1.5,
+                    fontSize: { xs: '1.8rem', md: '2.5rem' },
+                    background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
+                    backgroundClip: 'text',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                  }}
+                >
+                  {parasite.name || parasite.scientificName || 'بدون اسم'}
                 </Typography>
-                <Stack spacing={1.5} sx={{ mt: 2 }}>
-                  {(parasite as any).sampletype && (
-                    <Typography variant="body2">
-                      <Typography component="span" fontWeight={700}>نوع العينة:</Typography> {(parasite as any).sampletype}
-                    </Typography>
-                  )}
-                  {(parasite as any).stainColor && (
-                    <Typography variant="body2">
-                      <Typography component="span" fontWeight={700}>نوع الصبغة:</Typography> {(parasite as any).stainColor}
-                    </Typography>
-                  )}
-                </Stack>
-              </Box>
-            )}
-
-            {/* Additional Info */}
-            {((parasite as any).studentName || (parasite as any).supervisorName) && (
-              <Box sx={{ p: 3, bgcolor: alpha(theme.palette.info.main, 0.05), borderRadius: 3, border: '1px solid', borderColor: alpha(theme.palette.info.main, 0.2) }}>
-                <Typography variant="subtitle2" fontWeight={700} gutterBottom sx={{ color: 'info.main' }}>
-                  معلومات إضافية
+                <Typography
+                  variant="h6"
+                  sx={{
+                    fontStyle: 'italic',
+                    fontFamily: '"Times New Roman", serif',
+                    bgcolor: alpha(theme.palette.primary.main, 0.1),
+                    color: theme.palette.primary.main,
+                    display: 'inline-block',
+                    px: 2,
+                    py: 1,
+                    borderRadius: 2,
+                    border: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`,
+                    fontSize: { xs: '0.9rem', md: '1rem' },
+                  }}
+                >
+                  {parasite.scientificName || 'غير محدد'}
                 </Typography>
-                <Stack spacing={1.5} sx={{ mt: 2 }}>
-                  {(parasite as any).studentName && (
-                    <Typography variant="body2">
-                      <Typography component="span" fontWeight={700}>الطالب:</Typography> {(parasite as any).studentName}
-                    </Typography>
-                  )}
-                  {(parasite as any).supervisorName && (
-                    <Typography variant="body2">
-                      <Typography component="span" fontWeight={700}>المشرف:</Typography> {(parasite as any).supervisorName}
-                    </Typography>
-                  )}
-                </Stack>
               </Box>
-            )}
+
+              {/* Quick Info Cards */}
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
+                {/* Stage */}
+                {stage && (
+                  <Paper
+                    elevation={0}
+                    sx={{
+                      p: 2.5,
+                      bgcolor: alpha(theme.palette.info.main, 0.08),
+                      border: `1px solid ${alpha(theme.palette.info.main, 0.2)}`,
+                      borderRadius: 2.5,
+                      transition: 'all 0.3s',
+                      '&:hover': {
+                        borderColor: theme.palette.info.main,
+                        boxShadow: theme.shadows[4],
+                      },
+                    }}
+                  >
+                    <Stack direction="row" spacing={1.5} alignItems="flex-start">
+                      <Box
+                        sx={{
+                          p: 1,
+                          bgcolor: 'white',
+                          borderRadius: 1.5,
+                          color: theme.palette.info.main,
+                          display: 'flex',
+                          alignItems: 'center',
+                        }}
+                      >
+                        <Activity size={20} />
+                      </Box>
+                      <Box sx={{ flex: 1 }}>
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                          fontWeight={700}
+                          display="block"
+                          sx={{ mb: 0.5, textTransform: 'uppercase' }}
+                        >
+                          مرحلة التطور
+                        </Typography>
+                        <Typography variant="body1" fontWeight={700}>
+                          {stage}
+                        </Typography>
+                      </Box>
+                    </Stack>
+                  </Paper>
+                )}
+
+                {/* Date */}
+                <Paper
+                  elevation={0}
+                  sx={{
+                    p: 2.5,
+                    bgcolor: alpha(theme.palette.warning.main, 0.08),
+                    border: `1px solid ${alpha(theme.palette.warning.main, 0.2)}`,
+                    borderRadius: 2.5,
+                    transition: 'all 0.3s',
+                    '&:hover': {
+                      borderColor: theme.palette.warning.main,
+                      boxShadow: theme.shadows[4],
+                    },
+                  }}
+                >
+                  <Stack direction="row" spacing={1.5} alignItems="flex-start">
+                    <Box
+                      sx={{
+                        p: 1,
+                        bgcolor: 'white',
+                        borderRadius: 1.5,
+                        color: theme.palette.warning.main,
+                        display: 'flex',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <Calendar size={20} />
+                    </Box>
+                    <Box sx={{ flex: 1 }}>
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        fontWeight={700}
+                        display="block"
+                        sx={{ mb: 0.5, textTransform: 'uppercase' }}
+                      >
+                        تاريخ الإضافة
+                      </Typography>
+                      <Typography variant="body1" fontWeight={700}>
+                        {createdAt
+                          ? new Date(createdAt).toLocaleDateString('ar-SA', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric',
+                            })
+                          : 'غير محدد'}
+                      </Typography>
+                    </Box>
+                  </Stack>
+                </Paper>
+              </Box>
+
+              <Divider />
+
+              {/* Description */}
+              {(parasite as any).description && (
+                <Box>
+                  <Typography
+                    variant="h6"
+                    fontWeight={700}
+                    gutterBottom
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      mb: 2,
+                      color: theme.palette.primary.main,
+                    }}
+                  >
+                    <Tag size={20} />
+                    الوصف المجهري
+                  </Typography>
+                  <Typography
+                    variant="body1"
+                    color="text.secondary"
+                    sx={{
+                      lineHeight: 2,
+                      fontSize: '1.05rem',
+                      p: 2,
+                      bgcolor: alpha(theme.palette.grey[500], 0.05),
+                      borderRadius: 2,
+                      borderLeft: `4px solid ${theme.palette.primary.main}`,
+                    }}
+                  >
+                    {(parasite as any).description}
+                  </Typography>
+                </Box>
+              )}
+
+              {/* Sample Details */}
+              {(sampleType || stainColor) && (
+                <Paper
+                  elevation={0}
+                  sx={{
+                    p: 3,
+                    bgcolor: alpha(theme.palette.success.main, 0.08),
+                    borderRadius: 2.5,
+                    border: `1px solid ${alpha(theme.palette.success.main, 0.2)}`,
+                  }}
+                >
+                  <Typography
+                    variant="subtitle1"
+                    fontWeight={700}
+                    gutterBottom
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      color: theme.palette.success.main,
+                      mb: 2,
+                    }}
+                  >
+                    <Microscope size={20} />
+                    تفاصيل العينة والفحص
+                  </Typography>
+                  <Stack spacing={1.5}>
+                    {sampleType && (
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Beaker size={16} color={theme.palette.success.main} />
+                        <Typography variant="body2">
+                          <Typography
+                            component="span"
+                            fontWeight={700}
+                            color="text.primary"
+                          >
+                            نوع العينة:
+                          </Typography>{' '}
+                          <Chip
+                            label={sampleType}
+                            size="small"
+                            sx={{ ml: 1, fontWeight: 600 }}
+                          />
+                        </Typography>
+                      </Box>
+                    )}
+                    {stainColor && (
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Beaker size={16} color={theme.palette.success.main} />
+                        <Typography variant="body2">
+                          <Typography
+                            component="span"
+                            fontWeight={700}
+                            color="text.primary"
+                          >
+                            الصبغة المستخدمة:
+                          </Typography>{' '}
+                          <Chip
+                            label={stainColor}
+                            size="small"
+                            sx={{ ml: 1, fontWeight: 600 }}
+                          />
+                        </Typography>
+                      </Box>
+                    )}
+                  </Stack>
+                </Paper>
+              )}
+
+              {/* Host & Location */}
+              {(host || location) && (
+                <Paper
+                  elevation={0}
+                  sx={{
+                    p: 3,
+                    bgcolor: alpha(theme.palette.secondary.main, 0.08),
+                    borderRadius: 2.5,
+                    border: `1px solid ${alpha(theme.palette.secondary.main, 0.2)}`,
+                  }}
+                >
+                  <Typography
+                    variant="subtitle1"
+                    fontWeight={700}
+                    gutterBottom
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      color: theme.palette.secondary.main,
+                      mb: 2,
+                    }}
+                  >
+                    <MapPin size={20} />
+                    معلومات المصدر
+                  </Typography>
+                  <Stack spacing={1.5}>
+                    {host && (
+                      <Typography variant="body2">
+                        <Typography
+                          component="span"
+                          fontWeight={700}
+                          color="text.primary"
+                        >
+                          العائل:
+                        </Typography>{' '}
+                        {host}
+                      </Typography>
+                    )}
+                    {location && (
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <MapPin size={16} />
+                        <Typography variant="body2">
+                          <Typography
+                            component="span"
+                            fontWeight={700}
+                            color="text.primary"
+                          >
+                            الموقع:
+                          </Typography>{' '}
+                          {location}
+                        </Typography>
+                      </Box>
+                    )}
+                  </Stack>
+                </Paper>
+              )}
+
+              {/* Researcher Info */}
+              {(studentName || supervisorName) && (
+                <Paper
+                  elevation={0}
+                  sx={{
+                    p: 3,
+                    bgcolor: alpha(theme.palette.primary.main, 0.08),
+                    borderRadius: 2.5,
+                    border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+                  }}
+                >
+                  <Typography
+                    variant="subtitle1"
+                    fontWeight={700}
+                    gutterBottom
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      color: theme.palette.primary.main,
+                      mb: 2,
+                    }}
+                  >
+                    <User size={20} />
+                    معلومات التوثيق
+                  </Typography>
+                  <Stack spacing={1.5}>
+                    {studentName && (
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <User size={16} />
+                        <Typography variant="body2">
+                          <Typography
+                            component="span"
+                            fontWeight={700}
+                            color="text.primary"
+                          >
+                            الباحث:
+                          </Typography>{' '}
+                          {studentName}
+                        </Typography>
+                      </Box>
+                    )}
+                    {supervisorName && (
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <User size={16} />
+                        <Typography variant="body2">
+                          <Typography
+                            component="span"
+                            fontWeight={700}
+                            color="text.primary"
+                          >
+                            المشرف الأكاديمي:
+                          </Typography>{' '}
+                          {supervisorName}
+                        </Typography>
+                      </Box>
+                    )}
+                  </Stack>
+                </Paper>
+              )}
+            </Stack>
           </Box>
         </Box>
       </Container>
