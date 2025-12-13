@@ -18,8 +18,18 @@ import {
   useTheme,
   alpha,
   Collapse,
+  Grid,
 } from "@mui/material";
-import { Search, Filter, X, Check } from "lucide-react";
+import {
+  Search,
+  Filter,
+  X,
+  Check,
+  MapPin,
+  User,
+  Microscope,
+  Calendar,
+} from "lucide-react";
 import { useParasites } from "../hooks/useParasites";
 import { useTranslation } from "react-i18next";
 
@@ -28,7 +38,9 @@ const fixImageUrl = (url?: string) => {
   if (url.includes("localhost")) {
     return url.replace(
       "localhost",
-      window.location.hostname === "localhost" ? "localhost" : window.location.hostname
+      window.location.hostname === "localhost"
+        ? "localhost"
+        : window.location.hostname
     );
   }
   return url;
@@ -37,7 +49,8 @@ const fixImageUrl = (url?: string) => {
 interface Filters {
   types: string[];
   stages: string[];
-  statuses: string[];
+  sampleTypes: string[];
+  stains: string[];
   years: string[];
 }
 
@@ -51,7 +64,8 @@ const Archive = () => {
   const [filters, setFilters] = useState<Filters>({
     types: [],
     stages: [],
-    statuses: [],
+    sampleTypes: [],
+    stains: [],
     years: [],
   });
 
@@ -64,7 +78,7 @@ const Archive = () => {
     if (query) setSearchTerm(query);
   }, [searchParams]);
 
-  // ✅ احصل على الخيارات المتاحة بناءً على البيانات
+  // ✅ احصل على الخيارات المتاحة - نوع الطفيلي
   const availableTypes = useMemo(() => {
     if (!parasites || parasites.length === 0) return [];
     return Array.from(new Set(parasites.map((p) => p.type).filter(Boolean)))
@@ -75,6 +89,7 @@ const Archive = () => {
       }));
   }, [parasites]);
 
+  // ✅ احصل على الخيارات المتاحة - مرحلة الطفيلي
   const availableStages = useMemo(() => {
     if (!parasites || parasites.length === 0) return [];
     const stagesMap = new Map();
@@ -84,38 +99,57 @@ const Archive = () => {
         stagesMap.set(stage, (stagesMap.get(stage) || 0) + 1);
       }
     });
-    return Array.from(stagesMap.entries()).map(([value, count]) => ({
-      value,
-      count,
-    }));
-  }, [parasites]);
-
-  const availableStatuses = useMemo(() => {
-    if (!parasites || parasites.length === 0) return [];
-    const statusLabels: Record<string, string> = {
-      approved: "معتمد",
-      pending: "قيد المراجعة",
-      rejected: "مرفوض",
-    };
-    const statusMap = new Map();
-    parasites.forEach((p) => {
-      const status = (p as any).status || "approved";
-      statusMap.set(status, (statusMap.get(status) || 0) + 1);
-    });
-    return Array.from(statusMap.entries())
+    return Array.from(stagesMap.entries())
+      .sort((a, b) => b[1] - a[1])
       .map(([value, count]) => ({
         value,
-        label: statusLabels[value] || value,
         count,
-      }))
-      .sort((a, b) => b.count - a.count);
+      }));
   }, [parasites]);
 
+  // ✅ احصل على الخيارات المتاحة - نوع العينة
+  const availableSampleTypes = useMemo(() => {
+    if (!parasites || parasites.length === 0) return [];
+    const sampleTypesMap = new Map();
+    parasites.forEach((p) => {
+      const sampleType = (p as any).sampleType;
+      if (sampleType) {
+        sampleTypesMap.set(sampleType, (sampleTypesMap.get(sampleType) || 0) + 1);
+      }
+    });
+    return Array.from(sampleTypesMap.entries())
+      .sort((a, b) => b[1] - a[1])
+      .map(([value, count]) => ({
+        value,
+        count,
+      }));
+  }, [parasites]);
+
+  // ✅ احصل على الخيارات المتاحة - الصبغة
+  const availableStains = useMemo(() => {
+    if (!parasites || parasites.length === 0) return [];
+    const stainsMap = new Map();
+    parasites.forEach((p) => {
+      const stain = (p as any).stainColor;
+      if (stain) {
+        stainsMap.set(stain, (stainsMap.get(stain) || 0) + 1);
+      }
+    });
+    return Array.from(stainsMap.entries())
+      .sort((a, b) => b[1] - a[1])
+      .map(([value, count]) => ({
+        value,
+        count,
+      }));
+  }, [parasites]);
+
+  // ✅ احصل على الخيارات المتاحة - السنة
   const availableYears = useMemo(() => {
     if (!parasites || parasites.length === 0) return [];
     const yearsMap = new Map();
     parasites.forEach((p) => {
-      const year = (p as any).createdat?.slice(0, 4);
+      const year = (p as any).createdAt?.slice(0, 4) || 
+                   (p as any).createdat?.slice(0, 4);
       if (year) {
         yearsMap.set(year, (yearsMap.get(year) || 0) + 1);
       }
@@ -134,33 +168,54 @@ const Archive = () => {
     const term = searchTerm.toLowerCase().trim();
 
     return parasites.filter((p) => {
-      // البحث النصي
+      // البحث النصي الشامل
       if (term.length > 0) {
         const searchMatch =
           (p.scientificName || "").toLowerCase().includes(term) ||
           (p.name || "").toLowerCase().includes(term) ||
           (p.type || "").toLowerCase().includes(term) ||
-          ((p as any).createdat?.slice(0, 4) || "").includes(term);
+          ((p as any).studentName || "").toLowerCase().includes(term) ||
+          ((p as any).host || "").toLowerCase().includes(term) ||
+          ((p as any).location || "").toLowerCase().includes(term) ||
+          ((p as any).description || "").toLowerCase().includes(term);
 
         if (!searchMatch) return false;
       }
 
-      // تطبيق الفلاتر
+      // تطبيق الفلاتر - نوع الطفيلي
       if (filters.types.length > 0 && !filters.types.includes(p.type || "")) {
         return false;
       }
+
+      // تطبيق الفلاتر - مرحلة الطفيلي
       if (
         filters.stages.length > 0 &&
         !filters.stages.includes((p as any).stage || "")
       ) {
         return false;
       }
-      if (filters.statuses.length > 0) {
-        const status = (p as any).status || "approved";
-        if (!filters.statuses.includes(status)) return false;
+
+      // تطبيق الفلاتر - نوع العينة
+      if (
+        filters.sampleTypes.length > 0 &&
+        !filters.sampleTypes.includes((p as any).sampleType || "")
+      ) {
+        return false;
       }
+
+      // تطبيق الفلاتر - الصبغة
+      if (
+        filters.stains.length > 0 &&
+        !filters.stains.includes((p as any).stainColor || "")
+      ) {
+        return false;
+      }
+
+      // تطبيق الفلاتر - السنة
       if (filters.years.length > 0) {
-        const year = (p as any).createdat?.slice(0, 4);
+        const year =
+          (p as any).createdAt?.slice(0, 4) ||
+          (p as any).createdat?.slice(0, 4);
         if (!year || !filters.years.includes(year)) return false;
       }
 
@@ -196,29 +251,27 @@ const Archive = () => {
     setFilters({
       types: [],
       stages: [],
-      statuses: [],
+      sampleTypes: [],
+      stains: [],
       years: [],
     });
     setSearchTerm("");
   };
 
-  // ✅ مكون FilterSection
+  // ✅ مكون FilterSection محسّن
   const FilterSection = ({
     title,
     options,
     category,
-    labelMap,
   }: {
     title: string;
-    options: Array<{ value: string; count: number; label?: string }>;
+    options: Array<{ value: string; count: number }>;
     category: keyof Filters;
-    labelMap?: Record<string, string>;
   }) => (
     <Box sx={{ mb: 2.5 }}>
       <Typography
         variant="subtitle2"
-        fontWeight="700"
-        color="text.primary"
+        fontWeight={700}
         sx={{
           mb: 1.2,
           fontSize: "0.85rem",
@@ -233,27 +286,34 @@ const Archive = () => {
         {options.length > 0 ? (
           options.map((option) => {
             const isSelected = filters[category].includes(option.value);
-            const displayLabel = option.label || labelMap?.[option.value] || option.value;
             return (
               <Chip
                 key={`${category}-${option.value}`}
                 label={
-                  <span>
-                    {displayLabel}{" "}
-                    <span style={{ opacity: 0.6, fontSize: "0.8em" }}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                    <span>{option.value}</span>
+                    <span
+                      style={{
+                        opacity: 0.6,
+                        fontSize: "0.75em",
+                        fontWeight: 500,
+                      }}
+                    >
                       ({option.count})
                     </span>
-                  </span>
+                  </Box>
                 }
                 onClick={() => toggleFilter(category, option.value)}
                 size="medium"
                 icon={
                   isSelected ? (
-                    <Check size={14} style={{ marginRight: 4 }} />
+                    <Check size={16} style={{ marginRight: 4 }} />
                   ) : undefined
                 }
                 onDelete={
-                  isSelected ? () => toggleFilter(category, option.value) : undefined
+                  isSelected
+                    ? () => toggleFilter(category, option.value)
+                    : undefined
                 }
                 sx={{
                   bgcolor: isSelected
@@ -300,33 +360,55 @@ const Archive = () => {
   );
 
   return (
-    <Box sx={{ minHeight: "100vh", py: 4, bgcolor: "#F8F9FC" }}>
+    <Box sx={{ minHeight: "100vh", py: 4, bgcolor: alpha(theme.palette.primary.main, 0.02) }}>
       <Container maxWidth="lg">
-        <Stack spacing={3}>
+        <Stack spacing={4}>
+          {/* Header Section */}
+          <Box sx={{ mb: 2 }}>
+            <Typography
+              variant="h3"
+              fontWeight={900}
+              sx={{
+                mb: 1,
+                background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
+                backgroundClip: "text",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+              }}
+            >
+              {t("archive_title") || "أرشيف الطفيليات"}
+            </Typography>
+            <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 600 }}>
+              {t("archive_subtitle") ||
+                "قاعدة بيانات شاملة لجميع العينات الطفيلية الموثقة في المختبر"}
+            </Typography>
+          </Box>
+
           {/* Search & Filter Bar */}
           <Paper
             elevation={0}
             sx={{
-              p: 2.5,
+              p: 3,
               borderRadius: 3,
-              border: "1px solid",
-              borderColor: "divider",
+              border: `1px solid ${theme.palette.divider}`,
               backdropFilter: "blur(10px)",
               backgroundColor: alpha(theme.palette.background.paper, 0.95),
+              transition: "all 0.3s ease",
             }}
           >
-            <Stack spacing={2}>
+            <Stack spacing={2.5}>
+              {/* Search Row */}
               <Box sx={{ display: "flex", gap: 1.5, alignItems: "center" }}>
                 <TextField
                   fullWidth
-                  placeholder="ابحث بالاسم العلمي أو الاسم الشائع أو نوع الطفيلي"
+                  placeholder="ابحث بالاسم العلمي أو الشائع أو الطالب أو الموقع..."
                   size="medium"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
-                        <Search size={20} color="#9CA3AF" />
+                        <Search size={20} color={theme.palette.text.secondary} />
                       </InputAdornment>
                     ),
                     disableUnderline: true,
@@ -334,12 +416,9 @@ const Archive = () => {
                   variant="standard"
                   sx={{
                     bgcolor: "transparent",
-                    "& .MuiInputBase-root": { fontSize: "1rem" },
-                    "& .MuiInput-underline:before": {
-                      borderBottomColor: "transparent",
-                    },
-                    "& .MuiInput-underline:hover:not(.Mui-disabled):before": {
-                      borderBottomColor: "transparent",
+                    "& .MuiInputBase-root": {
+                      fontSize: "1rem",
+                      fontWeight: 500,
                     },
                   }}
                 />
@@ -349,15 +428,15 @@ const Archive = () => {
                   onClick={() => setFiltersOpen(!filtersOpen)}
                   sx={{
                     whiteSpace: "nowrap",
-                    minWidth: "120px",
+                    minWidth: "140px",
                     borderRadius: 2,
                     borderColor: "divider",
-                    color: filtersOpen ? "white" : "text.primary",
                     boxShadow: filtersOpen ? 2 : 0,
+                    fontWeight: 600,
                     position: "relative",
                   }}
                 >
-                  {filtersOpen ? "إغلاق" : "الفلاتر"}
+                  {filtersOpen ? "إغلاق الفلاتر" : "الفلاتر"}
                   {activeFiltersCount > 0 && (
                     <Box
                       sx={{
@@ -367,12 +446,12 @@ const Archive = () => {
                         bgcolor: theme.palette.error.main,
                         color: "white",
                         borderRadius: "50%",
-                        width: 20,
-                        height: 20,
+                        width: 24,
+                        height: 24,
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        fontSize: "0.7rem",
+                        fontSize: "0.75rem",
                         fontWeight: "bold",
                       }}
                     >
@@ -387,94 +466,115 @@ const Archive = () => {
                 <Box
                   sx={{
                     pt: 3,
-                    mt: 1,
-                    borderTop: "2px dashed",
-                    borderColor: alpha(theme.palette.divider, 0.5),
+                    mt: 2,
+                    borderTop: `2px dashed ${alpha(theme.palette.divider, 0.5)}`,
                   }}
                 >
-                  {/* 4 Columns Layout for Desktop */}
-                  <Box
-                    sx={{
-                      display: "grid",
-                      gridTemplateColumns: { xs: "1fr", md: "repeat(4, 1fr)" },
-                      gap: 3,
-                    }}
-                  >
+                  {/* 5 Columns Grid Layout */}
+                  <Grid container spacing={3}>
                     {/* Column 1: نوع الطفيلي */}
-                    <Box>
+                    <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2.4 }}>
                       <FilterSection
-                        title="نوع الطفيلي"
+                        title="🔬 نوع الطفيلي"
                         options={availableTypes}
                         category="types"
                       />
-                    </Box>
+                    </Grid>
 
                     {/* Column 2: مرحلة الطفيلي */}
-                    <Box>
+                    <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2.4 }}>
                       <FilterSection
-                        title="مرحلة الطفيلي"
+                        title="📊 مرحلة التطور"
                         options={availableStages}
                         category="stages"
                       />
-                    </Box>
+                    </Grid>
 
-                    {/* Column 3: حالة العينة */}
-                    <Box>
+                    {/* Column 3: نوع العينة */}
+                    <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2.4 }}>
                       <FilterSection
-                        title="حالة العينة"
-                        options={availableStatuses as any}
-                        category="statuses"
+                        title="🧪 نوع العينة"
+                        options={availableSampleTypes}
+                        category="sampleTypes"
                       />
-                    </Box>
+                    </Grid>
 
-                    {/* Column 4: السنة */}
-                    <Box>
+                    {/* Column 4: الصبغة */}
+                    <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2.4 }}>
                       <FilterSection
-                        title="سنة الإضافة"
+                        title="🎨 صبغة التلوين"
+                        options={availableStains}
+                        category="stains"
+                      />
+                    </Grid>
+
+                    {/* Column 5: السنة والأزرار */}
+                    <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2.4 }}>
+                      <FilterSection
+                        title="📅 سنة الإضافة"
                         options={availableYears}
                         category="years"
                       />
-                      <Box sx={{ mt: 3, display: "flex", gap: 1 }}>
-                        <Button
-                          variant="outlined"
-                          color="error"
-                          size="small"
-                          fullWidth
-                          onClick={clearFilters}
-                          disabled={
-                            !searchTerm &&
-                            Object.values(filters).every((arr) => arr.length === 0)
-                          }
-                          sx={{
-                            borderRadius: 2,
-                            textTransform: "none",
-                            fontWeight: 600,
-                          }}
-                        >
-                          مسح الفلاتر
-                        </Button>
-                      </Box>
-                    </Box>
-                  </Box>
+                      <Button
+                        variant="outlined"
+                        color="error"
+                        size="small"
+                        fullWidth
+                        onClick={clearFilters}
+                        disabled={
+                          !searchTerm &&
+                          Object.values(filters).every((arr) => arr.length === 0)
+                        }
+                        sx={{
+                          borderRadius: 2,
+                          textTransform: "none",
+                          fontWeight: 600,
+                          mt: 1,
+                        }}
+                      >
+                        مسح الفلاتر
+                      </Button>
+                    </Grid>
+                  </Grid>
                 </Box>
               </Collapse>
             </Stack>
           </Paper>
 
-          {/* Results count */}
+          {/* Results Statistics */}
           <Box
             sx={{
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
               px: 1,
+              borderBottom: `1px solid ${theme.palette.divider}`,
+              pb: 2,
             }}
           >
-            <Typography variant="body2" color="text.secondary" fontWeight={600}>
-              {filteredResults.length} عينة
+            <Typography variant="body2" fontWeight={700}>
+              {filteredResults.length} عينة{" "}
+              <Typography
+                component="span"
+                variant="body2"
+                color="text.secondary"
+                sx={{ fontWeight: 500 }}
+              >
+                من إجمالي {parasites?.length || 0}
+              </Typography>
             </Typography>
             {activeFiltersCount > 0 && (
-              <Typography variant="caption" color="primary" fontWeight={600}>
+              <Typography
+                variant="caption"
+                sx={{
+                  bgcolor: alpha(theme.palette.primary.main, 0.12),
+                  color: theme.palette.primary.main,
+                  px: 1.5,
+                  py: 0.5,
+                  borderRadius: 1,
+                  fontWeight: 600,
+                }}
+              >
                 {activeFiltersCount} فلتر نشط
               </Typography>
             )}
@@ -491,8 +591,7 @@ const Archive = () => {
               sx={{
                 p: 6,
                 borderRadius: 3,
-                border: "2px dashed",
-                borderColor: "divider",
+                border: `2px dashed ${theme.palette.divider}`,
                 textAlign: "center",
                 bgcolor: alpha(theme.palette.grey[500], 0.05),
               }}
@@ -504,118 +603,245 @@ const Archive = () => {
               </Typography>
               <Typography variant="body2" color="text.disabled">
                 {searchTerm
-                  ? `لا توجد نتائج لـ "${searchTerm}"`
+                  ? `لا توجد نتائج تطابق البحث عن "${searchTerm}"`
                   : "جرب تغيير معايير البحث أو الفلاتر"}
               </Typography>
             </Paper>
           ) : (
-            <Box
-              sx={{
-                display: "grid",
-                gap: 3,
-                gridTemplateColumns: {
-                  xs: "1fr",
-                  sm: "repeat(2, 1fr)",
-                  md: "repeat(3, 1fr)",
-                  lg: "repeat(4, 1fr)",
-                },
-              }}
-            >
+            <Grid container spacing={3}>
               {paginatedResults.map((sample) => (
-                <Card
+                <Grid
+                  size={{ xs: 12, sm: 6, md: 4, lg: 3 }}
                   key={`parasite-${sample.id}`}
-                  onClick={() => navigate(`/parasites/${sample.id}`)}
-                  elevation={0}
-                  sx={{
-                    cursor: "pointer",
-                    borderRadius: 3,
-                    border: "1px solid",
-                    borderColor: "divider",
-                    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                    overflow: "hidden",
-                    "&:hover": {
-                      transform: "translateY(-8px)",
-                      boxShadow: "0 16px 32px rgba(0,0,0,0.12)",
-                      borderColor: theme.palette.primary.main,
-                    },
-                  }}
                 >
-                  <CardMedia
-                    component="img"
-                    height="200"
-                    image={fixImageUrl((sample as any).imageurl)}
-                    alt={sample.scientificName}
-                    sx={{ objectFit: "cover" }}
-                  />
-                  <CardContent sx={{ pb: 1.5 }}>
-                    <Typography
-                      variant="h6"
-                      fontWeight="700"
-                      gutterBottom
-                      noWrap
-                      sx={{ fontSize: "0.95rem" }}
-                    >
-                      {sample.scientificName}
-                    </Typography>
-                    {sample.name && sample.name !== sample.scientificName && (
-                      <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        noWrap
-                        sx={{ mb: 1, fontSize: "0.85rem" }}
-                      >
-                        {sample.name}
-                      </Typography>
-                    )}
-                    {(sample as any).description && (
-                      <Typography
-                        variant="body2"
-                        color="text.secondary"
+                  <Card
+                    onClick={() => navigate(`/parasite/${sample.id}`)}
+                    elevation={0}
+                    sx={{
+                      cursor: "pointer",
+                      borderRadius: 2.5,
+                      border: `1px solid ${theme.palette.divider}`,
+                      transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                      overflow: "hidden",
+                      height: "100%",
+                      display: "flex",
+                      flexDirection: "column",
+                      "&:hover": {
+                        transform: "translateY(-8px)",
+                        boxShadow: theme.shadows[8],
+                        borderColor: theme.palette.primary.main,
+                      },
+                    }}
+                  >
+                    {/* Image Section */}
+                    <Box sx={{ position: "relative", pt: "65%", overflow: "hidden" }}>
+                      <CardMedia
+                        component="img"
+                        image={fixImageUrl((sample as any).imageurl)}
+                        alt={sample.scientificName}
                         sx={{
-                          mb: 1.5,
-                          display: "-webkit-box",
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: "vertical",
-                          overflow: "hidden",
-                          fontSize: "0.8rem",
-                          lineHeight: 1.4,
-                        }}
-                      >
-                        {(sample as any).description}
-                      </Typography>
-                    )}
-                    <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap>
-                      <Chip
-                        label={(sample as any).createdat?.slice(0, 10) || "---"}
-                        size="small"
-                        variant="outlined"
-                        sx={{
-                          borderRadius: 1,
-                          fontSize: "0.7rem",
-                          height: 24,
-                          borderColor: alpha(theme.palette.divider, 0.5),
+                          position: "absolute",
+                          top: 0,
+                          left: 0,
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                          transition: "transform 0.3s ease",
+                          "&:hover": {
+                            transform: "scale(1.05)",
+                          },
                         }}
                       />
+                      {/* Type Badge */}
                       {sample.type && (
-                        <Chip
-                          label={sample.type}
-                          size="small"
-                          variant="filled"
+                        <Box
                           sx={{
-                            borderRadius: 1,
-                            fontSize: "0.7rem",
-                            height: 24,
-                            bgcolor: alpha(theme.palette.primary.main, 0.12),
-                            color: theme.palette.primary.main,
-                            fontWeight: 600,
+                            position: "absolute",
+                            top: 10,
+                            right: 10,
                           }}
-                        />
+                        >
+                          <Chip
+                            label={sample.type}
+                            size="small"
+                            sx={{
+                              bgcolor: alpha(theme.palette.primary.main, 0.9),
+                              color: "white",
+                              fontWeight: 700,
+                              fontSize: "0.7rem",
+                              height: 24,
+                            }}
+                          />
+                        </Box>
                       )}
-                    </Stack>
-                  </CardContent>
-                </Card>
+                    </Box>
+
+                    {/* Content Section */}
+                    <CardContent sx={{ pb: 1.5, flexGrow: 1 }}>
+                      {/* Scientific Name */}
+                      <Typography
+                        variant="h6"
+                        fontWeight={700}
+                        gutterBottom
+                        noWrap
+                        sx={{
+                          fontSize: "0.95rem",
+                          color: theme.palette.primary.main,
+                          fontStyle: "italic",
+                        }}
+                      >
+                        {sample.scientificName}
+                      </Typography>
+
+                      {/* Common Name */}
+                      {sample.name && sample.name !== sample.scientificName && (
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          noWrap
+                          sx={{ mb: 1, fontSize: "0.85rem" }}
+                        >
+                          {sample.name}
+                        </Typography>
+                      )}
+
+                      {/* Description */}
+                      {(sample as any).description && (
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          sx={{
+                            mb: 2,
+                            display: "-webkit-box",
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: "vertical",
+                            overflow: "hidden",
+                            fontSize: "0.8rem",
+                            lineHeight: 1.4,
+                          }}
+                        >
+                          {(sample as any).description}
+                        </Typography>
+                      )}
+
+                      {/* Meta Information */}
+                      <Stack spacing={1}>
+                        {/* Stage & Sample Type */}
+                        {((sample as any).stage || (sample as any).sampleType) && (
+                          <Stack
+                            direction="row"
+                            spacing={1}
+                            sx={{ flexWrap: "wrap" }}
+                          >
+                            {(sample as any).stage && (
+                              <Chip
+                                icon={<Microscope size={14} />}
+                                label={(sample as any).stage}
+                                size="small"
+                                variant="outlined"
+                                sx={{
+                                  borderRadius: 1,
+                                  fontSize: "0.7rem",
+                                  height: 28,
+                                  borderColor: alpha(
+                                    theme.palette.primary.main,
+                                    0.3
+                                  ),
+                                  color: theme.palette.primary.main,
+                                }}
+                              />
+                            )}
+                            {(sample as any).sampleType && (
+                              <Chip
+                                label={(sample as any).sampleType}
+                                size="small"
+                                variant="outlined"
+                                sx={{
+                                  borderRadius: 1,
+                                  fontSize: "0.7rem",
+                                  height: 28,
+                                  borderColor: alpha(theme.palette.divider, 0.8),
+                                }}
+                              />
+                            )}
+                          </Stack>
+                        )}
+
+                        {/* Student & Location */}
+                        {((sample as any).studentName ||
+                          (sample as any).location) && (
+                          <Stack
+                            direction="row"
+                            spacing={1}
+                            sx={{ flexWrap: "wrap", fontSize: "0.75rem" }}
+                          >
+                            {(sample as any).studentName && (
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 0.5,
+                                  color: theme.palette.text.secondary,
+                                }}
+                              >
+                                <User size={12} />
+                                <Typography
+                                  component="span"
+                                  variant="caption"
+                                  noWrap
+                                  sx={{ maxWidth: "120px" }}
+                                >
+                                  {(sample as any).studentName}
+                                </Typography>
+                              </Box>
+                            )}
+                            {(sample as any).location && (
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 0.5,
+                                  color: theme.palette.text.secondary,
+                                }}
+                              >
+                                <MapPin size={12} />
+                                <Typography
+                                  component="span"
+                                  variant="caption"
+                                  noWrap
+                                  sx={{ maxWidth: "120px" }}
+                                >
+                                  {(sample as any).location}
+                                </Typography>
+                              </Box>
+                            )}
+                          </Stack>
+                        )}
+
+                        {/* Date */}
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 0.5,
+                            color: theme.palette.text.secondary,
+                            fontSize: "0.75rem",
+                          }}
+                        >
+                          <Calendar size={12} />
+                          <Typography component="span" variant="caption">
+                            {((sample as any).createdAt ||
+                              (sample as any).createdat ||
+                              ""
+                            )?.slice(0, 10) || "---"}
+                          </Typography>
+                        </Box>
+                      </Stack>
+                    </CardContent>
+                  </Card>
+                </Grid>
               ))}
-            </Box>
+            </Grid>
           )}
 
           {/* Pagination */}
