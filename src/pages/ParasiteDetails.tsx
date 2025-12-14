@@ -12,7 +12,6 @@ import {
   useTheme,
   CircularProgress,
   Divider,
-  Grid,
 } from '@mui/material';
 import {
   ArrowRight,
@@ -20,7 +19,6 @@ import {
   Calendar,
   Tag,
   Activity,
-  Share2,
   Microscope,
   Beaker,
   MapPin,
@@ -40,7 +38,7 @@ const fixImageUrl = (url?: string) => {
   }
 
   // إذا كان رابط نسبي، أضف الـ base URL للـ API
-  const apiBase = process.env.REACT_APP_API_URL || 'https://parasites-api.onrender.com/api';
+  const apiBase = import.meta.env.VITE_API_BASE_URL || 'https://parasites-api.onrender.com/api';
   return `${apiBase}${url}`;
 };
 
@@ -52,7 +50,7 @@ export default function ParasiteDetails() {
   const isRtl = i18n.language === 'ar';
   const ArrowIcon = isRtl ? ArrowRight : ArrowLeft;
 
-  const { parasites, loading: loadingParasites } = useParasites();
+  const { getParasiteById } = useParasites();
 
   const [parasite, setParasite] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -72,22 +70,33 @@ export default function ParasiteDetails() {
   };
 
   useEffect(() => {
-    setLoading(loadingParasites);
-
-    if (!loadingParasites && parasites && parasites.length > 0) {
-      const found = parasites.find((p: any) => {
-        return p.id === id;
-      });
-
-      if (found) {
-        setParasite(found);
-        setError(null);
-      } else {
-        setError('لم يتم العثور على الطفيلي في قاعدة البيانات');
-        setParasite(null);
+    const loadParasite = async () => {
+      if (!id) {
+        setError('معرف الطفيلي غير محدد');
+        setLoading(false);
+        return;
       }
-    }
-  }, [id, parasites, loadingParasites]);
+
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await getParasiteById(id);
+        
+        if (data) {
+          setParasite(data);
+        } else {
+          setError('لم يتم العثور على الطفيلي في قاعدة البيانات');
+        }
+      } catch (err) {
+        console.error('Error fetching parasite:', err);
+        setError('خطأ في تحميل البيانات');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadParasite();
+  }, [id, getParasiteById]);
 
   if (loading) {
     return (
@@ -160,14 +169,12 @@ export default function ParasiteDetails() {
     );
   }
 
-  // ✅ استخدم imageurl (lowercase) من Database
-  const imageUrl = fixImageUrl((parasite as any).imageurl);
-
-  // بيانات العينة
+  // استخدام الحقول الجديدة
+  const imageUrl = fixImageUrl((parasite as any).imageurl || (parasite as any).imageUrl);
   const sampleType = (parasite as any).sampleType || (parasite as any).sampletype;
   const stainColor = (parasite as any).stainColor;
   const stage = (parasite as any).stage;
-  const host = (parasite as any).host;
+  const host = (parasite as any).host || (parasite as any).hostSpecies;
   const location = (parasite as any).location;
   const studentName = (parasite as any).studentName;
   const supervisorName = (parasite as any).supervisorName;
