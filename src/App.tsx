@@ -14,13 +14,16 @@ import Register from './pages/Register';
 import { AuthProvider } from './contexts/AuthContext';
 import { ToastProvider } from './contexts/ToastContext';
 
+
 const NotFound = () => (
   <Box sx={{ textAlign: 'center', mt: 10 }}><h1>404</h1></Box>
 );
 
+
 function App() {
   const themeObj = useTheme();
   const isMobile = useMediaQuery(themeObj.breakpoints.down('md'));
+
 
   return (
     <Box
@@ -38,7 +41,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/archive" element={<Archive />} />
           <Route path="/add-parasite" element={<AddParasite />} />
-          <Route path="/parasites/:id" element={<ParasiteDetails />} />
+          <Route path="/parasite/:id" element={<ParasiteDetails />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/statistics" element={<Statistics />} />
           <Route path="/login" element={<Login />} />
@@ -50,6 +53,7 @@ function App() {
   );
 }
 
+
 function AppWithProviders() {
   return (
     <AuthProvider>
@@ -59,5 +63,6 @@ function AppWithProviders() {
     </AuthProvider>
   );
 }
+
 
 export default AppWithProviders;

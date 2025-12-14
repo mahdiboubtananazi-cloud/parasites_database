@@ -38,7 +38,7 @@ const fixImageUrl = (url?: string) => {
   }
 
   // إذا كان رابط نسبي، أضف الـ base URL للـ API
-  const apiBase = import.meta.env.VITE_API_BASE_URL || 'https://parasites-api.onrender.com/api';
+  const apiBase = import.meta.env.VITE_API_BASE_URL || 'https://parasites-api-boubetana.onrender.com';
   return `${apiBase}${url}`;
 };
 
@@ -50,7 +50,7 @@ export default function ParasiteDetails() {
   const isRtl = i18n.language === 'ar';
   const ArrowIcon = isRtl ? ArrowRight : ArrowLeft;
 
-  const { getParasiteById } = useParasites();
+  const { parasites, loading: loadingParasites } = useParasites();
 
   const [parasite, setParasite] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -70,33 +70,25 @@ export default function ParasiteDetails() {
   };
 
   useEffect(() => {
-    const loadParasite = async () => {
-      if (!id) {
-        setError('معرف الطفيلي غير محدد');
-        setLoading(false);
-        return;
-      }
+    setLoading(loadingParasites);
 
-      try {
-        setLoading(true);
+    if (!loadingParasites && parasites && parasites.length > 0) {
+      // ✅ ابحث عن الطفيلي في المصفوفة حسب ID
+      const found = parasites.find((p: any) => {
+        return String(p.id) === String(id);
+      });
+
+      if (found) {
+        setParasite(found);
         setError(null);
-        const data = await getParasiteById(id);
-        
-        if (data) {
-          setParasite(data);
-        } else {
-          setError('لم يتم العثور على الطفيلي في قاعدة البيانات');
-        }
-      } catch (err) {
-        console.error('Error fetching parasite:', err);
-        setError('خطأ في تحميل البيانات');
-      } finally {
-        setLoading(false);
+        console.log('✅ Parasite found:', found);
+      } else {
+        setError('لم يتم العثور على الطفيلي في قاعدة البيانات');
+        setParasite(null);
+        console.error('❌ Parasite not found. Available IDs:', parasites.map(p => p.id));
       }
-    };
-
-    loadParasite();
-  }, [id, getParasiteById]);
+    }
+  }, [id, parasites, loadingParasites]);
 
   if (loading) {
     return (
