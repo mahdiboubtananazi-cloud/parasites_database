@@ -28,6 +28,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useParasites } from '../hooks/useParasites';
 import { useTranslation } from 'react-i18next';
 
+
 const Home = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -36,15 +37,22 @@ const Home = () => {
   const { t, i18n } = useTranslation();
   const [searchQuery, setSearchTerm] = useState('');
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isTablet = useMediaQuery(theme.breakpoints.down('lg'));
+
 
   useEffect(() => {
     document.title = t('app_title');
-  }, [t]);
+    // Update text direction based on language
+    document.documentElement.dir = i18n.language === 'ar' ? 'rtl' : 'ltr';
+    document.documentElement.lang = i18n.language;
+  }, [t, i18n.language]);
+
 
   const stats = useMemo(() => {
     if (!parasites || parasites.length === 0) {
       return { total: 0, types: 0, recent: 0 };
     }
+
 
     const uniqueTypes = new Set(parasites.map((p) => p.type || 'Unknown'));
     const thirtyDaysAgo = new Date();
@@ -55,12 +63,14 @@ const Home = () => {
       return createdDate && createdDate >= thirtyDaysAgo;
     }).length;
 
+
     return {
       total: parasites.length,
       types: uniqueTypes.size,
       recent: recentSamples,
     };
   }, [parasites]);
+
 
   const handleSearch = useCallback((e: React.FormEvent) => {
     e.preventDefault();
@@ -69,6 +79,7 @@ const Home = () => {
       navigate(`/archive?search=${encodeURIComponent(trimmed)}`);
     }
   }, [searchQuery, navigate]);
+
 
   if (loading) {
     return (
@@ -84,12 +95,13 @@ const Home = () => {
         <Stack spacing={2} alignItems="center">
           <CircularProgress size={60} thickness={4} />
           <Typography variant="body1" color="text.secondary">
-            {t('error_loading')}...
+            {t('loading')}...
           </Typography>
         </Stack>
       </Box>
     );
   }
+
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', overflow: 'hidden' }}>
@@ -118,6 +130,7 @@ const Home = () => {
           }}
         />
 
+
         <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 2 }}>
           <Stack spacing={4} alignItems="center" textAlign="center">
             {/* Badge */}
@@ -129,9 +142,10 @@ const Home = () => {
                   bgcolor: alpha(theme.palette.primary.main, 0.12),
                   color: theme.palette.primary.main,
                   fontWeight: 600,
-                  fontSize: { xs: '0.85rem', md: '0.95rem' },
+                  fontSize: { xs: '0.75rem', sm: '0.85rem', md: '0.95rem' },
                   height: 'auto',
                   py: 0.5,
+                  px: 1,
                   transition: 'all 0.3s ease',
                   '&:hover': {
                     bgcolor: alpha(theme.palette.primary.main, 0.2),
@@ -141,16 +155,18 @@ const Home = () => {
               />
             </Box>
 
+
             {/* Main Title */}
-            <Stack spacing={1}>
+            <Stack spacing={1} sx={{ width: '100%' }}>
               <Typography
                 variant="h1"
                 sx={{
                   fontWeight: 900,
-                  fontSize: { xs: '1.8rem', sm: '2.2rem', md: '2.8rem' },
+                  fontSize: { xs: '1.6rem', sm: '2rem', md: '2.8rem' },
                   letterSpacing: '-0.02em',
                   color: theme.palette.primary.main,
                   lineHeight: 1.2,
+                  wordBreak: 'break-word',
                 }}
               >
                 {t('app_title')}
@@ -158,16 +174,19 @@ const Home = () => {
               <Typography
                 variant="h5"
                 sx={{
-                  maxWidth: 700,
-                  lineHeight: 1.8,
-                  fontSize: { xs: '0.95rem', sm: '1.05rem', md: '1.2rem' },
+                  maxWidth: '100%',
+                  mx: 'auto',
+                  lineHeight: 1.6,
+                  fontSize: { xs: '0.9rem', sm: '1rem', md: '1.2rem' },
                   color: theme.palette.text.secondary,
                   fontWeight: 400,
+                  px: 1,
                 }}
               >
                 {t('hero_description')}
               </Typography>
             </Stack>
+
 
             {/* Search Bar */}
             <Paper
@@ -179,23 +198,23 @@ const Home = () => {
                 display: 'flex',
                 alignItems: 'center',
                 width: '100%',
-                maxWidth: 600,
+                maxWidth: { xs: '95%', sm: 600 },
                 mt: 2,
-                borderRadius: 50,
+                borderRadius: { xs: 2, md: 50 },
                 border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
                 bgcolor: 'rgba(255,255,255,0.95)',
                 backdropFilter: 'blur(20px)',
                 boxShadow: `0 20px 40px -10px ${alpha(theme.palette.primary.main, 0.15)}`,
                 transition: 'all 0.3s ease',
                 '&:focus-within': {
-                  transform: 'translateY(-2px)',
+                  transform: { xs: 'none', md: 'translateY(-2px)' },
                   boxShadow: `0 30px 60px -15px ${alpha(theme.palette.primary.main, 0.3)}`,
                   borderColor: theme.palette.primary.main,
                 },
               }}
             >
-              <InputAdornment position="start" sx={{ pl: 2, color: 'action.disabled' }}>
-                <Search size={22} />
+              <InputAdornment position="start" sx={{ pl: { xs: 1, md: 2 }, color: 'action.disabled' }}>
+                <Search size={isMobile ? 18 : 22} />
               </InputAdornment>
               <TextField
                 fullWidth
@@ -205,7 +224,7 @@ const Home = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 InputProps={{
                   disableUnderline: true,
-                  sx: { fontSize: { xs: '0.9rem', md: '1rem' } }
+                  sx: { fontSize: { xs: '0.85rem', md: '1rem' } }
                 }}
                 sx={{ px: 1 }}
               />
@@ -213,13 +232,14 @@ const Home = () => {
                 type="submit"
                 variant="contained"
                 sx={{
-                  borderRadius: 50,
-                  px: { xs: 2, md: 4 },
-                  py: 1.5,
+                  borderRadius: { xs: 1.5, md: 50 },
+                  px: { xs: 1.5, sm: 2, md: 3 },
+                  py: 1,
                   fontWeight: 'bold',
                   boxShadow: 'none',
                   textTransform: 'none',
-                  fontSize: { xs: '0.9rem', md: '1rem' },
+                  fontSize: { xs: '0.8rem', sm: '0.9rem', md: '1rem' },
+                  minWidth: 'auto',
                   '&:hover': {
                     boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
                   }
@@ -232,25 +252,26 @@ const Home = () => {
         </Container>
       </Box>
 
+
       {/* ===== QUICK STATS SECTION ===== */}
-      <Container maxWidth="lg" sx={{ mt: { xs: -3, md: -5 }, mb: 10, position: 'relative', zIndex: 2 }}>
+      <Container maxWidth="lg" sx={{ mt: { xs: -2.5, sm: -3, md: -5 }, mb: { xs: 6, md: 10 }, position: 'relative', zIndex: 2 }}>
         <Box sx={{
           display: 'grid',
           gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: 'repeat(3, 1fr)' },
-          gap: { xs: 2, md: 3 }
+          gap: { xs: 1.5, sm: 2, md: 3 }
         }}>
           {/* Card 1: Total Samples */}
           <Paper
             sx={{
-              p: { xs: 2.5, md: 3.5 },
+              p: { xs: 2, sm: 2.5, md: 3.5 },
               height: '100%',
-              borderRadius: 2,
+              borderRadius: { xs: 1.5, md: 2 },
               border: 'none',
               background: `linear-gradient(135deg, ${alpha('#3B82F6', 0.08)} 0%, ${alpha('#3B82F6', 0.04)} 100%)`,     
               boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03)',
               transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
               '&:hover': {
-                transform: 'translateY(-6px)',
+                transform: isMobile ? 'none' : 'translateY(-6px)',
                 boxShadow: '0 20px 25px -5px rgba(59, 130, 246, 0.2)'
               },
             }}
@@ -258,7 +279,7 @@ const Home = () => {
             <Stack spacing={2} alignItems="flex-start">
               <Box
                 sx={{
-                  p: 1.5,
+                  p: 1,
                   bgcolor: '#3B82F6',
                   borderRadius: 1.5,
                   display: 'flex',
@@ -268,14 +289,14 @@ const Home = () => {
                   transition: 'all 0.3s ease',
                 }}
               >
-                <Database size={28} color="white" />
+                <Database size={isMobile ? 20 : 28} color="white" />
               </Box>
               <Box>
                 <Typography
                   variant="h2"
                   fontWeight={800}
                   sx={{ 
-                    fontSize: { xs: '2rem', md: '2.5rem' },
+                    fontSize: { xs: '1.6rem', sm: '2rem', md: '2.5rem' },
                     color: theme.palette.text.primary,
                   }}
                 >
@@ -284,29 +305,30 @@ const Home = () => {
                 <Typography
                   variant="body2"
                   sx={{ 
-                    fontSize: { xs: '0.85rem', md: '0.95rem' },
+                    fontSize: { xs: '0.8rem', sm: '0.9rem', md: '0.95rem' },
                     color: theme.palette.text.secondary,
                     fontWeight: 500,
                   }}
                 >
-                  {t('stats_total_samples')}
+                  {t('stats_total_parasites')}
                 </Typography>
               </Box>
             </Stack>
           </Paper>
 
+
           {/* Card 2: Parasite Types */}
           <Paper
             sx={{
-              p: { xs: 2.5, md: 3.5 },
+              p: { xs: 2, sm: 2.5, md: 3.5 },
               height: '100%',
-              borderRadius: 2,
+              borderRadius: { xs: 1.5, md: 2 },
               border: 'none',
               background: `linear-gradient(135deg, ${alpha('#8B5CF6', 0.08)} 0%, ${alpha('#8B5CF6', 0.04)} 100%)`,     
               boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03)',
               transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
               '&:hover': {
-                transform: 'translateY(-6px)',
+                transform: isMobile ? 'none' : 'translateY(-6px)',
                 boxShadow: '0 20px 25px -5px rgba(139, 92, 246, 0.2)'
               },
             }}
@@ -314,7 +336,7 @@ const Home = () => {
             <Stack spacing={2} alignItems="flex-start">
               <Box
                 sx={{
-                  p: 1.5,
+                  p: 1,
                   bgcolor: '#8B5CF6',
                   borderRadius: 1.5,
                   display: 'flex',
@@ -324,14 +346,14 @@ const Home = () => {
                   transition: 'all 0.3s ease',
                 }}
               >
-                <Microscope size={28} color="white" />
+                <Microscope size={isMobile ? 20 : 28} color="white" />
               </Box>
               <Box>
                 <Typography
                   variant="h2"
                   fontWeight={800}
                   sx={{ 
-                    fontSize: { xs: '2rem', md: '2.5rem' },
+                    fontSize: { xs: '1.6rem', sm: '2rem', md: '2.5rem' },
                     color: theme.palette.text.primary,
                   }}
                 >
@@ -340,29 +362,30 @@ const Home = () => {
                 <Typography
                   variant="body2"
                   sx={{ 
-                    fontSize: { xs: '0.85rem', md: '0.95rem' },
+                    fontSize: { xs: '0.8rem', sm: '0.9rem', md: '0.95rem' },
                     color: theme.palette.text.secondary,
                     fontWeight: 500,
                   }}
                 >
-                  {t('stats_parasite_types')}
+                  {t('stats_unique_types')}
                 </Typography>
               </Box>
             </Stack>
           </Paper>
 
+
           {/* Card 3: Recent Samples */}
           <Paper
             sx={{
-              p: { xs: 2.5, md: 3.5 },
+              p: { xs: 2, sm: 2.5, md: 3.5 },
               height: '100%',
-              borderRadius: 2,
+              borderRadius: { xs: 1.5, md: 2 },
               border: 'none',
               background: `linear-gradient(135deg, ${alpha('#10B981', 0.08)} 0%, ${alpha('#10B981', 0.04)} 100%)`,     
               boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03)',
               transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
               '&:hover': {
-                transform: 'translateY(-6px)',
+                transform: isMobile ? 'none' : 'translateY(-6px)',
                 boxShadow: '0 20px 25px -5px rgba(16, 185, 129, 0.2)'
               },
             }}
@@ -370,7 +393,7 @@ const Home = () => {
             <Stack spacing={2} alignItems="flex-start">
               <Box
                 sx={{
-                  p: 1.5,
+                  p: 1,
                   bgcolor: '#10B981',
                   borderRadius: 1.5,
                   display: 'flex',
@@ -380,14 +403,14 @@ const Home = () => {
                   transition: 'all 0.3s ease',
                 }}
               >
-                <Activity size={28} color="white" />
+                <Activity size={isMobile ? 20 : 28} color="white" />
               </Box>
               <Box>
                 <Typography
                   variant="h2"
                   fontWeight={800}
                   sx={{ 
-                    fontSize: { xs: '2rem', md: '2.5rem' },
+                    fontSize: { xs: '1.6rem', sm: '2rem', md: '2.5rem' },
                     color: theme.palette.text.primary,
                   }}
                 >
@@ -396,12 +419,12 @@ const Home = () => {
                 <Typography
                   variant="body2"
                   sx={{ 
-                    fontSize: { xs: '0.85rem', md: '0.95rem' },
+                    fontSize: { xs: '0.8rem', sm: '0.9rem', md: '0.95rem' },
                     color: theme.palette.text.secondary,
                     fontWeight: 500,
                   }}
                 >
-                  {t('stats_recent_samples')}
+                  {t('stats_sample_registered')}
                 </Typography>
               </Box>
             </Stack>
@@ -409,14 +432,15 @@ const Home = () => {
         </Box>
       </Container>
 
+
       {/* ===== CALL TO ACTION SECTION ===== */}
-      <Container maxWidth="lg" sx={{ mb: 10 }}>
+      <Container maxWidth="lg" sx={{ mb: { xs: 6, md: 10 }, px: { xs: 1.5, sm: 2, md: 3 } }}>
         <Paper
           sx={{
-            p: { xs: 3.5, md: 6 },
+            p: { xs: 2.5, sm: 4, md: 6 },
             background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
             color: '#ffffff',
-            borderRadius: 2,
+            borderRadius: { xs: 1.5, md: 2 },
             textAlign: 'center',
             position: 'relative',
             overflow: 'hidden',
@@ -449,6 +473,7 @@ const Home = () => {
             }}
           />
 
+
           <Box sx={{ position: 'relative', zIndex: 2 }}>
             <Typography
               variant="h4"
@@ -456,7 +481,7 @@ const Home = () => {
               sx={{
                 mb: 1.5,
                 color: '#ffffff',
-                fontSize: { xs: '1.4rem', md: '2rem' },
+                fontSize: { xs: '1.2rem', sm: '1.6rem', md: '2rem' },
                 textShadow: '0 2px 10px rgba(0,0,0,0.2)',
               }}
             >
@@ -465,49 +490,51 @@ const Home = () => {
             <Typography
               variant="body1"
               sx={{
-                mb: 4,
+                mb: 3,
                 opacity: 0.95, 
                 color: '#ffffff',
-                fontSize: { xs: '0.95rem', md: '1.05rem' },
+                fontSize: { xs: '0.9rem', sm: '1rem', md: '1.05rem' },
                 textShadow: '0 1px 5px rgba(0,0,0,0.15)',
-                maxWidth: 600,
+                maxWidth: '100%',
                 mx: 'auto',
+                px: 1,
               }}
             >
               {t('stats_subtitle')}
             </Typography>
             <Stack
               direction={{ xs: 'column', sm: 'row' }}
-              spacing={2}
+              spacing={{ xs: 1.5, sm: 2 }}
               justifyContent="center"
               sx={{ flexWrap: 'wrap' }}
             >
               {/* Primary Button */}
               <Button
                 variant="contained"
-                startIcon={<Plus size={20} />}
-                onClick={() => navigate('/add-parasite')}
+                startIcon={<Plus size={isMobile ? 16 : 20} />}
+                onClick={() => navigate('/add')}
                 sx={{
                   bgcolor: '#FFD700',
                   color: '#1a1a1a',
                   fontWeight: 700,
                   textTransform: 'none',
-                  px: { xs: 2, md: 4 },
-                  py: 1.5,
-                  fontSize: { xs: '0.95rem', md: '1rem' },
+                  px: { xs: 2, sm: 3, md: 4 },
+                  py: { xs: 1, md: 1.5 },
+                  fontSize: { xs: '0.85rem', sm: '0.95rem', md: '1rem' },
                   position: 'relative',
                   overflow: 'hidden',
                   transition: 'all 0.3s ease',
                   boxShadow: '0 0 20px rgba(255, 215, 0, 0.5)',
                   '&:hover': {
                     bgcolor: '#FFC700',
-                    transform: 'translateY(-3px) scale(1.05)',
+                    transform: isMobile ? 'none' : 'translateY(-3px) scale(1.05)',
                     boxShadow: '0 15px 30px rgba(255, 215, 0, 0.6)',
                   },
                 }}
               >
                 {t('btn_add_sample')}
               </Button>
+
 
               {/* Secondary Button */}
               <Button
@@ -518,14 +545,14 @@ const Home = () => {
                   color: '#ffffff',
                   fontWeight: 700,
                   textTransform: 'none',
-                  px: { xs: 2, md: 4 },
-                  py: 1.5,
-                  fontSize: { xs: '0.95rem', md: '1rem' },
+                  px: { xs: 2, sm: 3, md: 4 },
+                  py: { xs: 1, md: 1.5 },
+                  fontSize: { xs: '0.85rem', sm: '0.95rem', md: '1rem' },
                   transition: 'all 0.3s ease',
                   '&:hover': {
                     bgcolor: 'rgba(255,255,255,0.15)',
                     borderColor: '#ffffff',
-                    transform: 'translateY(-2px)',
+                    transform: isMobile ? 'none' : 'translateY(-2px)',
                     boxShadow: '0 8px 20px rgba(255,255,255,0.2)',
                   },
                 }}
@@ -537,68 +564,72 @@ const Home = () => {
         </Paper>
       </Container>
 
+
       {/* ===== FOOTER ===== */}
-      <Box sx={{ bgcolor: theme.palette.primary.dark, color: 'white', py: 6, mt: 8 }}>
-        <Container maxWidth="lg">
+      <Box sx={{ bgcolor: theme.palette.primary.dark, color: 'white', py: { xs: 4, md: 6 }, mt: { xs: 6, md: 8 } }}>
+        <Container maxWidth="lg" sx={{ px: { xs: 1.5, sm: 2, md: 3 } }}>
           <Box sx={{
             display: 'grid', 
-            gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' },
-            gap: 4,
-            mb: 4
+            gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: 'repeat(3, 1fr)' },
+            gap: { xs: 3, md: 4 },
+            mb: 3
           }}>
             {/* About */}
             <Box>
-              <Typography variant="h6" fontWeight={700} sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Microscope size={20} />
+              <Typography variant="h6" fontWeight={700} sx={{ mb: 1.5, display: 'flex', alignItems: 'center', gap: 1, fontSize: { xs: '0.95rem', md: '1.1rem' } }}>
+                <Microscope size={18} />
                 {t('app_title')}
               </Typography>
-              <Typography variant="body2" sx={{ opacity: 0.8, lineHeight: 1.8 }}>
+              <Typography variant="body2" sx={{ opacity: 0.8, lineHeight: 1.6, fontSize: { xs: '0.85rem', md: '0.95rem' } }}>
                 {t('hero_description')}
               </Typography>
             </Box>
 
+
             {/* Quick Links */}
             <Box>
-              <Typography variant="h6" fontWeight={700} sx={{ mb: 2 }}>
-                روابط سريعة
+              <Typography variant="h6" fontWeight={700} sx={{ mb: 1.5, fontSize: { xs: '0.95rem', md: '1.1rem' } }}>
+                {t('nav_archive')}
               </Typography>
-              <Stack spacing={1}>
+              <Stack spacing={0.5}>
                 <Button
                   color="inherit"
-                  sx={{ justifyContent: 'flex-start', textTransform: 'none', pl: 0 }}
+                  size="small"
+                  sx={{ justifyContent: 'flex-start', textTransform: 'none', pl: 0, fontSize: { xs: '0.85rem', md: '0.95rem' } }}
                   onClick={() => navigate('/archive')}
                 >
-                  {t('nav_parasites')}
+                  {t('btn_browse_archive')}
                 </Button>
                 <Button
                   color="inherit"
-                  sx={{ justifyContent: 'flex-start', textTransform: 'none', pl: 0 }}
-                  onClick={() => navigate('/add-parasite')}
+                  size="small"
+                  sx={{ justifyContent: 'flex-start', textTransform: 'none', pl: 0, fontSize: { xs: '0.85rem', md: '0.95rem' } }}
+                  onClick={() => navigate('/add')}
                 >
-                  {t('nav_add_parasite')}
+                  {t('btn_add_sample')}
                 </Button>
               </Stack>
             </Box>
 
+
             {/* Info */}
             <Box>
-              <Typography variant="h6" fontWeight={700} sx={{ mb: 2 }}>
-                معلومات
+              <Typography variant="h6" fontWeight={700} sx={{ mb: 1.5, fontSize: { xs: '0.95rem', md: '1.1rem' } }}>
+                {t('about')}
               </Typography>
-              <Typography variant="body2" sx={{ opacity: 0.8, mb: 1 }}>
-                <strong>القسم:</strong> علم الطفيليات
-              </Typography>
-              <Typography variant="body2" sx={{ opacity: 0.8 }}>
-                <strong>الكلية:</strong> البيولوجيا
+              <Typography variant="body2" sx={{ opacity: 0.8, mb: 0.5, fontSize: { xs: '0.85rem', md: '0.95rem' } }}>
+                <strong>{t('app_subtitle')}</strong>
               </Typography>
             </Box>
           </Box>
 
-          <Divider sx={{ bgcolor: 'rgba(255,255,255,0.2)', my: 3 }} />
+
+          <Divider sx={{ bgcolor: 'rgba(255,255,255,0.2)', my: 2 }} />
+
 
           <Box sx={{ textAlign: 'center' }}>
-            <Typography variant="caption" sx={{ opacity: 0.6 }}>
-              © 2025 Parasites Database. All rights reserved.
+            <Typography variant="caption" sx={{ opacity: 0.6, fontSize: { xs: '0.75rem', md: '0.85rem' } }}>
+              © 2025 {t('app_title')}. {t('welcome')} {i18n.language.toUpperCase()}
             </Typography>
           </Box>
         </Container>
@@ -606,5 +637,6 @@ const Home = () => {
     </Box>
   );
 };
+
 
 export default Home;
