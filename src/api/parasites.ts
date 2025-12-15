@@ -3,6 +3,7 @@ import apiClient, { handleApiError } from './client';
 
 export interface Parasite {
   id: number | string;
+  image?: string;
   name?: string;
   scientificName: string;
   arabicName?: string;

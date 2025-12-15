@@ -23,11 +23,13 @@ import {
   Activity,
   Microscope,
   ShieldCheck,
+  Github,
+  Mail,
+  ExternalLink,
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useParasites } from '../hooks/useParasites';
 import { useTranslation } from 'react-i18next';
-
 
 const Home = () => {
   const navigate = useNavigate();
@@ -39,20 +41,16 @@ const Home = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isTablet = useMediaQuery(theme.breakpoints.down('lg'));
 
-
   useEffect(() => {
     document.title = t('app_title');
-    // Update text direction based on language
     document.documentElement.dir = i18n.language === 'ar' ? 'rtl' : 'ltr';
     document.documentElement.lang = i18n.language;
   }, [t, i18n.language]);
-
 
   const stats = useMemo(() => {
     if (!parasites || parasites.length === 0) {
       return { total: 0, types: 0, recent: 0 };
     }
-
 
     const uniqueTypes = new Set(parasites.map((p) => p.type || 'Unknown'));
     const thirtyDaysAgo = new Date();
@@ -63,14 +61,12 @@ const Home = () => {
       return createdDate && createdDate >= thirtyDaysAgo;
     }).length;
 
-
     return {
       total: parasites.length,
       types: uniqueTypes.size,
       recent: recentSamples,
     };
   }, [parasites]);
-
 
   const handleSearch = useCallback((e: React.FormEvent) => {
     e.preventDefault();
@@ -79,7 +75,6 @@ const Home = () => {
       navigate(`/archive?search=${encodeURIComponent(trimmed)}`);
     }
   }, [searchQuery, navigate]);
-
 
   if (loading) {
     return (
@@ -102,7 +97,6 @@ const Home = () => {
     );
   }
 
-
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', overflow: 'hidden' }}>
       {/* ===== HERO SECTION ===== */}
@@ -115,7 +109,7 @@ const Home = () => {
           overflow: 'hidden',
         }}
       >
-        {/* Background Pattern - احترافي */}
+        {/* Background Pattern */}
         <Box
           sx={{
             position: 'absolute',
@@ -129,7 +123,6 @@ const Home = () => {
             zIndex: 0,
           }}
         />
-
 
         <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 2 }}>
           <Stack spacing={4} alignItems="center" textAlign="center">
@@ -154,7 +147,6 @@ const Home = () => {
                 }}
               />
             </Box>
-
 
             {/* Main Title */}
             <Stack spacing={1} sx={{ width: '100%' }}>
@@ -186,7 +178,6 @@ const Home = () => {
                 {t('hero_description')}
               </Typography>
             </Stack>
-
 
             {/* Search Bar */}
             <Paper
@@ -252,7 +243,6 @@ const Home = () => {
         </Container>
       </Box>
 
-
       {/* ===== QUICK STATS SECTION ===== */}
       <Container maxWidth="lg" sx={{ mt: { xs: -2.5, sm: -3, md: -5 }, mb: { xs: 6, md: 10 }, position: 'relative', zIndex: 2 }}>
         <Box sx={{
@@ -316,7 +306,6 @@ const Home = () => {
             </Stack>
           </Paper>
 
-
           {/* Card 2: Parasite Types */}
           <Paper
             sx={{
@@ -372,7 +361,6 @@ const Home = () => {
               </Box>
             </Stack>
           </Paper>
-
 
           {/* Card 3: Recent Samples */}
           <Paper
@@ -432,7 +420,6 @@ const Home = () => {
         </Box>
       </Container>
 
-
       {/* ===== CALL TO ACTION SECTION ===== */}
       <Container maxWidth="lg" sx={{ mb: { xs: 6, md: 10 }, px: { xs: 1.5, sm: 2, md: 3 } }}>
         <Paper
@@ -472,7 +459,6 @@ const Home = () => {
               filter: 'blur(80px)',
             }}
           />
-
 
           <Box sx={{ position: 'relative', zIndex: 2 }}>
             <Typography
@@ -535,7 +521,6 @@ const Home = () => {
                 {t('btn_add_sample')}
               </Button>
 
-
               {/* Secondary Button */}
               <Button
                 variant="outlined"
@@ -564,38 +549,80 @@ const Home = () => {
         </Paper>
       </Container>
 
-
       {/* ===== FOOTER ===== */}
-      <Box sx={{ bgcolor: theme.palette.primary.dark, color: 'white', py: { xs: 4, md: 6 }, mt: { xs: 6, md: 8 } }}>
+      <Box 
+        sx={{ 
+          bgcolor: theme.palette.primary.dark, 
+          color: 'white', 
+          py: { xs: 4, md: 6 }, 
+          mt: { xs: 6, md: 8 },
+          borderTop: `1px solid ${alpha('#ffffff', 0.1)}`
+        }}
+      >
         <Container maxWidth="lg" sx={{ px: { xs: 1.5, sm: 2, md: 3 } }}>
+          {/* Main Footer Content */}
           <Box sx={{
             display: 'grid', 
-            gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: 'repeat(3, 1fr)' },
+            gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: 'repeat(4, 1fr)' },
             gap: { xs: 3, md: 4 },
-            mb: 3
+            mb: 4
           }}>
-            {/* About */}
+            {/* About Section */}
             <Box>
-              <Typography variant="h6" fontWeight={700} sx={{ mb: 1.5, display: 'flex', alignItems: 'center', gap: 1, fontSize: { xs: '0.95rem', md: '1.1rem' } }}>
-                <Microscope size={18} />
+              <Typography 
+                variant="h6" 
+                fontWeight={700} 
+                sx={{ 
+                  mb: 2, 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: 1, 
+                  fontSize: { xs: '0.95rem', md: '1.1rem' } 
+                }}
+              >
+                <Microscope size={20} />
                 {t('app_title')}
               </Typography>
-              <Typography variant="body2" sx={{ opacity: 0.8, lineHeight: 1.6, fontSize: { xs: '0.85rem', md: '0.95rem' } }}>
-                {t('hero_description')}
+              <Typography 
+                variant="body2" 
+                sx={{ 
+                  opacity: 0.8, 
+                  lineHeight: 1.6, 
+                  fontSize: { xs: '0.85rem', md: '0.95rem' },
+                  textAlign: i18n.language === 'ar' ? 'right' : 'left'
+                }}
+              >
+                {t('app_subtitle')}
               </Typography>
             </Box>
 
-
             {/* Quick Links */}
             <Box>
-              <Typography variant="h6" fontWeight={700} sx={{ mb: 1.5, fontSize: { xs: '0.95rem', md: '1.1rem' } }}>
+              <Typography 
+                variant="h6" 
+                fontWeight={700} 
+                sx={{ 
+                  mb: 2, 
+                  fontSize: { xs: '0.95rem', md: '1.1rem' } 
+                }}
+              >
                 {t('nav_archive')}
               </Typography>
-              <Stack spacing={0.5}>
+              <Stack spacing={0.8}>
                 <Button
                   color="inherit"
                   size="small"
-                  sx={{ justifyContent: 'flex-start', textTransform: 'none', pl: 0, fontSize: { xs: '0.85rem', md: '0.95rem' } }}
+                  endIcon={<ExternalLink size={14} />}
+                  sx={{ 
+                    justifyContent: i18n.language === 'ar' ? 'flex-end' : 'flex-start', 
+                    textTransform: 'none', 
+                    pl: 0,
+                    pr: 0,
+                    fontSize: { xs: '0.85rem', md: '0.95rem' },
+                    '&:hover': {
+                      bgcolor: alpha('#ffffff', 0.1),
+                    }
+                  }}
                   onClick={() => navigate('/archive')}
                 >
                   {t('btn_browse_archive')}
@@ -603,7 +630,17 @@ const Home = () => {
                 <Button
                   color="inherit"
                   size="small"
-                  sx={{ justifyContent: 'flex-start', textTransform: 'none', pl: 0, fontSize: { xs: '0.85rem', md: '0.95rem' } }}
+                  endIcon={<Plus size={14} />}
+                  sx={{ 
+                    justifyContent: i18n.language === 'ar' ? 'flex-end' : 'flex-start', 
+                    textTransform: 'none', 
+                    pl: 0,
+                    pr: 0,
+                    fontSize: { xs: '0.85rem', md: '0.95rem' },
+                    '&:hover': {
+                      bgcolor: alpha('#ffffff', 0.1),
+                    }
+                  }}
                   onClick={() => navigate('/add')}
                 >
                   {t('btn_add_sample')}
@@ -611,32 +648,161 @@ const Home = () => {
               </Stack>
             </Box>
 
-
-            {/* Info */}
+            {/* Statistics */}
             <Box>
-              <Typography variant="h6" fontWeight={700} sx={{ mb: 1.5, fontSize: { xs: '0.95rem', md: '1.1rem' } }}>
-                {t('about')}
+              <Typography 
+                variant="h6" 
+                fontWeight={700} 
+                sx={{ 
+                  mb: 2, 
+                  fontSize: { xs: '0.95rem', md: '1.1rem' } 
+                }}
+              >
+                {t('statistics_title')}
               </Typography>
-              <Typography variant="body2" sx={{ opacity: 0.8, mb: 0.5, fontSize: { xs: '0.85rem', md: '0.95rem' } }}>
-                <strong>{t('app_subtitle')}</strong>
+              <Stack spacing={0.8}>
+                <Button
+                  color="inherit"
+                  size="small"
+                  sx={{ 
+                    justifyContent: i18n.language === 'ar' ? 'flex-end' : 'flex-start', 
+                    textTransform: 'none', 
+                    pl: 0,
+                    pr: 0,
+                    fontSize: { xs: '0.85rem', md: '0.95rem' },
+                    '&:hover': {
+                      bgcolor: alpha('#ffffff', 0.1),
+                    }
+                  }}
+                  onClick={() => navigate('/statistics')}
+                >
+                  {t('btn_view_stats')}
+                </Button>
+                <Typography 
+                  variant="caption" 
+                  sx={{ 
+                    opacity: 0.7,
+                    fontSize: { xs: '0.8rem', md: '0.9rem' }
+                  }}
+                >
+                  📊 {t('stats_total_parasites')}: <strong>{stats.total}</strong>
+                </Typography>
+              </Stack>
+            </Box>
+
+            {/* Developer Info */}
+            <Box>
+              <Typography 
+                variant="h6" 
+                fontWeight={700} 
+                sx={{ 
+                  mb: 2, 
+                  fontSize: { xs: '0.95rem', md: '1.1rem' } 
+                }}
+              >
+                👨‍💻 {t('developer')}
               </Typography>
+              <Stack spacing={1}>
+                <Typography 
+                  variant="body2" 
+                  sx={{ 
+                    fontWeight: 600,
+                    fontSize: { xs: '0.85rem', md: '0.95rem' }
+                  }}
+                >
+                  Mehdi Boubetana
+                </Typography>
+                <Stack spacing={0.5}>
+                  <Button
+                    color="inherit"
+                    size="small"
+                    startIcon={<Github size={14} />}
+                    sx={{ 
+                      justifyContent: i18n.language === 'ar' ? 'flex-end' : 'flex-start', 
+                      textTransform: 'none', 
+                      pl: 0,
+                      pr: 0,
+                      fontSize: { xs: '0.8rem', md: '0.9rem' },
+                      '&:hover': {
+                        bgcolor: alpha('#ffffff', 0.1),
+                      }
+                    }}
+                    href="https://github.com/mehdi-boubetana"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    GitHub
+                  </Button>
+                  <Button
+                    color="inherit"
+                    size="small"
+                    startIcon={<Mail size={14} />}
+                    sx={{ 
+                      justifyContent: i18n.language === 'ar' ? 'flex-end' : 'flex-start', 
+                      textTransform: 'none', 
+                      pl: 0,
+                      pr: 0,
+                      fontSize: { xs: '0.8rem', md: '0.9rem' },
+                      '&:hover': {
+                        bgcolor: alpha('#ffffff', 0.1),
+                      }
+                    }}
+                    href="mailto:mehdi@example.com"
+                  >
+                    Contact
+                  </Button>
+                </Stack>
+              </Stack>
             </Box>
           </Box>
 
+          {/* Divider */}
+          <Divider sx={{ bgcolor: alpha('#ffffff', 0.2), my: 3 }} />
 
-          <Divider sx={{ bgcolor: 'rgba(255,255,255,0.2)', my: 2 }} />
-
-
-          <Box sx={{ textAlign: 'center' }}>
-            <Typography variant="caption" sx={{ opacity: 0.6, fontSize: { xs: '0.75rem', md: '0.85rem' } }}>
-              © 2025 {t('app_title')}. {t('welcome')} {i18n.language.toUpperCase()}
+          {/* Bottom Footer */}
+          <Box 
+            sx={{
+              display: 'flex',
+              flexDirection: { xs: 'column', md: 'row' },
+              justifyContent: 'space-between',
+              alignItems: { xs: 'center', md: 'flex-start' },
+              gap: { xs: 2, md: 1 },
+              textAlign: { xs: 'center', md: 'left' }
+            }}
+          >
+            <Typography 
+              variant="caption" 
+              sx={{ 
+                opacity: 0.6, 
+                fontSize: { xs: '0.75rem', md: '0.85rem' } 
+              }}
+            >
+              © 2025 {t('app_title')}. {t('welcome')} 
+              <Box component="span" sx={{ ml: 0.5, fontWeight: 600 }}>
+                {i18n.language === 'ar' ? 'العربية 🇸🇦' : i18n.language === 'fr' ? 'Français 🇫🇷' : 'English 🇬🇧'}
+              </Box>
             </Typography>
+            
+            <Stack 
+              direction="row" 
+              spacing={2} 
+              sx={{ 
+                fontSize: { xs: '0.75rem', md: '0.85rem' },
+                opacity: 0.6
+              }}
+            >
+              <Typography variant="caption">
+                ✅ {t('stats_total_parasites')}: <strong>{stats.total}</strong>
+              </Typography>
+              <Typography variant="caption">
+                🖼️ {t('stats_uploaded_images')}: <strong>{parasites?.filter(p => p.image).length || 0}</strong>
+              </Typography>
+            </Stack>
           </Box>
         </Container>
       </Box>
     </Box>
   );
 };
-
 
 export default Home;
