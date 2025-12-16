@@ -9,10 +9,12 @@ import AddParasite from './pages/AddParasite';
 import ParasiteDetails from './pages/ParasiteDetails';
 import Dashboard from './pages/Dashboard';
 import Statistics from './pages/Statistics';
+import ReviewParasites from './pages/ReviewParasites';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import { AuthProvider } from './contexts/AuthContext';
+import { AuthProvider } from './contexts/AuthContext.tsx';
 import { ToastProvider } from './contexts/ToastContext';
+
 
 
 const NotFound = () => (
@@ -20,9 +22,11 @@ const NotFound = () => (
 );
 
 
+
 function App() {
   const themeObj = useTheme();
   const isMobile = useMediaQuery(themeObj.breakpoints.down('md'));
+
 
 
   return (
@@ -44,6 +48,7 @@ function App() {
           <Route path="/parasite/:id" element={<ParasiteDetails />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/statistics" element={<Statistics />} />
+          <Route path="/review" element={<ReviewParasites />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="*" element={<NotFound />} />
@@ -52,6 +57,7 @@ function App() {
     </Box>
   );
 }
+
 
 
 function AppWithProviders() {
@@ -63,6 +69,7 @@ function AppWithProviders() {
     </AuthProvider>
   );
 }
+
 
 
 export default AppWithProviders;

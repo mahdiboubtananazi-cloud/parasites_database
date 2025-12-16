@@ -28,13 +28,13 @@ import {
   Archive,
   Plus,
   BarChart3,
+  CheckCircle,
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../hooks/useAuth';
-
 const TopNav = ({ onMenuClick }: { onMenuClick?: () => void }) => {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const { t, i18n } = useTranslation();
@@ -42,11 +42,14 @@ const TopNav = ({ onMenuClick }: { onMenuClick?: () => void }) => {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isTablet = useMediaQuery(theme.breakpoints.down('md'));
 
+
   const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
   const [anchorElLang, setAnchorElLang] = useState<null | HTMLElement>(null);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
 
+
   const isActive = (path: string) => location.pathname === path;
+
 
   const changeLanguage = (lang: string) => {
     i18n.changeLanguage(lang);
@@ -54,17 +57,21 @@ const TopNav = ({ onMenuClick }: { onMenuClick?: () => void }) => {
     setAnchorElLang(null);
   };
 
+
   const navItems = [
     { label: t('nav_home') || 'الرئيسية', path: '/', icon: Home },
     { label: t('nav_archive') || 'الأرشيف', path: '/archive', icon: Archive },
     { label: t('nav_add_parasite') || 'إضافة عينة', path: '/add-parasite', icon: Plus },
     { label: t('nav_statistics') || 'الإحصائيات', path: '/statistics', icon: BarChart3 },
+    { label: t('nav_review') || 'المراجعة', path: '/review', icon: CheckCircle },
   ];
+
 
   const handleNavigation = (path: string) => {
     navigate(path);
     setMobileDrawerOpen(false);
   };
+
 
   return (
     <>
@@ -129,6 +136,7 @@ const TopNav = ({ onMenuClick }: { onMenuClick?: () => void }) => {
                 <Microscope size={24} strokeWidth={1.5} fill="currentColor" />
               </Box>
             </Box>
+
 
             {/* ===== NAVIGATION - CENTER - Desktop/Tablet Only ===== */}
             {!isTablet && (
@@ -203,6 +211,7 @@ const TopNav = ({ onMenuClick }: { onMenuClick?: () => void }) => {
               </Box>
             )}
 
+
             {/* ===== RIGHT CONTROLS ===== */}
             <Stack
               direction="row"
@@ -237,6 +246,7 @@ const TopNav = ({ onMenuClick }: { onMenuClick?: () => void }) => {
                   <Globe size={20} strokeWidth={1.5} />
                 </IconButton>
               </Tooltip>
+
 
               {/* Language Menu */}
               <Menu
@@ -284,10 +294,11 @@ const TopNav = ({ onMenuClick }: { onMenuClick?: () => void }) => {
                 ))}
               </Menu>
 
+
               {/* User Avatar or Login */}
               {user ? (
                 <>
-                  <Tooltip title={user.name || 'المستخدم'} arrow>
+                  <Tooltip title={user.email || 'المستخدم'} arrow>
                     <IconButton
                       onClick={(e) => setAnchorElUser(e.currentTarget)}
                       sx={{
@@ -315,10 +326,11 @@ const TopNav = ({ onMenuClick }: { onMenuClick?: () => void }) => {
                           },
                         }}
                       >
-                        {user.name?.charAt(0).toUpperCase() || 'U'}
+                        {user.email?.charAt(0).toUpperCase() || 'U'}
                       </Avatar>
                     </IconButton>
                   </Tooltip>
+
 
                   {/* User Menu */}
                   <Menu
@@ -348,7 +360,7 @@ const TopNav = ({ onMenuClick }: { onMenuClick?: () => void }) => {
                       }}
                     >
                       <Typography variant="body2" sx={{ fontWeight: 700, fontSize: 'inherit' }}>
-                        {user.name}
+                        {user.email}
                       </Typography>
                     </MenuItem>
                     <MenuItem 
@@ -366,7 +378,7 @@ const TopNav = ({ onMenuClick }: { onMenuClick?: () => void }) => {
                     <MenuItem
                       onClick={() => {
                         setAnchorElUser(null);
-                        logout();
+                        LogOut(user);
                       }}
                       sx={{
                         color: '#ff6b6b',
@@ -421,6 +433,7 @@ const TopNav = ({ onMenuClick }: { onMenuClick?: () => void }) => {
                 </Tooltip>
               )}
 
+
               {/* Mobile Menu Button */}
               {isTablet && (
                 <Tooltip title={mobileDrawerOpen ? 'إغلاق' : 'قائمة'} arrow>
@@ -454,6 +467,7 @@ const TopNav = ({ onMenuClick }: { onMenuClick?: () => void }) => {
           </Toolbar>
         </Container>
       </AppBar>
+
 
       {/* ===== MOBILE DRAWER ===== */}
       <Drawer
@@ -512,7 +526,9 @@ const TopNav = ({ onMenuClick }: { onMenuClick?: () => void }) => {
             })}
           </Stack>
 
+
           <Divider sx={{ my: { xs: 1.5, sm: 2 }, borderColor: alpha('#ffffff', 0.1) }} />
+
 
           <Typography
             variant="caption"
@@ -530,5 +546,6 @@ const TopNav = ({ onMenuClick }: { onMenuClick?: () => void }) => {
     </>
   );
 };
+
 
 export default TopNav;

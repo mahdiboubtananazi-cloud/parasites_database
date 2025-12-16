@@ -116,7 +116,6 @@ export default function AddParasite() {
     document.title = t('add_parasite_title', { defaultValue: 'إضافة عينة' });
   }, [t, i18n.language, isRtl]);
 
-
   const onSubmit = async (data: FormValues) => {
     if (!selectedFile) {
       showError(
@@ -149,6 +148,7 @@ export default function AddParasite() {
       formDataPayload.append('location', data.location || '');
       formDataPayload.append('studentName', data.studentName);
       formDataPayload.append('supervisorName', data.supervisorName || '');
+      formDataPayload.append('uploaded_by', data.studentName);
       formDataPayload.append('image', selectedFile);
 
       const response = await axios.post(
