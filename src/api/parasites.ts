@@ -1,125 +1,155 @@
-import apiClient, { handleApiError } from './client';
+import { supabase } from '../lib/supabase';
 
-
+// تعريف الأنواع (Types) لضمان التوافق
 export interface Parasite {
-  id: number | string;
-  image?: string;
-  name?: string;
-  scientificName: string;
-  arabicName?: string;
-  frenchName?: string;
-  commonName?: string;
+  id: string;
+  name: string;
   description?: string;
-  arabicDescription?: string;
-  frenchDescription?: string;
-  hostSpecies?: string;
-  host?: string;
-  morphologicalCharacteristics?: string;
-  detectionMethod?: string;
-  discoveryYear?: number;
-  imageUrl?: string;
-  imageurl?: string;
-  microscopicImageUrl?: string;
-  type?: string;
-  stage?: string;
-  sampleType?: string;
-  sampletype?: string;
-  stainColor?: string;
+  image_url?: string;
+  category?: string;
   location?: string;
-  studentName?: string;
-  supervisorName?: string;
-  status?: string;
-  createdAt?: string;
-  createdat?: string;
-  updatedAt?: string;
-}
-
-
-export interface CreateParasiteDto {
-  scientificName: string;
-  name?: string;
-  arabicName?: string;
-  frenchName?: string;
-  commonName?: string;
-  description?: string;
-  arabicDescription?: string;
-  frenchDescription?: string;
-  hostSpecies?: string;
-  host?: string;
-  morphologicalCharacteristics?: string;
-  detectionMethod?: string;
-  discoveryYear?: number;
-  imageUrl?: string;
-  imageurl?: string;
-  microscopicImageUrl?: string;
-  type?: string;
   stage?: string;
-  sampleType?: string;
-  stainColor?: string;
-  location?: string;
-  studentName?: string;
-  supervisorName?: string;
+  host?: string;
+  [key: string]: any; // للسماح بأي حقول إضافية
 }
 
+// --- الدوال الأساسية (Implementation) ---
 
-export interface UpdateParasiteDto extends Partial<CreateParasiteDto> {}
+const getParasites = async () => {
+  console.log('🔄 Fetching parasites direct from Supabase...');
+  const { data, error } = await supabase
+    .from('parasites')
+    .select('*')
+    .order('created_at', { ascending: false });
 
+  if (error) {
+    console.error('❌ Supabase error:', error);
+    throw error;
+  }
+  return data;
+};
 
-export interface ParasitesResponse {
-  data: Parasite[];
-  total: number;
-  page?: number;
-  limit?: number;
-}
+const searchParasites = async (query: string) => {
+  const { data, error } = await supabase
+    .from('parasites')
+    .select('*')
+    .ilike('name', `%${query}%`);
 
+  if (error) throw error;
+  return data;
+};
 
+const getParasiteById = async (id: string) => {
+  const { data, error } = await supabase
+    .from('parasites')
+    .select('*')
+    .eq('id', id)
+    .single();
+
+  if (error) throw error;
+  return data;
+};
+
+const createParasite = async (data: any) => {
+  // فصل ملف الصورة عن باقي البيانات
+  const { image, ...parasiteData } = data;
+  let finalImageUrl = parasiteData.image_url;
+
+  // 1. رفع الصورة إذا وجدت
+  if (image instanceof File) {
+    const fileExt = image.name.split('.').pop();
+    const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
+    const filePath = `${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('parasites')
+      .upload(filePath, image);
+
+    if (uploadError) throw uploadError;
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('parasites')
+      .getPublicUrl(filePath);
+      
+    finalImageUrl = publicUrl;
+  }
+
+  // 2. الحفظ في القاعدة
+  const { data: newParasite, error } = await supabase
+    .from('parasites')
+    .insert([{ ...parasiteData, image_url: finalImageUrl }])
+    .select()
+    .single();
+
+  if (error) throw error;
+  return newParasite;
+};
+
+const updateParasite = async (id: string, data: any) => {
+    // فصل ملف الصورة عن باقي البيانات
+  const { image, ...parasiteData } = data;
+  let finalImageUrl = parasiteData.image_url;
+
+  // 1. رفع الصورة الجديدة إذا وجدت
+  if (image instanceof File) {
+    const fileExt = image.name.split('.').pop();
+    const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
+    const filePath = `${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('parasites')
+      .upload(filePath, image);
+
+    if (uploadError) throw uploadError;
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('parasites')
+      .getPublicUrl(filePath);
+      
+    finalImageUrl = publicUrl;
+  }
+
+  const { data: updatedParasite, error } = await supabase
+    .from('parasites')
+    .update({ ...parasiteData, image_url: finalImageUrl })
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return updatedParasite;
+};
+
+const deleteParasite = async (id: string) => {
+  const { error } = await supabase
+    .from('parasites')
+    .delete()
+    .eq('id', id);
+
+  if (error) throw error;
+  return true;
+};
+
+// --- التصدير (Export) ---
+
+// 1. تصدير الكائن المجمّع (لإصلاح الخطأ في useParasites.ts)
 export const parasitesApi = {
-  // Get all parasites
-  getAll: async (params?: { page?: number; limit?: number; search?: string; host?: string; year?: number }): Promise<ParasitesResponse> => {
-    try {
-      const response = await apiClient.get<ParasitesResponse>('/parasites', { params });
-      return response.data;
-    } catch (error) {
-      throw handleApiError(error);
-    }
-  },
+  getAll: getParasites,      // قد يكون الاسم القديم getAll أو getParasites
+  getParasites,              // نضيف الاسمين لضمان التوافق
+  search: searchParasites,
+  searchParasites,
+  getById: getParasiteById,
+  create: createParasite,
+  update: updateParasite,
+  delete: deleteParasite,
+};
 
-  // Get parasite by ID
-  getById: async (id: number | string): Promise<Parasite> => {
-    try {
-      const response = await apiClient.get<Parasite>(`/parasites/${id}`);
-      return response.data;
-    } catch (error) {
-      throw handleApiError(error);
-    }
-  },
-
-  // Create new parasite
-  create: async (data: CreateParasiteDto): Promise<Parasite> => {
-    try {
-      const response = await apiClient.post<Parasite>('/parasites', data);
-      return response.data;
-    } catch (error) {
-      throw handleApiError(error);
-    }
-  },
-
-  // Update parasite
-  update: async (id: number | string, data: UpdateParasiteDto): Promise<Parasite> => {
-    try {
-      const response = await apiClient.put<Parasite>(`/parasites/${id}`, data);
-      return response.data;
-    } catch (error) {
-      throw handleApiError(error);
-    }
-  },
-
-  // Delete parasite
-  delete: async (id: number | string): Promise<void> => {
-    try {
-      await apiClient.delete(`/parasites/${id}`);
-    } catch (error) {
-      throw handleApiError(error);
-    }
-  },
+// 2. تصدير الدوال منفردة أيضاً (للاستخدام المستقبلي)
+export { 
+  getParasites, 
+  searchParasites, 
+  getParasiteById, 
+  createParasite, 
+  updateParasite, 
+  deleteParasite 
 };

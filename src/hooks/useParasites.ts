@@ -19,12 +19,24 @@ export const useParasites = (options: UseParasitesOptions = { autoFetch: true })
       
       const response = await parasitesApi.getAll();
       
-      // التعامل مع الاستجابة بشكل آمن
-      let data = response?.data;
+      // ✅ التصحيح: Supabase يعيد البيانات مباشرة كمصفوفة
+      let data = response;
+
+      // تحسباً إذا كان الرد ملفوفاً داخل خاصية data (للتوافق القديم)
+      if (
+        response && 
+        !Array.isArray(response) && 
+        typeof response === 'object' && 
+        'data' in response && 
+        Array.isArray((response as { data?: unknown }).data)
+      ) {
+        data = (response as { data: Parasite[] }).data;
+      }
       
       if (!data || !Array.isArray(data)) {
         console.warn('⚠️ Invalid response format:', response);
-        setParasites([]);
+        // لا نفرغ المصفوفة فوراً لكي لا تختفي البيانات القديمة في حال الخطأ العابر
+        setParasites([]); 
         setLoading(false);
         return;
       }
@@ -44,7 +56,7 @@ export const useParasites = (options: UseParasitesOptions = { autoFetch: true })
   const getParasiteById = async (id: number | string): Promise<Parasite | null> => {
     try {
       console.log('🔄 Fetching parasite with ID:', id);
-      const parasite = await parasitesApi.getById(id);
+      const parasite = await parasitesApi.getById(id.toString()); // التأكد من تحويل المعرف لنص
       console.log('✅ Parasite fetched:', parasite);
       return parasite || null;
     } catch (err: unknown) {
@@ -58,7 +70,8 @@ export const useParasites = (options: UseParasitesOptions = { autoFetch: true })
     try {
       setLoading(true);
       const newParasite = await parasitesApi.create(data);
-      setParasites((prev) => [...prev, newParasite]);
+      // إضافة العنصر الجديد في أول القائمة
+      setParasites((prev) => [newParasite, ...prev]);
       setError(null);
       return newParasite;
     } catch (err: unknown) {
@@ -75,7 +88,7 @@ export const useParasites = (options: UseParasitesOptions = { autoFetch: true })
   const updateParasite = async (id: number | string, data: any) => {
     try {
       setLoading(true);
-      const updatedParasite = await parasitesApi.update(id, data);
+      const updatedParasite = await parasitesApi.update(id.toString(), data);
       setParasites((prev) => prev.map((p) => (p.id === id ? updatedParasite : p)));
       setError(null);
       return updatedParasite;
@@ -93,7 +106,7 @@ export const useParasites = (options: UseParasitesOptions = { autoFetch: true })
   const deleteParasite = async (id: number | string) => {
     try {
       setLoading(true);
-      await parasitesApi.delete(id);
+      await parasitesApi.delete(id.toString());
       setParasites((prev) => prev.filter((p) => p.id !== id));
       setError(null);
     } catch (err: unknown) {
