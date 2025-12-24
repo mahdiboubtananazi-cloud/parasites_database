@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { parasitesApi, Parasite } from '../api/parasites';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../contexts/AuthContext';
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();

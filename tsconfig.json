@@ -13,21 +13,19 @@
     "isolatedModules": true,
     "noEmit": true,
     
-    /* هذا السطر هو الذي يحل مشكلتك الحالية */
     "jsx": "react-jsx",
 
-    /* Linting - إيقاف التشدد في الأخطاء لتسهيل البناء */
+    /* Linting - إعدادات مريحة */
     "strict": false,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true,
 
-    /* Paths - حل مشكلة الرمز @ */
+    /* Paths */
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src"],
-  "references": [{ "path": "./tsconfig.node.json" }]
+  "include": ["src"]
 }
