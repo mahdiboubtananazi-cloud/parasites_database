@@ -23,12 +23,8 @@ const ParasitesList: React.FC = () => {
   const fetchParasites = async () => {
     try {
       setLoading(true);
-      const response = await parasitesApi.getAll({
-        search: searchTerm,
-        host: hostFilter || undefined,
-        year: yearFilter ? parseInt(yearFilter) : undefined
-      });
-      setParasites(response.data);
+      const data = await parasitesApi.getAll();
+      setParasites(data);
       setError(null);
     } catch (err) {
       console.error('Failed to fetch parasites', err);
