@@ -1,116 +1,64 @@
-import React, { useState } from 'react';
-import { 
-  Box, Container, Typography, Paper, Table, TableBody, TableCell, 
-  TableContainer, TableHead, TableRow, Button, Chip, Stack, IconButton, Avatar
-} from '@mui/material';
-import { Check, X, Clock, AlertCircle } from 'lucide-react';
-import { useParasites } from '../hooks/useParasites';
-import { useToast } from '../contexts/ToastContext';
-import axios from 'axios';
-import { useTranslation } from 'react-i18next';
+import React, { useEffect, useState } from 'react';
+import { parasitesApi, Parasite } from '../api/parasites';
+import { useAuth } from '../context/AuthContext';
 
-// ???? ??????? (??????: ??????? ?? IP ??? ??? ?????? ??????)
-const API_URL = 'http://localhost:8000';
+const Dashboard: React.FC = () => {
+  const { user } = useAuth();
+  const [parasites, setParasites] = useState<Parasite[]>([]);
+  const [loading, setLoading] = useState(true);
 
-export default function Dashboard() {
-  const { parasites, loading, refetch } = useParasites();
-  const { showSuccess, showError } = useToast();
-  const { t } = useTranslation();
-  const [processing, setProcessing] = useState<string | null>(null);
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const data = await parasitesApi.getAll();
+        // ????? ???????? ??? ???????? (??? ?? ??? ????)
+        // ????? ????? ??? ?????? ??? ??????
+        setParasites(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error('Failed to load dashboard data', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  }, []);
 
-  // ????? ??????? ??????? ???
-  const pendingItems = parasites.filter(p => ((p as any).status || 'approved') === 'pending');
-
-  const handleStatusChange = async (id: string, newStatus: 'approved' | 'rejected') => {
-    setProcessing(id);
-    try {
-      await axios.put(`${API_URL}/parasites/${id}/status`, { status: newStatus });
-      showSuccess(newStatus === 'approved' ? "?? ???? ?????? ??????" : "?? ??? ??????");
-      refetch(); // ????? ???????
-    } catch (error) {
-      showError("??? ????? ??????");
-    } finally {
-      setProcessing(null);
-    }
-  };
+  if (loading) return <div className="p-10 text-center">???? ???????...</div>;
 
   return (
-    <Box sx={{ minHeight: '100vh', pb: 8, bgcolor: '#F8F9FC' }}>
-      <Box sx={{ bgcolor: 'white', py: 4, borderBottom: '1px solid', borderColor: 'divider' }}>
-        <Container maxWidth="lg">
-          <Typography variant="h4" fontWeight={800} color="primary.main">???? ???? ???????</Typography>
-          <Typography color="text.secondary">????? ????? ????? ??????? ??????? ???????</Typography>
-        </Container>
-      </Box>
+    <div className="container mx-auto p-6">
+      <h1 className="text-3xl font-bold mb-6">???? ??????</h1>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h3 className="text-gray-500 text-sm">?????? ???????</h3>
+          <p className="text-3xl font-bold">{parasites.length}</p>
+        </div>
+        {/* ????? ????? ?????? ?? ?????????? ??? */}
+      </div>
 
-      <Container maxWidth="lg" sx={{ mt: 4 }}>
-        {pendingItems.length === 0 ? (
-          <Paper sx={{ p: 6, textAlign: 'center', borderRadius: 4 }}>
-            <Check size={48} color="#10b981" style={{ marginBottom: 16 }} />
-            <Typography variant="h6">?? ??? ????!</Typography>
-            <Typography color="text.secondary">?? ???? ????? ????? ??????.</Typography>
-          </Paper>
-        ) : (
-          <Paper sx={{ borderRadius: 4, overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
-            <Box sx={{ p: 2, bgcolor: '#FFF4E5', color: '#B76E00', display: 'flex', alignItems: 'center', gap: 1 }}>
-              <AlertCircle size={20} />
-              <Typography fontWeight={600}>???? {pendingItems.length} ????? ??????? ????????</Typography>
-            </Box>
-            <TableContainer>
-              <Table>
-                <TableHead sx={{ bgcolor: '#f8f9fa' }}>
-                  <TableRow>
-                    <TableCell>??????</TableCell>
-                    <TableCell>????? ??????</TableCell>
-                    <TableCell>???????</TableCell>
-                    <TableCell>????? ?????</TableCell>
-                    <TableCell align="center">?????????</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {pendingItems.map((item) => (
-                    <TableRow key={item.id} hover>
-                      <TableCell>
-                        <Stack direction="row" spacing={2} alignItems="center">
-                          <Avatar src={item.imageUrl} variant="rounded" sx={{ width: 50, height: 50 }} />
-                          <Typography fontWeight={600}>{item.scientificName}</Typography>
-                        </Stack>
-                      </TableCell>
-                      <TableCell sx={{ fontStyle: 'italic', fontFamily: 'serif' }}>{item.scientificName}</TableCell>
-                      <TableCell><Chip label={item.type} size="small" /></TableCell>
-                      <TableCell>{new Date((item as any).createdAt || Date.now()).toLocaleDateString()}</TableCell>
-                      <TableCell align="center">
-                        <Stack direction="row" spacing={1} justifyContent="center">
-                          <Button 
-                            variant="contained" color="success" size="small" 
-                            startIcon={<Check size={16} />}
-                            disabled={processing === item.id}
-                            onClick={() => handleStatusChange(String(item.id), 'approved')}
-                          >
-                            ????
-                          </Button>
-                          <Button 
-                            variant="outlined" color="error" size="small"
-                            startIcon={<X size={16} />}
-                            disabled={processing === item.id}
-                            onClick={() => handleStatusChange(String(item.id), 'rejected')}
-                          >
-                            ???
-                          </Button>
-                        </Stack>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Paper>
-        )}
-      </Container>
-    </Box>
+      <h2 className="text-xl font-bold mb-4">??? ??????? ???????</h2>
+      <div className="bg-white rounded-lg shadow overflow-hidden">
+        <table className="w-full text-right">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="p-4">?????</th>
+              <th className="p-4">???????</th>
+              <th className="p-4">???????</th>
+            </tr>
+          </thead>
+          <tbody>
+            {parasites.slice(0, 5).map((p) => (
+              <tr key={p.id} className="border-t">
+                <td className="p-4">{p.name}</td>
+                <td className="p-4">{p.category}</td>
+                <td className="p-4">{new Date(p.created_at).toLocaleDateString('ar-EG')}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
   );
-}
+};
 
-
-
-
+export default Dashboard;

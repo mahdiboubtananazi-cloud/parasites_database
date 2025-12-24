@@ -21,7 +21,6 @@
     "@supabase/supabase-js": "^2.86.0",
     "@types/uuid": "^10.0.0",
     "apexcharts": "^5.3.6",
-    "axios": "^1.13.2",
     "date-fns": "^4.1.0",
     "dayjs": "^1.11.19",
     "firebase": "^12.6.0",
