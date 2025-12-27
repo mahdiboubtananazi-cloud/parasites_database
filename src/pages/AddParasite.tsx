@@ -11,12 +11,12 @@ import {
   Stack,
   IconButton,
   CircularProgress,
-  Grid,
   Divider,
   alpha,
   useTheme,
   InputAdornment,
 } from '@mui/material';
+import Grid from '@mui/material/Grid';
 import { Upload, X, Save, Microscope, FileText, User, MapPin } from 'lucide-react';
 import { useToast } from '../contexts/ToastContext';
 import { useNavigate } from 'react-router-dom';
@@ -75,6 +75,7 @@ type FormValues = {
 };
 
 export default function AddParasite() {
+  const { user } = useAuth();
   const {
     register,
     handleSubmit,
@@ -83,7 +84,7 @@ export default function AddParasite() {
     reset,
   } = useForm<FormValues>({
     defaultValues: {
-      studentName: useAuth().user?.name || '',
+      studentName: user?.name || '',
     },
   });
 
@@ -91,7 +92,6 @@ export default function AddParasite() {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const theme = useTheme();
-  const { user } = useAuth();
 
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -99,12 +99,20 @@ export default function AddParasite() {
 
   const onSubmit = async (data: FormValues) => {
     if (!selectedFile) {
-      showError(t('error_image_required') || 'الصورة المجهرية مطلوبة للتوثيق العلمي');
+      showError(
+        t('error_image_required', {
+          defaultValue: 'الصورة المجهرية مطلوبة للتوثيق العلمي',
+        }),
+      );
       return;
     }
 
     if (!data.scientificName.trim()) {
-      showError(t('error_scientific_name') || 'الاسم العلمي مطلوب');
+      showError(
+        t('error_scientific_name', {
+          defaultValue: 'الاسم العلمي مطلوب',
+        }),
+      );
       return;
     }
 
@@ -113,23 +121,26 @@ export default function AddParasite() {
     try {
       const newParasite = await parasitesApi.create({
         name: data.name,
-        scientificName: data.scientificName,
+        scientific_name: data.scientificName,
         type: data.type,
         stage: data.stage,
         description: data.description,
-        sampleType: data.sampleType,
-        stainColor: data.stainColor,
+        sample_type: data.sampleType,
+        stain_color: data.stainColor,
         host: data.host || null,
         location: data.location || null,
-        studentName: data.studentName,
-        supervisorName: data.supervisorName || null,
+        student_name: data.studentName,
+        supervisor_name: data.supervisorName || null,
         imageFile: selectedFile,
       });
 
       console.log('✅ تم الحفظ بنجاح:', newParasite);
-      showSuccess(t('success_added') || 'تمت إضافة العينة للأرشيف بنجاح');
+      showSuccess(
+        t('success_added', {
+          defaultValue: 'تمت إضافة العينة للأرشيف بنجاح',
+        }),
+      );
 
-      // إعادة تعيين النموذج والصورة
       setSelectedFile(null);
       setImagePreview(null);
       reset();
@@ -137,9 +148,11 @@ export default function AddParasite() {
     } catch (error: any) {
       console.error('❌ خطأ:', error);
       showError(
-        error.message || 
-        t('error_save') || 
-        'حدث خطأ أثناء حفظ العينة. تأكد من اتصالك بالإنترنت وحاول مرة أخرى.'
+        error?.message ||
+          t('error_save', {
+            defaultValue:
+              'حدث خطأ أثناء حفظ العينة. تأكد من اتصالك بالإنترنت وحاول مرة أخرى.',
+          }),
       );
     } finally {
       setIsSubmitting(false);
@@ -150,7 +163,11 @@ export default function AddParasite() {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       if (file.size > 5 * 1024 * 1024) {
-        showError('حجم الصورة يجب أن يكون أقل من 5 MB');
+        showError(
+          t('error_image_size', {
+            defaultValue: 'حجم الصورة يجب أن يكون أقل من 5 MB',
+          }),
+        );
         return;
       }
       setSelectedFile(file);
@@ -160,7 +177,7 @@ export default function AddParasite() {
 
   return (
     <Container maxWidth="lg" sx={{ py: { xs: 3, md: 6 } }}>
-      {/* ===== HEADER ===== */}
+      {/* HEADER */}
       <Box sx={{ mb: 4, textAlign: 'center' }}>
         <Typography
           variant="h4"
@@ -168,26 +185,24 @@ export default function AddParasite() {
           color="primary"
           sx={{ mb: 1 }}
         >
-          {t('add_page_title') || 'توثيق عينة طفيلية جديدة'}
+          {t('add_page_title', { defaultValue: 'توثيق عينة طفيلية جديدة' })}
         </Typography>
         <Typography
           variant="body1"
           color="text.secondary"
           sx={{ maxWidth: 600, mx: 'auto' }}
         >
-          {t('add_page_subtitle') ||
-            'يرجى إدخال البيانات العلمية الدقيقة والصورة المجهرية للعينة المكتشفة'}
+          {t('add_page_subtitle', {
+            defaultValue:
+              'يرجى إدخال البيانات العلمية الدقيقة والصورة المجهرية للعينة المكتشفة',
+          })}
         </Typography>
       </Box>
 
-      {/* ===== MAIN FORM ===== */}
-      <Box
-        component="form"
-        onSubmit={handleSubmit(onSubmit)}
-        noValidate
-      >
+      {/* MAIN FORM */}
+      <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate>
         <Grid container spacing={3}>
-          {/* ===== LEFT COLUMN: FORM FIELDS ===== */}
+          {/* LEFT COLUMN */}
           <Grid size={{ xs: 12, md: 8 }}>
             <Stack spacing={3}>
               {/* بطاقة 1: التصنيف العلمي */}
@@ -199,11 +214,16 @@ export default function AddParasite() {
                   border: `1px solid ${theme.palette.divider}`,
                   background: `linear-gradient(135deg, ${alpha(
                     theme.palette.primary.main,
-                    0.05
+                    0.05,
                   )} 0%, transparent 100%)`,
                 }}
               >
-                <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2.5 }}>
+                <Stack
+                  direction="row"
+                  spacing={1.5}
+                  alignItems="center"
+                  sx={{ mb: 2.5 }}
+                >
                   <Box
                     sx={{
                       p: 1,
@@ -217,19 +237,19 @@ export default function AddParasite() {
                     التصنيف العلمي
                   </Typography>
                 </Stack>
-
                 <Divider sx={{ mb: 2.5 }} />
 
                 <Grid container spacing={2}>
-                  {/* الاسم العلمي */}
                   <Grid size={{ xs: 12 }}>
                     <TextField
                       {...register('scientificName', {
-                        required: t('error_required') || 'مطلوب',
+                        required: t('error_required', { defaultValue: 'مطلوب' }),
                       })}
                       fullWidth
                       required
-                      label={t('label_scientific') || 'الاسم العلمي (Scientific Name)'}
+                      label={t('label_scientific', {
+                        defaultValue: 'الاسم العلمي (Scientific Name)',
+                      })}
                       placeholder="e.g. Entamoeba histolytica"
                       error={!!errors.scientificName}
                       helperText={errors.scientificName?.message}
@@ -237,29 +257,33 @@ export default function AddParasite() {
                     />
                   </Grid>
 
-                  {/* الاسم الشائع */}
                   <Grid size={{ xs: 12, sm: 6 }}>
                     <TextField
                       {...register('name')}
                       fullWidth
-                      label={t('label_name') || 'الاسم الشائي (Common Name)'}
+                      label={t('label_name', {
+                        defaultValue: 'الاسم الشائع (Common Name)',
+                      })}
                       placeholder="مثال: أميبا الزحار"
                     />
                   </Grid>
 
-                  {/* النوع */}
                   <Grid size={{ xs: 12, sm: 6 }}>
                     <Controller
                       name="type"
                       control={control}
-                      rules={{ required: t('error_required') || 'مطلوب' }}
+                      rules={{
+                        required: t('error_required', { defaultValue: 'مطلوب' }),
+                      }}
                       render={({ field }) => (
                         <TextField
                           {...field}
                           select
                           fullWidth
                           required
-                          label={t('label_type') || 'مجموعة الطفيلي'}
+                          label={t('label_type', {
+                            defaultValue: 'مجموعة الطفيلي',
+                          })}
                           error={!!errors.type}
                           helperText={errors.type?.message}
                         >
@@ -273,19 +297,22 @@ export default function AddParasite() {
                     />
                   </Grid>
 
-                  {/* المرحلة */}
                   <Grid size={{ xs: 12, sm: 6 }}>
                     <Controller
                       name="stage"
                       control={control}
-                      rules={{ required: t('error_required') || 'مطلوب' }}
+                      rules={{
+                        required: t('error_required', { defaultValue: 'مطلوب' }),
+                      }}
                       render={({ field }) => (
                         <TextField
                           {...field}
                           select
                           fullWidth
                           required
-                          label={t('label_stage') || 'المرحلة التشخيصية'}
+                          label={t('label_stage', {
+                            defaultValue: 'المرحلة التشخيصية',
+                          })}
                           error={!!errors.stage}
                           helperText={errors.stage?.message}
                         >
@@ -299,12 +326,13 @@ export default function AddParasite() {
                     />
                   </Grid>
 
-                  {/* العائل/المضيف */}
                   <Grid size={{ xs: 12, sm: 6 }}>
                     <TextField
                       {...register('host')}
                       fullWidth
-                      label="العائل / المضيف (Host)"
+                      label={t('label_host', {
+                        defaultValue: 'العائل / المضيف (Host)',
+                      })}
                       placeholder="مثال: Homo sapiens, Dog, Mosquito"
                     />
                   </Grid>
@@ -320,11 +348,16 @@ export default function AddParasite() {
                   border: `1px solid ${theme.palette.divider}`,
                   background: `linear-gradient(135deg, ${alpha(
                     theme.palette.primary.main,
-                    0.05
+                    0.05,
                   )} 0%, transparent 100%)`,
                 }}
               >
-                <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2.5 }}>
+                <Stack
+                  direction="row"
+                  spacing={1.5}
+                  alignItems="center"
+                  sx={{ mb: 2.5 }}
+                >
                   <Box
                     sx={{
                       p: 1,
@@ -338,23 +371,25 @@ export default function AddParasite() {
                     بيانات العينة والفحص
                   </Typography>
                 </Stack>
-
                 <Divider sx={{ mb: 2.5 }} />
 
                 <Grid container spacing={2}>
-                  {/* نوع العينة */}
                   <Grid size={{ xs: 12, sm: 6 }}>
                     <Controller
                       name="sampleType"
                       control={control}
-                      rules={{ required: t('error_required') || 'مطلوب' }}
+                      rules={{
+                        required: t('error_required', { defaultValue: 'مطلوب' }),
+                      }}
                       render={({ field }) => (
                         <TextField
                           {...field}
                           select
                           fullWidth
                           required
-                          label={t('label_sample_type') || 'نوع العينة'}
+                          label={t('label_sample_type', {
+                            defaultValue: 'نوع العينة',
+                          })}
                           error={!!errors.sampleType}
                           helperText={errors.sampleType?.message}
                         >
@@ -368,19 +403,22 @@ export default function AddParasite() {
                     />
                   </Grid>
 
-                  {/* الصبغة المستخدمة */}
                   <Grid size={{ xs: 12, sm: 6 }}>
                     <Controller
                       name="stainColor"
                       control={control}
-                      rules={{ required: t('error_required') || 'مطلوب' }}
+                      rules={{
+                        required: t('error_required', { defaultValue: 'مطلوب' }),
+                      }}
                       render={({ field }) => (
                         <TextField
                           {...field}
                           select
                           fullWidth
                           required
-                          label={t('label_stain') || 'الصبغة المستخدمة'}
+                          label={t('label_stain', {
+                            defaultValue: 'الصبغة المستخدمة',
+                          })}
                           error={!!errors.stainColor}
                           helperText={errors.stainColor?.message}
                         >
@@ -394,12 +432,13 @@ export default function AddParasite() {
                     />
                   </Grid>
 
-                  {/* الموقع */}
                   <Grid size={{ xs: 12 }}>
                     <TextField
                       {...register('location')}
                       fullWidth
-                      label="الموقع الجغرافي / المختبر"
+                      label={t('label_location', {
+                        defaultValue: 'الموقع الجغرافي / المختبر',
+                      })}
                       placeholder="مثال: مختبر الطفيليات - الجزائر"
                       InputProps={{
                         startAdornment: (
@@ -411,14 +450,15 @@ export default function AddParasite() {
                     />
                   </Grid>
 
-                  {/* الوصف المجهري */}
                   <Grid size={{ xs: 12 }}>
                     <TextField
                       {...register('description')}
                       fullWidth
                       multiline
                       rows={4}
-                      label={t('label_desc') || 'الوصف المجهري والملاحظات'}
+                      label={t('label_desc', {
+                        defaultValue: 'الوصف المجهري والملاحظات',
+                      })}
                       placeholder="صف الشكل الخارجي، النواة، الحركة، وأي مميزات تشخيصية مهمة..."
                     />
                   </Grid>
@@ -434,11 +474,16 @@ export default function AddParasite() {
                   border: `1px solid ${theme.palette.divider}`,
                   background: `linear-gradient(135deg, ${alpha(
                     theme.palette.primary.main,
-                    0.05
+                    0.05,
                   )} 0%, transparent 100%)`,
                 }}
               >
-                <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2.5 }}>
+                <Stack
+                  direction="row"
+                  spacing={1.5}
+                  alignItems="center"
+                  sx={{ mb: 2.5 }}
+                >
                   <Box
                     sx={{
                       p: 1,
@@ -452,30 +497,31 @@ export default function AddParasite() {
                     التوثيق والمسؤولية
                   </Typography>
                 </Stack>
-
                 <Divider sx={{ mb: 2.5 }} />
 
                 <Grid container spacing={2}>
-                  {/* اسم الباحث */}
                   <Grid size={{ xs: 12, sm: 6 }}>
                     <TextField
                       {...register('studentName', {
-                        required: t('error_required') || 'مطلوب',
+                        required: t('error_required', { defaultValue: 'مطلوب' }),
                       })}
                       fullWidth
                       required
-                      label={t('label_student') || 'اسم الباحث / الطالب'}
+                      label={t('label_student', {
+                        defaultValue: 'اسم الباحث / الطالب',
+                      })}
                       error={!!errors.studentName}
                       helperText={errors.studentName?.message}
                     />
                   </Grid>
 
-                  {/* المشرف */}
                   <Grid size={{ xs: 12, sm: 6 }}>
                     <TextField
                       {...register('supervisorName')}
                       fullWidth
-                      label={t('label_supervisor') || 'المشرف الأكاديمي (اختياري)'}
+                      label={t('label_supervisor', {
+                        defaultValue: 'المشرف الأكاديمي (اختياري)',
+                      })}
                     />
                   </Grid>
                 </Grid>
@@ -483,7 +529,7 @@ export default function AddParasite() {
             </Stack>
           </Grid>
 
-          {/* ===== RIGHT COLUMN: IMAGE UPLOAD ===== */}
+          {/* RIGHT COLUMN: IMAGE UPLOAD */}
           <Grid size={{ xs: 12, md: 4 }}>
             <Stack spacing={3}>
               {/* Image Upload Card */}
@@ -496,21 +542,31 @@ export default function AddParasite() {
                   textAlign: 'center',
                   background: `linear-gradient(135deg, ${alpha(
                     '#10B981',
-                    0.05
+                    0.06,
                   )} 0%, transparent 100%)`,
                 }}
               >
-                <Typography variant="h6" fontWeight={700} sx={{ mb: 2 }}>
-                  {t('upload_image') || 'الصورة المجهرية'}
+                <Typography
+                  variant="h6"
+                  fontWeight={700}
+                  sx={{ mb: 2, color: '#14532d' }}
+                >
+                  {t('upload_image', { defaultValue: 'الصورة المجهرية' })}
                 </Typography>
 
                 <Box
-                  onClick={() => document.getElementById('image-upload')?.click()}
+                  onClick={() =>
+                    document.getElementById('image-upload')?.click()
+                  }
                   sx={{
-                    border: `2px dashed ${imagePreview ? theme.palette.success.main : theme.palette.divider}`,
+                    border: `2px dashed ${
+                      imagePreview
+                        ? theme.palette.success.main
+                        : theme.palette.divider
+                    }`,
                     borderRadius: 2,
                     p: 3,
-                    bgcolor: alpha(theme.palette.background.default, 0.5),
+                    bgcolor: alpha(theme.palette.background.default, 0.6),
                     position: 'relative',
                     minHeight: 280,
                     display: 'flex',
@@ -518,10 +574,10 @@ export default function AddParasite() {
                     alignItems: 'center',
                     justifyContent: 'center',
                     cursor: 'pointer',
-                    transition: 'all 0.3s',
+                    transition: 'all 0.25s ease',
                     '&:hover': {
                       borderColor: theme.palette.primary.main,
-                      bgcolor: alpha(theme.palette.primary.main, 0.05),
+                      bgcolor: alpha(theme.palette.primary.main, 0.06),
                     },
                   }}
                 >
@@ -550,7 +606,7 @@ export default function AddParasite() {
                           position: 'absolute',
                           top: 8,
                           right: 8,
-                          bgcolor: 'rgba(0,0,0,0.6)',
+                          bgcolor: 'rgba(0,0,0,0.55)',
                           color: 'white',
                           '&:hover': { bgcolor: 'rgba(0,0,0,0.8)' },
                         }}
@@ -563,14 +619,17 @@ export default function AddParasite() {
                       <Box
                         sx={{
                           p: 2,
-                          bgcolor: alpha(theme.palette.primary.main, 0.1),
+                          bgcolor: alpha(theme.palette.primary.main, 0.12),
                           borderRadius: '50%',
                         }}
                       >
                         <Upload size={32} color={theme.palette.primary.main} />
                       </Box>
-                      <Typography variant="body2" color="text.secondary" fontWeight={600}>
-                        {t('upload_hint') || 'اضغط لرفع صورة'}
+                      <Typography
+                        variant="body2"
+                        sx={{ fontWeight: 600, color: '#14532d' }}
+                      >
+                        {t('upload_hint', { defaultValue: 'اضغط لرفع صورة' })}
                       </Typography>
                       <Typography variant="caption" color="text.disabled">
                         JPG, PNG (Max 5MB)
@@ -590,39 +649,67 @@ export default function AddParasite() {
 
               {/* Action Buttons */}
               <Stack spacing={2}>
-                <Button
-                  type="submit"
-                  variant="contained"
-                  size="large"
-                  disabled={isSubmitting || !user}
-                  startIcon={
-                    isSubmitting ? (
-                      <CircularProgress size={20} color="inherit" />
-                    ) : (
-                      <Save size={20} />
-                    )
-                  }
-                  sx={{
-                    py: 1.5,
-                    fontWeight: 700,
-                    fontSize: '1rem',
-                    boxShadow: theme.shadows[4],
-                    '&:hover': { boxShadow: theme.shadows[8] },
-                  }}
-                >
-                  {isSubmitting
-                    ? t('saving') || 'جاري الحفظ...'
-                    : t('btn_save') || 'حفظ في الأرشيف'}
-                </Button>
+              <Button
+  type="submit"
+  variant="contained"
+  size="large"
+  disabled={isSubmitting || !user}
+  startIcon={
+    isSubmitting ? (
+      <CircularProgress size={20} color="inherit" />
+    ) : (
+      <Save size={20} />
+    )
+  }
+  sx={{
+    py: 1.5,
+    fontWeight: 700,
+    fontSize: '1.05rem',
+    textTransform: 'none',
+    backgroundColor: '#064E3B',
+    boxShadow: theme.shadows[4],
+    display: 'inline-flex',
+    alignItems: 'center',
+    columnGap: 1.5,                 // فراغ أفقي بين الأيقونة والنص
+    '& .MuiButton-startIcon': {
+      color: '#FFFFFF',
+      mr: 0,                         // إزالة المارجن الافتراضي إن وجد
+    },
+    '& span': {
+      color: '#FFFFFF',
+    },
+    '&:hover': {
+      backgroundColor: '#022C22',
+      boxShadow: theme.shadows[8],
+    },
+  }}
+>
+  <span>
+    {isSubmitting
+      ? t('saving', { defaultValue: 'جاري الحفظ...' })
+      : t('btn_save', { defaultValue: 'حفظ في الأرشيف' })}
+  </span>
+</Button>
+
 
                 <Button
                   variant="outlined"
                   size="large"
                   onClick={() => navigate('/archive')}
                   disabled={isSubmitting}
-                  sx={{ py: 1.5 }}
+                  sx={{
+                    py: 1.5,
+                    fontWeight: 600,
+                    color: '#1f2933',
+                    borderColor: '#1f2933',
+                    '&:hover': {
+                      borderColor: '#111827',
+                      color: '#111827',
+                      backgroundColor: 'rgba(15,23,42,0.04)',
+                    },
+                  }}
                 >
-                  {t('btn_cancel') || 'إلغاء'}
+                  {t('btn_cancel', { defaultValue: 'إلغاء' })}
                 </Button>
               </Stack>
             </Stack>

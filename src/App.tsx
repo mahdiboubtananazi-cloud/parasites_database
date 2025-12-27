@@ -9,7 +9,7 @@ import Archive from './pages/Archive';
 import AddParasite from './pages/AddParasite';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import Statistics from './pages/Statistics';
+import Statistics from './pages/Statistics/Statistics';
 import ReviewParasites from './pages/ReviewParasites';
 import ParasiteDetails from './pages/ParasiteDetails';
 
