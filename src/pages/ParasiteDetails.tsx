@@ -30,15 +30,14 @@ import { useParasites } from '../hooks/useParasites';
 
 // تصحيح روابط الصور
 const fixImageUrl = (url?: string) => {
-  if (!url) return 'https://placehold.co/600x400?text=No+Image';
+  if (!url) return 'https://placehold.co/800x600?text=No+Image';
 
-  // إذا كان الرابط كاملاً (http/https) استخدمه مباشرة
-  if (url.startsWith('http')) {
-    return url;
-  }
+  if (url.startsWith('http')) return url;
 
-  // إذا كان رابط نسبي، أضف الـ base URL للـ API
-  const apiBase = import.meta.env.VITE_API_BASE_URL || 'https://parasites-api-boubetana.onrender.com';
+  const apiBase =
+    import.meta.env.VITE_API_BASE_URL ||
+    'https://parasites-api-boubetana.onrender.com';
+
   return `${apiBase}${url}`;
 };
 
@@ -73,19 +72,14 @@ export default function ParasiteDetails() {
     setLoading(loadingParasites);
 
     if (!loadingParasites && parasites && parasites.length > 0) {
-      // ✅ ابحث عن الطفيلي في المصفوفة حسب ID
-      const found = parasites.find((p: any) => {
-        return String(p.id) === String(id);
-      });
+      const found = parasites.find((p: any) => String(p.id) === String(id));
 
       if (found) {
         setParasite(found);
         setError(null);
-        console.log('✅ Parasite found:', found);
       } else {
         setError('لم يتم العثور على الطفيلي في قاعدة البيانات');
         setParasite(null);
-        console.error('❌ Parasite not found. Available IDs:', parasites.map(p => p.id));
       }
     }
   }, [id, parasites, loadingParasites]);
@@ -141,7 +135,11 @@ export default function ParasiteDetails() {
           <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
             {error || 'لم يتم العثور على بيانات الطفيلي.'}
           </Typography>
-          <Typography variant="caption" color="text.disabled" sx={{ display: 'block', mb: 3 }}>
+          <Typography
+            variant="caption"
+            color="text.disabled"
+            sx={{ display: 'block', mb: 3 }}
+          >
             ID: {id}
           </Typography>
           <Stack
@@ -161,25 +159,35 @@ export default function ParasiteDetails() {
     );
   }
 
-  // استخدام الحقول الجديدة
-  const imageUrl = fixImageUrl((parasite as any).imageurl || (parasite as any).imageUrl);
-  const sampleType = (parasite as any).sampleType || (parasite as any).sampletype;
+  // الحقول المستخدمة
+  const imageUrl = fixImageUrl(
+    (parasite as any).imageurl || (parasite as any).imageUrl
+  );
+  const sampleType =
+    (parasite as any).sampleType || (parasite as any).sampletype;
   const stainColor = (parasite as any).stainColor;
   const stage = (parasite as any).stage;
   const host = (parasite as any).host || (parasite as any).hostSpecies;
   const location = (parasite as any).location;
   const studentName = (parasite as any).studentName;
   const supervisorName = (parasite as any).supervisorName;
-  const createdAt = (parasite as any).createdAt || (parasite as any).createdat;
+  const createdAt =
+    (parasite as any).createdAt || (parasite as any).createdat;
 
   return (
-    <Box sx={{ minHeight: '100vh', pb: 8, bgcolor: alpha(theme.palette.primary.main, 0.02) }}>
+    <Box
+      sx={{
+        minHeight: '100vh',
+        pb: 8,
+        bgcolor: alpha(theme.palette.primary.main, 0.02),
+      }}
+    >
       {/* Header Navigation */}
       <Box
         sx={{
           bgcolor: 'white',
           borderBottom: `1px solid ${theme.palette.divider}`,
-          py: 2,
+          py: 1.5,
           position: 'sticky',
           top: 0,
           zIndex: 100,
@@ -193,6 +201,8 @@ export default function ParasiteDetails() {
             sx={{
               fontWeight: 600,
               color: 'text.secondary',
+              minWidth: 0,
+              px: 0,
               '&:hover': { color: 'primary.main' },
             }}
           >
@@ -203,19 +213,25 @@ export default function ParasiteDetails() {
 
       {/* Main Content */}
       <Container maxWidth="lg" sx={{ mt: 4 }}>
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 4 }}>
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', md: '1.1fr 1.2fr' },
+            gap: 4,
+            alignItems: 'flex-start',
+          }}
+        >
           {/* Image Section */}
           <Box>
             <Paper
               elevation={0}
               sx={{
-                p: 2,
+                p: 2.5,
                 borderRadius: 3,
                 border: `1px solid ${theme.palette.divider}`,
                 bgcolor: 'white',
-                position: 'sticky',
-                top: 100,
-                overflow: 'hidden',
+                position: { md: 'sticky' },
+                top: { md: 96 },
               }}
             >
               {/* Main Image Container */}
@@ -223,7 +239,7 @@ export default function ParasiteDetails() {
                 sx={{
                   borderRadius: 2.5,
                   overflow: 'hidden',
-                  height: { xs: 300, md: 500 },
+                  height: { xs: 260, md: 420 },
                   bgcolor: '#f1f5f9',
                   position: 'relative',
                   border: `1px solid ${theme.palette.divider}`,
@@ -246,25 +262,22 @@ export default function ParasiteDetails() {
                   }}
                   onError={(e) => {
                     (e.target as HTMLImageElement).src =
-                      'https://placehold.co/600x400?text=No+Image';
+                      'https://placehold.co/800x600?text=No+Image';
                   }}
                 />
 
-                {/* Zoom Image */}
+                {/* Zoom Overlay */}
                 <Box
                   sx={{
                     position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    height: '100%',
+                    inset: 0,
                     backgroundImage: `url('${imageUrl}')`,
                     backgroundRepeat: 'no-repeat',
                     backgroundSize: '250%',
                     pointerEvents: 'none',
                     display: zoomStyle.display,
                     backgroundPosition: zoomStyle.backgroundPosition,
-                    boxShadow: 'inset 0 0 20px rgba(0,0,0,0.5)',
+                    boxShadow: 'inset 0 0 20px rgba(0,0,0,0.35)',
                     borderRadius: 2.5,
                   }}
                 />
@@ -280,6 +293,7 @@ export default function ParasiteDetails() {
                       bgcolor: alpha(theme.palette.primary.main, 0.95),
                       color: 'white',
                       fontWeight: 800,
+                      letterSpacing: 1,
                       backdropFilter: 'blur(4px)',
                       zIndex: 10,
                     }}
@@ -293,7 +307,7 @@ export default function ParasiteDetails() {
                 display="block"
                 sx={{ mb: 2, color: 'text.secondary' }}
               >
-                💡 حرك الماوس لتكبير الصورة
+                💡 حرك الماوس فوق الصورة للحصول على تكبير موضعي
               </Typography>
 
               {/* Action Buttons */}
@@ -305,11 +319,11 @@ export default function ParasiteDetails() {
                   onClick={() => {
                     const link = document.createElement('a');
                     link.href = imageUrl;
-                    link.download = `${parasite.scientificName}.jpg`;
+                    link.download = `${parasite.scientificName || 'parasite'}.jpg`;
                     link.click();
                   }}
                 >
-                  تحميل
+                  تحميل الصورة
                 </Button>
               </Stack>
             </Paper>
@@ -324,8 +338,9 @@ export default function ParasiteDetails() {
                   variant="h3"
                   fontWeight={900}
                   sx={{
-                    mb: 1.5,
-                    fontSize: { xs: '1.8rem', md: '2.5rem' },
+                    mb: 1,
+                    fontSize: { xs: '1.8rem', md: '2.4rem' },
+                    lineHeight: 1.2,
                     background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
                     backgroundClip: 'text',
                     WebkitBackgroundClip: 'text',
@@ -339,13 +354,13 @@ export default function ParasiteDetails() {
                   sx={{
                     fontStyle: 'italic',
                     fontFamily: '"Times New Roman", serif',
-                    bgcolor: alpha(theme.palette.primary.main, 0.1),
+                    bgcolor: alpha(theme.palette.primary.main, 0.06),
                     color: theme.palette.primary.main,
                     display: 'inline-block',
                     px: 2,
-                    py: 1,
+                    py: 0.7,
                     borderRadius: 2,
-                    border: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`,
+                    border: `1px solid ${alpha(theme.palette.primary.main, 0.25)}`,
                     fontSize: { xs: '0.9rem', md: '1rem' },
                   }}
                 >
@@ -354,7 +369,13 @@ export default function ParasiteDetails() {
               </Box>
 
               {/* Quick Info Cards */}
-              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
+              <Box
+                sx={{
+                  display: 'grid',
+                  gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+                  gap: 2,
+                }}
+              >
                 {/* Stage */}
                 {stage && (
                   <Paper
@@ -364,14 +385,9 @@ export default function ParasiteDetails() {
                       bgcolor: alpha(theme.palette.info.main, 0.08),
                       border: `1px solid ${alpha(theme.palette.info.main, 0.2)}`,
                       borderRadius: 2.5,
-                      transition: 'all 0.3s',
-                      '&:hover': {
-                        borderColor: theme.palette.info.main,
-                        boxShadow: theme.shadows[4],
-                      },
                     }}
                   >
-                    <Stack direction="row" spacing={1.5} alignItems="flex-start">
+                    <Stack direction="row" spacing={1.5}>
                       <Box
                         sx={{
                           p: 1,
@@ -384,12 +400,11 @@ export default function ParasiteDetails() {
                       >
                         <Activity size={20} />
                       </Box>
-                      <Box sx={{ flex: 1 }}>
+                      <Box>
                         <Typography
                           variant="caption"
                           color="text.secondary"
                           fontWeight={700}
-                          display="block"
                           sx={{ mb: 0.5, textTransform: 'uppercase' }}
                         >
                           مرحلة التطور
@@ -410,14 +425,9 @@ export default function ParasiteDetails() {
                     bgcolor: alpha(theme.palette.warning.main, 0.08),
                     border: `1px solid ${alpha(theme.palette.warning.main, 0.2)}`,
                     borderRadius: 2.5,
-                    transition: 'all 0.3s',
-                    '&:hover': {
-                      borderColor: theme.palette.warning.main,
-                      boxShadow: theme.shadows[4],
-                    },
                   }}
                 >
-                  <Stack direction="row" spacing={1.5} alignItems="flex-start">
+                  <Stack direction="row" spacing={1.5}>
                     <Box
                       sx={{
                         p: 1,
@@ -430,12 +440,11 @@ export default function ParasiteDetails() {
                     >
                       <Calendar size={20} />
                     </Box>
-                    <Box sx={{ flex: 1 }}>
+                    <Box>
                       <Typography
                         variant="caption"
                         color="text.secondary"
                         fontWeight={700}
-                        display="block"
                         sx={{ mb: 0.5, textTransform: 'uppercase' }}
                       >
                         تاريخ الإضافة
@@ -479,11 +488,11 @@ export default function ParasiteDetails() {
                     color="text.secondary"
                     sx={{
                       lineHeight: 2,
-                      fontSize: '1.05rem',
+                      fontSize: '1.02rem',
                       p: 2,
                       bgcolor: alpha(theme.palette.grey[500], 0.05),
                       borderRadius: 2,
-                      borderLeft: `4px solid ${theme.palette.primary.main}`,
+                      borderInlineStart: `4px solid ${theme.palette.primary.main}`,
                     }}
                   >
                     {(parasite as any).description}
@@ -511,7 +520,7 @@ export default function ParasiteDetails() {
                       alignItems: 'center',
                       gap: 1,
                       color: theme.palette.success.main,
-                      mb: 2,
+                      mb: 1.5,
                     }}
                   >
                     <Microscope size={20} />
@@ -580,7 +589,7 @@ export default function ParasiteDetails() {
                       alignItems: 'center',
                       gap: 1,
                       color: theme.palette.secondary.main,
-                      mb: 2,
+                      mb: 1.5,
                     }}
                   >
                     <MapPin size={20} />
@@ -638,7 +647,7 @@ export default function ParasiteDetails() {
                       alignItems: 'center',
                       gap: 1,
                       color: theme.palette.primary.main,
-                      mb: 2,
+                      mb: 1.5,
                     }}
                   >
                     <User size={20} />
