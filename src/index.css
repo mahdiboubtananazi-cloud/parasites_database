@@ -1,5 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
 
+
+/* Reset & Base Styles */
 * {
   margin: 0;
   padding: 0;
@@ -15,136 +17,57 @@ html, body, #root {
 /* تحسين عرض النصوص العربية */
 html {
   direction: rtl;
-  /* lang هي HTML attribute وليست CSS property */
 }
 
-
 body {
-  font-family: 'Cairo', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family: 'Cairo', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
-  /* دعم أفضل للعربية */
-  font-weight: 400;
-  letter-spacing: 0.5px;
-  background-color: #f5f3f0;
-  color: #344e41;
+  background-color: #FAFCFB; /* الخلفية الطبية الفاتحة */
+  color: #051F20; /* النص الداكن */
   line-height: 1.6;
-  overflow-x: hidden;
 }
 
 #root {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  min-height: 100vh;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
-  transition: color 0.3s ease;
-}
-
-a:hover {
-  color: #3a5a40;
-}
-
-button {
-  font-family: 'Cairo', 'Inter', inherit;
-  cursor: pointer;
-}
-
-/* تحسين عرض الـ Input fields للعربية */
-input, textarea, select {
-  font-family: 'Cairo', 'Inter', inherit;
-  direction: rtl;
-  text-align: right;
-}
-
-/* Scrollbar Styling */
+/* Scrollbar Customization */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 10px;
+  background: #FAFCFB;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #a3b18a;
+  background: #DAF1DE;
   border-radius: 4px;
   transition: background 0.3s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #588157;
+  background: #0B2B26;
 }
 
-/* دعم Firefox */
+/* Firefox Scrollbar */
 * {
-  scrollbar-color: #a3b18a #f1f1f1;
+  scrollbar-color: #DAF1DE #FAFCFB;
   scrollbar-width: thin;
 }
 
-/* تحسين الـ Typography للعربية */
-h1, h2, h3, h4, h5, h6 {
-  font-weight: 600;
-  line-height: 1.4;
-  word-break: break-word;
-}
-
-p {
-  word-break: break-word;
-  hyphens: auto;
-}
-
-/* تحسين جودة الخطوط */
-@supports (font-variation-settings: normal) {
-  body {
-    font-variation-settings: "wght" 400;
-  }
-  
-  strong, b {
-    font-variation-settings: "wght" 600;
-  }
-}
-
-/* استجابة للشاشات الصغيرة */
-@media (max-width: 768px) {
-  body {
-    font-size: 14px;
-  }
-  
-  h1 {
-    font-size: 24px;
-  }
-  
-  h2 {
-    font-size: 20px;
-  }
-  
-  h3 {
-    font-size: 18px;
-  }
-}
-
-/* تحسين الـ Focus states للـ Accessibility */
-:focus-visible {
-  outline: 2px solid #3a5a40;
-  outline-offset: 2px;
-}
-
-/* تحسين الـ Selection color */
+/* Selection Color */
 ::selection {
-  background-color: #426d4a;
-  color: #ffffff;
+  background-color: #DAF1DE;
+  color: #0B2B26;
 }
 
 ::-moz-selection {
-  background-color: #3a5a40;
-  color: #ffffff;
+  background-color: #DAF1DE;
+  color: #0B2B26;
 }
