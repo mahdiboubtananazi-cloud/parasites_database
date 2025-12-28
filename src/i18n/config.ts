@@ -1,15 +1,11 @@
 ﻿import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import arTranslations from './locales/ar.json';
-import enTranslations from './locales/en.json';
 import frTranslations from './locales/fr.json';
 
 const resources = {
   ar: {
     translation: arTranslations,
-  },
-  en: {
-    translation: enTranslations,
   },
   fr: {
     translation: frTranslations,
@@ -21,7 +17,7 @@ i18n
   .init({
     resources,
     lng: localStorage.getItem('i18nextLng') || 'ar',
-    fallbackLng: 'en',
+    fallbackLng: 'fr',
     interpolation: { escapeValue: false },
     react: {
       useSuspense: false,

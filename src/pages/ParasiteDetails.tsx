@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -28,7 +28,6 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useParasites } from '../hooks/useParasites';
 
-// تصحيح روابط الصور
 const fixImageUrl = (url?: string) => {
   if (!url) return 'https://placehold.co/800x600?text=No+Image';
 
@@ -78,7 +77,7 @@ export default function ParasiteDetails() {
         setParasite(found);
         setError(null);
       } else {
-        setError('لم يتم العثور على الطفيلي في قاعدة البيانات');
+        setError(t('details_title'));
         setParasite(null);
       }
     }
@@ -96,7 +95,7 @@ export default function ParasiteDetails() {
       >
         <Stack alignItems="center" spacing={2}>
           <CircularProgress />
-          <Typography color="text.secondary">جاري تحميل البيانات...</Typography>
+          <Typography color="text.secondary">{t('loading')}</Typography>
         </Stack>
       </Box>
     );
@@ -130,10 +129,10 @@ export default function ParasiteDetails() {
             gutterBottom
             sx={{ mb: 2, fontWeight: 900 }}
           >
-            ❌ خطأ في التحميل
+            {t('error')}
           </Typography>
           <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
-            {error || 'لم يتم العثور على بيانات الطفيلي.'}
+            {error || t('error_loading_data')}
           </Typography>
           <Typography
             variant="caption"
@@ -148,10 +147,10 @@ export default function ParasiteDetails() {
             justifyContent="center"
           >
             <Button onClick={() => navigate('/archive')} variant="contained">
-              العودة للأرشيف
+              {t('nav_archive')}
             </Button>
             <Button onClick={() => window.location.reload()} variant="outlined">
-              إعادة تحميل
+              {t('loading')}
             </Button>
           </Stack>
         </Paper>
@@ -206,7 +205,7 @@ export default function ParasiteDetails() {
               '&:hover': { color: 'primary.main' },
             }}
           >
-            {t('archive') || 'الأرشيف'}
+            {t('nav_archive')}
           </Button>
         </Container>
       </Box>
@@ -234,7 +233,6 @@ export default function ParasiteDetails() {
                 top: { md: 96 },
               }}
             >
-              {/* Main Image Container */}
               <Box
                 sx={{
                   borderRadius: 2.5,
@@ -251,7 +249,6 @@ export default function ParasiteDetails() {
                   setZoomStyle({ ...zoomStyle, display: 'none' })
                 }
               >
-                {/* Main Image */}
                 <img
                   src={imageUrl}
                   alt={parasite.name || parasite.scientificName}
@@ -266,7 +263,6 @@ export default function ParasiteDetails() {
                   }}
                 />
 
-                {/* Zoom Overlay */}
                 <Box
                   sx={{
                     position: 'absolute',
@@ -282,7 +278,6 @@ export default function ParasiteDetails() {
                   }}
                 />
 
-                {/* Type Badge */}
                 {parasite.type && (
                   <Chip
                     label={parasite.type.toUpperCase()}
@@ -307,10 +302,9 @@ export default function ParasiteDetails() {
                 display="block"
                 sx={{ mb: 2, color: 'text.secondary' }}
               >
-                💡 حرك الماوس فوق الصورة للحصول على تكبير موضعي
+                {t('details_scientific_name')}
               </Typography>
 
-              {/* Action Buttons */}
               <Stack direction="row" spacing={1.5}>
                 <Button
                   fullWidth
@@ -323,7 +317,7 @@ export default function ParasiteDetails() {
                     link.click();
                   }}
                 >
-                  تحميل الصورة
+                  {t('btn_download')}
                 </Button>
               </Stack>
             </Paper>
@@ -332,7 +326,6 @@ export default function ParasiteDetails() {
           {/* Info Section */}
           <Box>
             <Stack spacing={3.5}>
-              {/* Title Section */}
               <Box>
                 <Typography
                   variant="h3"
@@ -341,13 +334,13 @@ export default function ParasiteDetails() {
                     mb: 1,
                     fontSize: { xs: '1.8rem', md: '2.4rem' },
                     lineHeight: 1.2,
-                    background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
+                    background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,      
                     backgroundClip: 'text',
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent',
                   }}
                 >
-                  {parasite.name || parasite.scientificName || 'بدون اسم'}
+                  {parasite.name || parasite.scientificName || t('scientific_name')}
                 </Typography>
                 <Typography
                   variant="h6"
@@ -364,11 +357,10 @@ export default function ParasiteDetails() {
                     fontSize: { xs: '0.9rem', md: '1rem' },
                   }}
                 >
-                  {parasite.scientificName || 'غير محدد'}
+                  {parasite.scientificName || t('common_name')}
                 </Typography>
               </Box>
 
-              {/* Quick Info Cards */}
               <Box
                 sx={{
                   display: 'grid',
@@ -376,7 +368,6 @@ export default function ParasiteDetails() {
                   gap: 2,
                 }}
               >
-                {/* Stage */}
                 {stage && (
                   <Paper
                     elevation={0}
@@ -407,7 +398,7 @@ export default function ParasiteDetails() {
                           fontWeight={700}
                           sx={{ mb: 0.5, textTransform: 'uppercase' }}
                         >
-                          مرحلة التطور
+                          {t('details_stage')}
                         </Typography>
                         <Typography variant="body1" fontWeight={700}>
                           {stage}
@@ -417,7 +408,6 @@ export default function ParasiteDetails() {
                   </Paper>
                 )}
 
-                {/* Date */}
                 <Paper
                   elevation={0}
                   sx={{
@@ -447,7 +437,7 @@ export default function ParasiteDetails() {
                         fontWeight={700}
                         sx={{ mb: 0.5, textTransform: 'uppercase' }}
                       >
-                        تاريخ الإضافة
+                        {t('details_added_date')}
                       </Typography>
                       <Typography variant="body1" fontWeight={700}>
                         {createdAt
@@ -456,7 +446,7 @@ export default function ParasiteDetails() {
                               month: 'long',
                               day: 'numeric',
                             })
-                          : 'غير محدد'}
+                          : t('no_data')}
                       </Typography>
                     </Box>
                   </Stack>
@@ -465,7 +455,6 @@ export default function ParasiteDetails() {
 
               <Divider />
 
-              {/* Description */}
               {(parasite as any).description && (
                 <Box>
                   <Typography
@@ -481,7 +470,7 @@ export default function ParasiteDetails() {
                     }}
                   >
                     <Tag size={20} />
-                    الوصف المجهري
+                    {t('details_description')}
                   </Typography>
                   <Typography
                     variant="body1"
@@ -500,7 +489,6 @@ export default function ParasiteDetails() {
                 </Box>
               )}
 
-              {/* Sample Details */}
               {(sampleType || stainColor) && (
                 <Paper
                   elevation={0}
@@ -524,7 +512,7 @@ export default function ParasiteDetails() {
                     }}
                   >
                     <Microscope size={20} />
-                    تفاصيل العينة والفحص
+                    {t('details_sample_type')}
                   </Typography>
                   <Stack spacing={1.5}>
                     {sampleType && (
@@ -536,7 +524,7 @@ export default function ParasiteDetails() {
                             fontWeight={700}
                             color="text.primary"
                           >
-                            نوع العينة:
+                            {t('details_sample_type')}:
                           </Typography>{' '}
                           <Chip
                             label={sampleType}
@@ -555,7 +543,7 @@ export default function ParasiteDetails() {
                             fontWeight={700}
                             color="text.primary"
                           >
-                            الصبغة المستخدمة:
+                            {t('details_stain_color')}:
                           </Typography>{' '}
                           <Chip
                             label={stainColor}
@@ -569,7 +557,6 @@ export default function ParasiteDetails() {
                 </Paper>
               )}
 
-              {/* Host & Location */}
               {(host || location) && (
                 <Paper
                   elevation={0}
@@ -593,7 +580,7 @@ export default function ParasiteDetails() {
                     }}
                   >
                     <MapPin size={20} />
-                    معلومات المصدر
+                    {t('details_location')}
                   </Typography>
                   <Stack spacing={1.5}>
                     {host && (
@@ -603,7 +590,7 @@ export default function ParasiteDetails() {
                           fontWeight={700}
                           color="text.primary"
                         >
-                          العائل:
+                          {t('details_host')}:
                         </Typography>{' '}
                         {host}
                       </Typography>
@@ -617,7 +604,7 @@ export default function ParasiteDetails() {
                             fontWeight={700}
                             color="text.primary"
                           >
-                            الموقع:
+                            {t('details_location')}:
                           </Typography>{' '}
                           {location}
                         </Typography>
@@ -627,7 +614,6 @@ export default function ParasiteDetails() {
                 </Paper>
               )}
 
-              {/* Researcher Info */}
               {(studentName || supervisorName) && (
                 <Paper
                   elevation={0}
@@ -651,7 +637,7 @@ export default function ParasiteDetails() {
                     }}
                   >
                     <User size={20} />
-                    معلومات التوثيق
+                    {t('details_student_name')}
                   </Typography>
                   <Stack spacing={1.5}>
                     {studentName && (
@@ -663,7 +649,7 @@ export default function ParasiteDetails() {
                             fontWeight={700}
                             color="text.primary"
                           >
-                            الباحث:
+                            {t('details_student_name')}:
                           </Typography>{' '}
                           {studentName}
                         </Typography>
@@ -678,7 +664,7 @@ export default function ParasiteDetails() {
                             fontWeight={700}
                             color="text.primary"
                           >
-                            المشرف الأكاديمي:
+                            {t('details_supervisor_name')}:
                           </Typography>{' '}
                           {supervisorName}
                         </Typography>

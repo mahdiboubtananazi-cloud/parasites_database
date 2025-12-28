@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import {
   Box,
   Button,
@@ -41,19 +41,19 @@ const Navbar: React.FC = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const links = [
-    { label: t('nav_home') || 'الرئيسية', path: '/', icon: <Home size={20} /> },
-    { label: t('nav_archive') || 'الأرشيف', path: '/archive', icon: <Archive size={20} /> },
-    { label: t('nav_add') || 'إضافة عينة', path: '/add', icon: <PlusCircle size={20} /> },
-    { label: t('nav_stats') || 'الإحصائيات', path: '/statistics', icon: <BarChart2 size={20} /> },
-    { label: t('nav_review') || 'المراجعة', path: '/review', icon: <CheckSquare size={20} /> },
+    { label: t('nav_home'), path: '/', icon: <Home size={20} /> },
+    { label: t('nav_archive'), path: '/archive', icon: <Archive size={20} /> },
+    { label: t('nav_add_parasite'), path: '/add', icon: <PlusCircle size={20} /> },
+    { label: t('nav_statistics'), path: '/statistics', icon: <BarChart2 size={20} /> },
+    { label: t('nav_review'), path: '/review', icon: <CheckSquare size={20} /> },
   ];
 
   const isActive = (path: string) => location.pathname === path;
 
   const toggleLanguage = () => {
-    const newLang = i18n.language === 'ar' ? 'en' : 'ar';
+    const newLang = i18n.language === 'ar' ? 'fr' : 'ar';
     i18n.changeLanguage(newLang);
-    document.dir = newLang === 'ar' ? 'rtl' : 'ltr';
+    document.documentElement.dir = newLang === 'ar' ? 'rtl' : 'ltr';
   };
 
   const handleDrawerToggle = () => {
@@ -110,7 +110,7 @@ const Navbar: React.FC = () => {
                   letterSpacing: 0.5,
                 }}
               >
-                Parasites DB
+                {t('app_title')}
               </Box>
             )}
           </Box>
@@ -145,7 +145,7 @@ const Navbar: React.FC = () => {
               ))}
 
               {/* تغيير اللغة */}
-              <Tooltip title="تغيير اللغة">
+              <Tooltip title={t('nav_language')}>
                 <IconButton size="small" onClick={toggleLanguage}>
                   <Globe size={18} color={colors.text.secondary} />
                 </IconButton>
@@ -169,7 +169,7 @@ const Navbar: React.FC = () => {
                   },
                 }}
               >
-                {t('btn_login') || 'دخول'}
+                {t('nav_login')}
               </Button>
             </Stack>
           )}
@@ -199,7 +199,7 @@ const Navbar: React.FC = () => {
         PaperProps={{
           sx: {
             width: 290,
-            bgcolor: '#E7F4EC', // أخضر فاتح مريح
+            bgcolor: '#E7F4EC',
             borderRadius:
               i18n.language === 'ar' ? '20px 0 0 20px' : '0 20px 20px 0',
           },
@@ -233,7 +233,7 @@ const Navbar: React.FC = () => {
                 color: colors.primary.main,
               }}
             >
-              Parasites DB
+              {t('app_title')}
             </Box>
           </Box>
           <IconButton onClick={handleDrawerToggle}>
@@ -304,7 +304,7 @@ const Navbar: React.FC = () => {
                 bgcolor: 'rgba(255,255,255,0.6)',
               }}
             >
-              {i18n.language === 'ar' ? 'English' : 'العربية'}
+              {i18n.language === 'ar' ? 'Français' : 'العربية'}
             </Button>
             <Button
               fullWidth
@@ -320,7 +320,7 @@ const Navbar: React.FC = () => {
                 boxShadow: 'none',
               }}
             >
-              {t('btn_login') || 'تسجيل الدخول'}
+              {t('nav_login')}
             </Button>
           </Stack>
         </Box>

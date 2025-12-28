@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+﻿import React, { useEffect, useMemo, useState } from 'react';
 import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
 import Container from '@mui/material/Container';
@@ -11,11 +11,13 @@ import SearchIcon from '@mui/icons-material/Search';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '../lib/supabase';
 import { Parasite } from '../types/parasite';
 import ParasiteCard from '../components/archive/ParasiteCard';
 
 const Archive: React.FC = () => {
+  const { t } = useTranslation();
   const [parasites, setParasites] = useState<Parasite[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -88,7 +90,7 @@ const Archive: React.FC = () => {
               whiteSpace: 'nowrap',
             }}
           >
-            Archive
+            {t('archive_title')}
           </Typography>
 
           <Box
@@ -111,7 +113,7 @@ const Archive: React.FC = () => {
               <TextField
                 fullWidth
                 variant="standard"
-                placeholder="Search by name or type..."
+                placeholder={t('search_placeholder')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 InputProps={{
@@ -151,7 +153,7 @@ const Archive: React.FC = () => {
             >
               <FilterListIcon sx={{ fontSize: 18 }} />
               <Typography variant="body2">
-                {showFilters ? 'Hide filters' : 'Filters'}
+                {showFilters ? t('filter_clear') : t('filter_search')}
               </Typography>
             </Paper>
           </Box>
@@ -172,11 +174,11 @@ const Archive: React.FC = () => {
               {/* نوع الطفيلي */}
               <Box>
                 <Typography variant="subtitle2" sx={{ mb: 1, color: '#051F20' }}>
-                  Type
+                  {t('filter_type')}
                 </Typography>
                 <Stack direction="row" spacing={1} flexWrap="wrap" rowGap={1}>
                   <Chip
-                    label="All"
+                    label={t('filter_all')}
                     color={typeFilter === 'all' ? 'success' : 'default'}
                     variant={typeFilter === 'all' ? 'filled' : 'outlined'}
                     size="small"
@@ -198,11 +200,11 @@ const Archive: React.FC = () => {
               {/* المرحلة */}
               <Box>
                 <Typography variant="subtitle2" sx={{ mb: 1, color: '#051F20' }}>
-                  Stage
+                  {t('filter_stage')}
                 </Typography>
                 <Stack direction="row" spacing={1} flexWrap="wrap" rowGap={1}>
                   <Chip
-                    label="All"
+                    label={t('filter_all')}
                     color={stageFilter === 'all' ? 'success' : 'default'}
                     variant={stageFilter === 'all' ? 'filled' : 'outlined'}
                     size="small"
@@ -237,13 +239,13 @@ const Archive: React.FC = () => {
         ) : filteredParasites.length === 0 ? (
           <Box textAlign="center" py={10}>
             <Typography sx={{ color: 'text.secondary' }}>
-              No parasites found matching your search.
+              {t('archive_no_results')}
             </Typography>
           </Box>
         ) : (
           <Grid container spacing={3} pb={6}>
             {filteredParasites.map((parasite) => (
-              <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={parasite.id}>
+              <Grid item xs={12} sm={6} md={4} lg={3} key={parasite.id}>
                 <ParasiteCard parasite={parasite} />
               </Grid>
             ))}

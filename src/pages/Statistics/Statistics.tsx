@@ -1,10 +1,10 @@
-import React, { useMemo, useEffect } from 'react';
+﻿import React, { useMemo, useEffect } from 'react';
 import { Container, Box, useMediaQuery, useTheme, CircularProgress, Stack, Typography, alpha } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { useParasites } from '../../hooks/useParasites';
+
 type Parasite = any;
 
-// لاحظ: المسار هنا هو ./ وليس ../ لأن الملفات بجانب هذا الملف
 import StatsHeader from './components/StatsHeader';
 import StatCardGrid from './components/StatCardGrid';
 import DistributionCharts from './components/DistributionCharts';
@@ -13,7 +13,6 @@ import TopResearchersTable from './components/TopResearchersTable';
 import SummaryPanels from './components/SummaryPanels';
 import EmptyState from './components/EmptyState';
 
-// تعريف الواجهة هنا أو استيرادها إذا كانت معرفة في ملف Types
 export interface Stats {
   totalParasites: number;
   totalImages: number;
@@ -31,11 +30,10 @@ const Statistics = () => {
   const { parasites, loading } = useParasites();
   const isRtl = i18n.language === 'ar';
 
-  // Meta logic inline to avoid extra file import issues
   useEffect(() => {
     document.documentElement.dir = isRtl ? 'rtl' : 'ltr';
     document.documentElement.lang = i18n.language;
-    document.title = t('statistics', { defaultValue: 'الإحصائيات' });
+    document.title = t('stats_title');
   }, [i18n.language, isRtl, t]);
 
   const stats = useMemo(() => calculateStats(parasites), [parasites]);
@@ -48,7 +46,7 @@ const Statistics = () => {
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', bgcolor: alpha('#3a5a40', 0.02) }}>
         <Stack alignItems="center" spacing={2}>
           <CircularProgress size={50} thickness={4} />
-          <Typography color="text.secondary">{t('loading')}</Typography>
+          <Typography color="text.secondary">{t('stats_loading')}</Typography>
         </Stack>
       </Box>
     );
@@ -58,37 +56,35 @@ const Statistics = () => {
     <Box sx={{ py: { xs: 3, md: 4 }, backgroundColor: alpha('#3a5a40', 0.02), minHeight: '100vh' }}>
       <Container maxWidth="xl" sx={{ px: { xs: 1.5, sm: 2, md: 3 } }}>
         <StatsHeader />
-        
+
         <StatCardGrid stats={stats} isMobile={isMobile} />
-        
-        <DistributionCharts 
-          distributions={distributions} 
-          isMobile={isMobile} 
+
+        <DistributionCharts
+          distributions={distributions}
+          isMobile={isMobile}
           isRtl={isRtl}
         />
-        
-        <MonthlyTimelineChart 
-          data={monthlyTimeline} 
-          isMobile={isMobile} 
+
+        <MonthlyTimelineChart
+          data={monthlyTimeline}
+          isMobile={isMobile}
           isRtl={isRtl}
         />
-        
+
         <TopResearchersTable 
-          data={topResearchers} 
+          data={topResearchers}
           totalParasites={stats.totalParasites}
           isMobile={isMobile}
           isRtl={isRtl}
         />
-        
+
         <SummaryPanels stats={stats} />
-        
+
         {stats.totalParasites === 0 && <EmptyState />}
       </Container>
     </Box>
   );
 };
-
-// --- Helper Functions (Keep them here to avoid 'util' file imports issues for now) ---
 
 const calculateStats = (parasites: Parasite[]): Stats => {
   if (!parasites?.length) {
@@ -112,34 +108,43 @@ const calculateStats = (parasites: Parasite[]): Stats => {
     totalSupervisors: uniqueSupervisors.size,
     uniqueHosts: uniqueHosts.size,
     uniqueTypes: uniqueTypes.size,
-    averageParasitesPerStudent: uniqueStudents.size > 0 
-      ? (parasites.length / uniqueStudents.size).toFixed(2) 
+    averageParasitesPerStudent: uniqueStudents.size > 0
+      ? (parasites.length / uniqueStudents.size).toFixed(2)
       : '0',
   };
 };
 
-const buildDistribution = (items: Parasite[], getKey: (p: Parasite) => string | undefined, unknown: string) => {
+const buildDistribution = (items: Parasite[], getKey: (p: Parasite) => string | undefined, unknownLabel: string) => {
   const map = new Map<string, number>();
   items.forEach(p => {
-    const key = getKey(p) || unknown;
+    const key = getKey(p) || unknownLabel;
     map.set(key, (map.get(key) || 0) + 1);
   });
   return Array.from(map, ([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
 };
 
 const calculateDistributions = (parasites: Parasite[], t: any) => ({
-  hostDistribution: buildDistribution(parasites, p => p.host || p.hostSpecies, t('unknown')),
-  sampleTypeDistribution: buildDistribution(parasites, p => p.sampleType || p.sampletype, t('unknown')),
-  parasiteTypes: buildDistribution(parasites, p => p.type, t('unknown')),
-  stageDistribution: buildDistribution(parasites, p => p.stage, t('unknown')),
+  hostDistribution: buildDistribution(parasites, p => p.host || p.hostSpecies, t('stats_no_data')),
+  sampleTypeDistribution: buildDistribution(parasites, p => p.sampleType || p.sampletype, t('stats_no_data')),
+  parasiteTypes: buildDistribution(parasites, p => p.type, t('stats_no_data')),
+  stageDistribution: buildDistribution(parasites, p => p.stage, t('stats_no_data')),
 });
 
 const calculateMonthlyTimeline = (parasites: Parasite[], t: any) => {
   const months = [
-    t('month_jan'), t('month_feb'), t('month_mar'), t('month_apr'),
-    t('month_may'), t('month_jun'), t('month_jul'), t('month_aug'),
-    t('month_sep'), t('month_oct'), t('month_nov'), t('month_dec'),
-  ].map((m, i) => m || ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][i]);
+    t('stats_month_jan') || 'يناير',
+    t('stats_month_feb') || 'فبراير', 
+    t('stats_month_mar') || 'مارس',
+    t('stats_month_apr') || 'أبريل',
+    t('stats_month_may') || 'مايو',
+    t('stats_month_jun') || 'يونيو',
+    t('stats_month_jul') || 'يوليو',
+    t('stats_month_aug') || 'أغسطس',
+    t('stats_month_sep') || 'سبتمبر',
+    t('stats_month_oct') || 'أكتوبر',
+    t('stats_month_nov') || 'نوفمبر',
+    t('stats_month_dec') || 'ديسمبر',
+  ];
 
   const monthMap = new Map<string, { parasites: number; images: number }>();
   months.forEach(month => monthMap.set(month, { parasites: 0, images: 0 }));
@@ -163,7 +168,7 @@ const calculateMonthlyTimeline = (parasites: Parasite[], t: any) => {
 const calculateTopResearchers = (parasites: Parasite[], t: any) => {
   const studentMap = new Map<string, number>();
   parasites.forEach((p: Parasite) => {
-    const student = p.studentName || t('unknown');
+    const student = p.studentName || t('stats_no_data');
     studentMap.set(student, (studentMap.get(student) || 0) + 1);
   });
   return Array.from(studentMap, ([name, value]) => ({ name, value }))

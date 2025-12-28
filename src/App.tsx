@@ -1,7 +1,9 @@
-import React from 'react';
+﻿import React, { useMemo } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { Box, CssBaseline } from '@mui/material';
+import { Box, CssBaseline, ThemeProvider } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 import { colors } from './theme/colors';
+import { getTheme } from './theme/theme';
 
 // الصفحات
 import Home from './pages/Home';
@@ -28,44 +30,51 @@ const NotFound = () => (
 );
 
 function App() {
+  const { i18n } = useTranslation();
+  
+  //  Theme ديناميكي يتغير مع اللغة
+  const theme = useMemo(() => getTheme(i18n.language), [i18n.language]);
+
   return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        bgcolor: colors.background.default,
-        color: colors.text.primary,
-      }}
-    >
-      <CssBaseline />
+    <ThemeProvider theme={theme}>
+      <Box
+        sx={{
+          minHeight: '100vh',
+          bgcolor: colors.background.default,
+          color: colors.text.primary,
+        }}
+      >
+        <CssBaseline />
 
-      <Navbar />
+        <Navbar />
 
-      <Routes>
-        {/* الرئيسية */}
-        <Route path="/" element={<Home />} />
+        <Routes>
+          {/* الرئيسية */}
+          <Route path="/" element={<Home />} />
 
-        {/* الأرشيف + تفاصيل الطفيلي */}
-        <Route path="/archive" element={<Archive />} />
-        <Route path="/parasite/:id" element={<ParasiteDetails />} />
+          {/* الأرشيف + تفاصيل الطفيلي */}
+          <Route path="/archive" element={<Archive />} />
+          <Route path="/parasite/:id" element={<ParasiteDetails />} />
 
-        {/* إضافة عينة */}
-        <Route path="/add" element={<AddParasite />} />
-        <Route path="/add-parasite" element={<Navigate to="/add" replace />} />
+          {/* إضافة عينة */}
+          <Route path="/add" element={<AddParasite />} />
+          <Route path="/add-parasite" element={<Navigate to="/add" replace />} />
 
-        {/* الإحصائيات */}
-        <Route path="/statistics" element={<Statistics />} />
+          {/* الإحصائيات */}
+          <Route path="/statistics" element={<Statistics />} />
 
-        {/* مراجعة العينات من طرف الدكاترة */}
-        <Route path="/review" element={<ReviewParasites />} />
+          {/* مراجعة العينات من طرف الدكاترة */}
+          <Route path="/review" element={<ReviewParasites />} />
 
-        {/* المصادقة */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+          {/* المصادقة */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
 
-        {/* 404 */}
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </Box>
+          {/* 404 */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Box>
+    </ThemeProvider>
   );
 }
 

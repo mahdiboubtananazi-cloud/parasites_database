@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import {
   Box,
   Container,
@@ -43,7 +43,7 @@ const Footer: React.FC = () => {
               textAlign: i18n.language === 'ar' ? 'right' : 'left',
             }}
           >
-            {/* 1) معلومات الجامعة */}
+            {/* معلومات الجامعة */}
             <Box>
               <Stack spacing={3}>
                 <Stack direction="row" spacing={2} alignItems="center">
@@ -73,12 +73,12 @@ const Footer: React.FC = () => {
                 </Stack>
                 <Divider sx={{ borderColor: 'rgba(255,255,255,0.1)' }} />
                 <Typography variant="body2" sx={{ lineHeight: 1.8, maxWidth: 320, opacity: 0.8 }}>
-                  Advanced Parasitology Research Platform.
+                  {t('app_subtitle')}
                 </Typography>
               </Stack>
             </Box>
 
-            {/* 2) روابط المنصة */}
+            {/* روابط المنصة */}
             <Box>
               <Typography
                 variant="subtitle2"
@@ -91,13 +91,13 @@ const Footer: React.FC = () => {
                   fontSize: '0.75rem',
                 }}
               >
-                Platform
+                {t('nav_dashboard')}
               </Typography>
               <Stack spacing={2}>
                 {[
-                  { label: t('nav_archive') || 'Archive', path: '/archive' },
-                  { label: t('nav_add') || 'Add Sample', path: '/add' },
-                  { label: t('nav_stats') || 'Statistics', path: '/statistics' },
+                  { label: t('nav_archive'), path: '/archive' },
+                  { label: t('nav_add_parasite'), path: '/add' },
+                  { label: t('nav_statistics'), path: '/statistics' },
                 ].map((item, idx) => (
                   <Link
                     key={idx}
@@ -118,7 +118,7 @@ const Footer: React.FC = () => {
               </Stack>
             </Box>
 
-            {/* 3) مصادر عالمية */}
+            {/* مصادر عالمية */}
             <Box>
               <Typography
                 variant="subtitle2"
@@ -172,7 +172,7 @@ const Footer: React.FC = () => {
               </Stack>
             </Box>
 
-            {/* 4) التواصل */}
+            {/* التواصل */}
             <Box>
               <Typography
                 variant="subtitle2"
@@ -202,7 +202,7 @@ const Footer: React.FC = () => {
                 }}
               >
                 <Typography variant="body1" fontWeight={700} sx={{ color: '#ffffff', mb: 1.5 }}>
-                  Mehdi Boubetana
+                  {t('developer')}
                 </Typography>
                 <Link
                   href="mailto:mehdi.boubetana@gmail.com"
@@ -212,9 +212,10 @@ const Footer: React.FC = () => {
                     display: 'flex',
                     alignItems: 'center',
                     gap: 1.5,
-                    fontSize: '0.95rem',
+                    fontSize: '0.85rem',
                     transition: 'color 0.3s ease',
                     '&:hover': { color: '#7fb896' },
+                    wordBreak: 'break-all',
                   }}
                 >
                   <Mail size={16} /> mehdi.boubetana@gmail.com
@@ -226,7 +227,7 @@ const Footer: React.FC = () => {
           <Divider sx={{ my: 4, borderColor: 'rgba(127,184,150,0.15)' }} />
 
           <Typography variant="body2" align="center" sx={{ opacity: 0.5 }}>
-            © 2025 Parasites Database. University of Larbi Ben M'hidi.
+             2025 {t('app_title')}. University of Larbi Ben M'hidi.
           </Typography>
         </Container>
       </Box>

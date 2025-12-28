@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Box, Container, Typography, Stack, InputBase, IconButton, useTheme, useMediaQuery } from '@mui/material';
 import { Search, Microscope } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -8,6 +8,7 @@ const HeroSection = () => {
   const { t } = useTranslation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isSmallMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   return (
     <Box
@@ -18,36 +19,33 @@ const HeroSection = () => {
         minHeight: { xs: 'auto', md: '90vh' },
         display: 'flex',
         alignItems: 'center',
-        pt: { xs: 8, md: 0 },
-        pb: { xs: 8, md: 0 },
+        pt: { xs: 4, md: 0 },
+        pb: { xs: 6, md: 0 },
       }}
     >
       <Container maxWidth="lg">
         <Stack
-          direction={{ xs: 'column-reverse', md: 'row' }}
+          direction={{ xs: 'column', md: 'row' }}
           alignItems="center"
           justifyContent="space-between"
-          spacing={6}
+          spacing={{ xs: 4, md: 6 }}
         >
-          {/* ===== 1. النص والبحث ===== */}
+          {/* النص والبحث */}
           <Box sx={{ width: { xs: '100%', md: '55%' }, zIndex: 2 }}>
-            
             {/* العنوان الضخم */}
             <Typography
               variant="h1"
               sx={{
                 color: colors.primary.main,
                 fontWeight: 900,
-                fontSize: { xs: '3rem', sm: '4rem', md: '5.5rem' },
-                lineHeight: 0.9,
-                letterSpacing: -2,
-                mb: 3,
-                textTransform: 'uppercase',
+                fontSize: { xs: '2rem', sm: '2.8rem', md: '4.5rem' },
+                lineHeight: 1.1,
+                letterSpacing: { xs: -1, md: -1.5 },
+                mb: { xs: 2, md: 3 },
+                textAlign: { xs: 'center', md: 'right' },
               }}
             >
-              PARASITOLOGY
-              <br />
-              <Box component="span" sx={{ color: colors.secondary.light }}>ARCHIVE</Box>
+              {t('app_title')}
             </Typography>
 
             {/* الجملة الملهمة */}
@@ -56,48 +54,53 @@ const HeroSection = () => {
               sx={{
                 color: colors.text.secondary,
                 fontWeight: 400,
-                fontSize: { xs: '1.1rem', md: '1.4rem' },
+                fontSize: { xs: '0.95rem', sm: '1.1rem', md: '1.3rem' },
                 lineHeight: 1.6,
-                mb: 6,
-                maxWidth: '90%',
-                fontStyle: 'italic',
-                borderLeft: `4px solid ${colors.secondary.light}`,
-                pl: 3,
+                mb: { xs: 3, md: 6 },
+                maxWidth: '100%',
+                borderLeft: { xs: 'none', md: `4px solid ${colors.secondary.light}` },
+                borderTop: { xs: `3px solid ${colors.secondary.light}`, md: 'none' },
+                pl: { xs: 0, md: 3 },
+                pt: { xs: 2, md: 0 },
+                textAlign: { xs: 'center', md: 'right' },
               }}
             >
-              "Unveiling the invisible world, one sample at a time. Preserving knowledge for the future of medicine."
+              {t('hero_description')}
             </Typography>
 
-            {/* شريط البحث الاحترافي المصغر */}
+            {/* شريط البحث */}
             <Box
               component="form"
               sx={{
                 display: 'flex',
                 alignItems: 'center',
-                width: { xs: '100%', md: '420px' },
-                height: '56px',
+                width: '100%',
+                maxWidth: { xs: '100%', md: '420px' },
+                height: { xs: '50px', md: '56px' },
                 bgcolor: '#fff',
                 borderRadius: '50px',
                 boxShadow: '0 8px 30px rgba(11, 43, 38, 0.08)',
                 border: `1px solid ${colors.primary.lighter}20`,
                 transition: 'all 0.3s ease',
+                mx: { xs: 'auto', md: 0 },
                 '&:hover': {
                   boxShadow: '0 12px 40px rgba(11, 43, 38, 0.12)',
                   borderColor: colors.primary.light,
                 },
-                pl: 3,
+                pl: { xs: 2, md: 3 },
                 pr: 1,
               }}
             >
               <InputBase
-                placeholder={t('search_placeholder') || 'Search by scientific name...'}
+                placeholder={t('search_placeholder')}
                 sx={{
                   flex: 1,
-                  fontSize: '1rem',
+                  fontSize: { xs: '0.9rem', md: '1rem' },
                   color: colors.text.primary,
                   '& input::placeholder': {
                     color: colors.text.secondary,
                     opacity: 0.7,
+                    fontSize: { xs: '0.85rem', md: '1rem' },
                   },
                 }}
               />
@@ -106,34 +109,34 @@ const HeroSection = () => {
                 sx={{
                   bgcolor: colors.primary.main,
                   color: '#fff',
-                  width: '40px',
-                  height: '40px',
+                  width: { xs: '36px', md: '40px' },
+                  height: { xs: '36px', md: '40px' },
                   '&:hover': { bgcolor: colors.primary.light },
                 }}
               >
-                <Search size={20} />
+                <Search size={18} />
               </IconButton>
             </Box>
-
           </Box>
 
-          {/* ===== 2. صورة الميكروسكوب الأخضر الداكن ===== */}
+          {/* صورة الميكروسكوب */}
           <Box
             sx={{
               width: { xs: '100%', md: '45%' },
-              height: { xs: '300px', md: '500px' },
+              height: { xs: '180px', sm: '250px', md: '500px' },
               display: 'flex',
               justifyContent: 'center',
               alignItems: 'center',
               position: 'relative',
+              order: { xs: -1, md: 0 },
             }}
           >
-            {/* دائرة خلفية خفيفة */}
+            {/* دائرة خلفية */}
             <Box
               sx={{
                 position: 'absolute',
-                width: { xs: '250px', md: '450px' },
-                height: { xs: '250px', md: '450px' },
+                width: { xs: '150px', sm: '200px', md: '450px' },
+                height: { xs: '150px', sm: '200px', md: '450px' },
                 borderRadius: '50%',
                 bgcolor: colors.secondary.light,
                 opacity: 0.3,
@@ -142,12 +145,16 @@ const HeroSection = () => {
               }}
             />
 
-            {/* الميكروسكوب كأيقونة ضخمة (Placeholder) */}
-            <Microscope 
-              size={isMobile ? 200 : 380} 
+            {/* الميكروسكوب */}
+            <Microscope
+              size={isSmallMobile ? 120 : isMobile ? 160 : 380}
               color={colors.primary.main}
               strokeWidth={1}
-              style={{ zIndex: 1, filter: 'drop-shadow(0 20px 30px rgba(11,43,38,0.2))' }}
+              style={{ 
+                zIndex: 1, 
+                filter: 'drop-shadow(0 20px 30px rgba(11,43,38,0.2))',
+                opacity: isSmallMobile ? 0.8 : 1,
+              }}
             />
           </Box>
         </Stack>

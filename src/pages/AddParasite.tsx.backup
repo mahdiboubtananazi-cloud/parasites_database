@@ -61,6 +61,7 @@ export default function AddParasite() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // القوائم مع الترجمة
   const PARASITE_TYPES = [
     { value: 'Protozoa', label: 'Protozoa' },
     { value: 'Helminths', label: 'Helminths' },
@@ -155,30 +156,57 @@ export default function AddParasite() {
 
   return (
     <Container maxWidth="lg" sx={{ py: { xs: 3, md: 6 } }}>
+      {/* HEADER */}
       <Box sx={{ mb: 4, textAlign: 'center' }}>
-        <Typography variant="h4" fontWeight={800} color="primary" sx={{ mb: 1 }}>
+        <Typography
+          variant="h4"
+          fontWeight={800}
+          color="primary"
+          sx={{ mb: 1 }}
+        >
           {t('add_parasite_title')}
         </Typography>
-        <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 600, mx: 'auto' }}>
+        <Typography
+          variant="body1"
+          color="text.secondary"
+          sx={{ maxWidth: 600, mx: 'auto' }}
+        >
           {t('add_parasite_subtitle')}
         </Typography>
       </Box>
 
+      {/* MAIN FORM */}
       <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate>
         <Grid container spacing={3}>
-          <Grid size={{ xs: 12, md: 8 }}>
+          {/* LEFT COLUMN */}
+          <Grid item xs={12} md={8}>
             <Stack spacing={3}>
+              {/* بطاقة 1: التصنيف العلمي */}
               <Paper
                 elevation={0}
                 sx={{
                   p: 3,
                   borderRadius: 2,
                   border: `1px solid ${theme.palette.divider}`,
-                  background: `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.05)} 0%, transparent 100%)`,
+                  background: `linear-gradient(135deg, ${alpha(
+                    theme.palette.primary.main,
+                    0.05,
+                  )} 0%, transparent 100%)`,
                 }}
               >
-                <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2.5 }}>
-                  <Box sx={{ p: 1, bgcolor: alpha(theme.palette.primary.main, 0.15), borderRadius: 1.5 }}>
+                <Stack
+                  direction="row"
+                  spacing={1.5}
+                  alignItems="center"
+                  sx={{ mb: 2.5 }}
+                >
+                  <Box
+                    sx={{
+                      p: 1,
+                      bgcolor: alpha(theme.palette.primary.main, 0.15),
+                      borderRadius: 1.5,
+                    }}
+                  >
                     <Microscope size={20} color={theme.palette.primary.main} />
                   </Box>
                   <Typography variant="h6" fontWeight={700}>
@@ -188,9 +216,11 @@ export default function AddParasite() {
                 <Divider sx={{ mb: 2.5 }} />
 
                 <Grid container spacing={2}>
-                  <Grid size={{ xs: 12 }}>
+                  <Grid item xs={12}>
                     <TextField
-                      {...register('scientificName', { required: t('error_required') })}
+                      {...register('scientificName', {
+                        required: t('error_required'),
+                      })}
                       fullWidth
                       required
                       label={t('label_scientific_name')}
@@ -201,7 +231,7 @@ export default function AddParasite() {
                     />
                   </Grid>
 
-                  <Grid size={{ xs: 12, sm: 6 }}>
+                  <Grid item xs={12} sm={6}>
                     <TextField
                       {...register('name')}
                       fullWidth
@@ -210,11 +240,13 @@ export default function AddParasite() {
                     />
                   </Grid>
 
-                  <Grid size={{ xs: 12, sm: 6 }}>
+                  <Grid item xs={12} sm={6}>
                     <Controller
                       name="type"
                       control={control}
-                      rules={{ required: t('error_required') }}
+                      rules={{
+                        required: t('error_required'),
+                      }}
                       render={({ field }) => (
                         <TextField
                           {...field}
@@ -235,11 +267,13 @@ export default function AddParasite() {
                     />
                   </Grid>
 
-                  <Grid size={{ xs: 12, sm: 6 }}>
+                  <Grid item xs={12} sm={6}>
                     <Controller
                       name="stage"
                       control={control}
-                      rules={{ required: t('error_required') }}
+                      rules={{
+                        required: t('error_required'),
+                      }}
                       render={({ field }) => (
                         <TextField
                           {...field}
@@ -260,7 +294,7 @@ export default function AddParasite() {
                     />
                   </Grid>
 
-                  <Grid size={{ xs: 12, sm: 6 }}>
+                  <Grid item xs={12} sm={6}>
                     <TextField
                       {...register('host')}
                       fullWidth
@@ -271,17 +305,32 @@ export default function AddParasite() {
                 </Grid>
               </Paper>
 
+              {/* بطاقة 2: بيانات العينة والفحص */}
               <Paper
                 elevation={0}
                 sx={{
                   p: 3,
                   borderRadius: 2,
                   border: `1px solid ${theme.palette.divider}`,
-                  background: `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.05)} 0%, transparent 100%)`,
+                  background: `linear-gradient(135deg, ${alpha(
+                    theme.palette.primary.main,
+                    0.05,
+                  )} 0%, transparent 100%)`,
                 }}
               >
-                <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2.5 }}>
-                  <Box sx={{ p: 1, bgcolor: alpha(theme.palette.primary.main, 0.15), borderRadius: 1.5 }}>
+                <Stack
+                  direction="row"
+                  spacing={1.5}
+                  alignItems="center"
+                  sx={{ mb: 2.5 }}
+                >
+                  <Box
+                    sx={{
+                      p: 1,
+                      bgcolor: alpha(theme.palette.primary.main, 0.15),
+                      borderRadius: 1.5,
+                    }}
+                  >
                     <FileText size={20} color={theme.palette.primary.main} />
                   </Box>
                   <Typography variant="h6" fontWeight={700}>
@@ -291,11 +340,13 @@ export default function AddParasite() {
                 <Divider sx={{ mb: 2.5 }} />
 
                 <Grid container spacing={2}>
-                  <Grid size={{ xs: 12, sm: 6 }}>
+                  <Grid item xs={12} sm={6}>
                     <Controller
                       name="sampleType"
                       control={control}
-                      rules={{ required: t('error_required') }}
+                      rules={{
+                        required: t('error_required'),
+                      }}
                       render={({ field }) => (
                         <TextField
                           {...field}
@@ -316,11 +367,13 @@ export default function AddParasite() {
                     />
                   </Grid>
 
-                  <Grid size={{ xs: 12, sm: 6 }}>
+                  <Grid item xs={12} sm={6}>
                     <Controller
                       name="stainColor"
                       control={control}
-                      rules={{ required: t('error_required') }}
+                      rules={{
+                        required: t('error_required'),
+                      }}
                       render={({ field }) => (
                         <TextField
                           {...field}
@@ -341,7 +394,7 @@ export default function AddParasite() {
                     />
                   </Grid>
 
-                  <Grid size={{ xs: 12 }}>
+                  <Grid item xs={12}>
                     <TextField
                       {...register('location')}
                       fullWidth
@@ -357,7 +410,7 @@ export default function AddParasite() {
                     />
                   </Grid>
 
-                  <Grid size={{ xs: 12 }}>
+                  <Grid item xs={12}>
                     <TextField
                       {...register('description')}
                       fullWidth
@@ -370,17 +423,32 @@ export default function AddParasite() {
                 </Grid>
               </Paper>
 
+              {/* بطاقة 3: التوثيق والمسؤولية */}
               <Paper
                 elevation={0}
                 sx={{
                   p: 3,
                   borderRadius: 2,
                   border: `1px solid ${theme.palette.divider}`,
-                  background: `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.05)} 0%, transparent 100%)`,
+                  background: `linear-gradient(135deg, ${alpha(
+                    theme.palette.primary.main,
+                    0.05,
+                  )} 0%, transparent 100%)`,
                 }}
               >
-                <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2.5 }}>
-                  <Box sx={{ p: 1, bgcolor: alpha(theme.palette.primary.main, 0.15), borderRadius: 1.5 }}>
+                <Stack
+                  direction="row"
+                  spacing={1.5}
+                  alignItems="center"
+                  sx={{ mb: 2.5 }}
+                >
+                  <Box
+                    sx={{
+                      p: 1,
+                      bgcolor: alpha(theme.palette.primary.main, 0.15),
+                      borderRadius: 1.5,
+                    }}
+                  >
                     <User size={20} color={theme.palette.primary.main} />
                   </Box>
                   <Typography variant="h6" fontWeight={700}>
@@ -390,9 +458,11 @@ export default function AddParasite() {
                 <Divider sx={{ mb: 2.5 }} />
 
                 <Grid container spacing={2}>
-                  <Grid size={{ xs: 12, sm: 6 }}>
+                  <Grid item xs={12} sm={6}>
                     <TextField
-                      {...register('studentName', { required: t('error_required') })}
+                      {...register('studentName', {
+                        required: t('error_required'),
+                      })}
                       fullWidth
                       required
                       label={t('label_researcher_name')}
@@ -401,7 +471,7 @@ export default function AddParasite() {
                     />
                   </Grid>
 
-                  <Grid size={{ xs: 12, sm: 6 }}>
+                  <Grid item xs={12} sm={6}>
                     <TextField
                       {...register('supervisorName')}
                       fullWidth
@@ -414,8 +484,10 @@ export default function AddParasite() {
             </Stack>
           </Grid>
 
-          <Grid size={{ xs: 12, md: 4 }}>
+          {/* RIGHT COLUMN: IMAGE UPLOAD */}
+          <Grid item xs={12} md={4}>
             <Stack spacing={3}>
+              {/* Image Upload Card */}
               <Paper
                 elevation={0}
                 sx={{
@@ -423,17 +495,30 @@ export default function AddParasite() {
                   borderRadius: 2,
                   border: `1px solid ${theme.palette.divider}`,
                   textAlign: 'center',
-                  background: `linear-gradient(135deg, ${alpha('#10B981', 0.06)} 0%, transparent 100%)`,
+                  background: `linear-gradient(135deg, ${alpha(
+                    '#10B981',
+                    0.06,
+                  )} 0%, transparent 100%)`,
                 }}
               >
-                <Typography variant="h6" fontWeight={700} sx={{ mb: 2, color: '#14532d' }}>
+                <Typography
+                  variant="h6"
+                  fontWeight={700}
+                  sx={{ mb: 2, color: '#14532d' }}
+                >
                   {t('label_microscopic_image')}
                 </Typography>
 
                 <Box
-                  onClick={() => document.getElementById('image-upload')?.click()}
+                  onClick={() =>
+                    document.getElementById('image-upload')?.click()
+                  }
                   sx={{
-                    border: `2px dashed ${imagePreview ? theme.palette.success.main : theme.palette.divider}`,
+                    border: `2px dashed ${
+                      imagePreview
+                        ? theme.palette.success.main
+                        : theme.palette.divider
+                    }`,
                     borderRadius: 2,
                     p: 3,
                     bgcolor: alpha(theme.palette.background.default, 0.6),
@@ -486,10 +571,19 @@ export default function AddParasite() {
                     </>
                   ) : (
                     <Stack alignItems="center" spacing={1.5}>
-                      <Box sx={{ p: 2, bgcolor: alpha(theme.palette.primary.main, 0.12), borderRadius: '50%' }}>
+                      <Box
+                        sx={{
+                          p: 2,
+                          bgcolor: alpha(theme.palette.primary.main, 0.12),
+                          borderRadius: '50%',
+                        }}
+                      >
                         <Upload size={32} color={theme.palette.primary.main} />
                       </Box>
-                      <Typography variant="body2" sx={{ fontWeight: 600, color: '#14532d' }}>
+                      <Typography
+                        variant="body2"
+                        sx={{ fontWeight: 600, color: '#14532d' }}
+                      >
                         {t('upload_hint')}
                       </Typography>
                       <Typography variant="caption" color="text.disabled">
@@ -498,17 +592,30 @@ export default function AddParasite() {
                     </Stack>
                   )}
 
-                  <input type="file" id="image-upload" hidden accept="image/*" onChange={handleImageChange} />
+                  <input
+                    type="file"
+                    id="image-upload"
+                    hidden
+                    accept="image/*"
+                    onChange={handleImageChange}
+                  />
                 </Box>
               </Paper>
 
+              {/* Action Buttons */}
               <Stack spacing={2}>
                 <Button
                   type="submit"
                   variant="contained"
                   size="large"
                   disabled={isSubmitting || !user}
-                  startIcon={isSubmitting ? <CircularProgress size={20} color="inherit" /> : <Save size={20} />}
+                  startIcon={
+                    isSubmitting ? (
+                      <CircularProgress size={20} color="inherit" />
+                    ) : (
+                      <Save size={20} />
+                    )
+                  }
                   sx={{
                     py: 1.5,
                     fontWeight: 700,
@@ -516,7 +623,10 @@ export default function AddParasite() {
                     textTransform: 'none',
                     backgroundColor: '#064E3B',
                     boxShadow: theme.shadows[4],
-                    '&:hover': { backgroundColor: '#022C22', boxShadow: theme.shadows[8] },
+                    '&:hover': {
+                      backgroundColor: '#022C22',
+                      boxShadow: theme.shadows[8],
+                    },
                   }}
                 >
                   {isSubmitting ? t('submitting') : t('btn_save_archive')}
