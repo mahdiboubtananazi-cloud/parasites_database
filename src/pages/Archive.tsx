@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
 import Container from '@mui/material/Container';
@@ -45,7 +45,7 @@ const Archive: React.FC = () => {
     fetchParasites();
   }, []);
 
-  // استخراج القيم المميزة للفلاتر
+  // ??????? ????? ??????? ???????
   const distinctTypes = useMemo(
     () => Array.from(new Set(parasites.map((p) => p.type).filter(Boolean))) as string[],
     [parasites]
@@ -134,7 +134,7 @@ const Archive: React.FC = () => {
               />
             </Paper>
 
-            {/* زر الفلتر */}
+            {/* ?? ?????? */}
             <Paper
               elevation={2}
               sx={{
@@ -159,7 +159,7 @@ const Archive: React.FC = () => {
           </Box>
         </Box>
 
-        {/* لوحة الفلاتر الأكاديمية */}
+        {/* ???? ??????? ?????????? */}
         {showFilters && (
           <Paper
             elevation={1}
@@ -171,7 +171,7 @@ const Archive: React.FC = () => {
             }}
           >
             <Stack direction="row" spacing={4} flexWrap="wrap" rowGap={2}>
-              {/* نوع الطفيلي */}
+              {/* ??? ??????? */}
               <Box>
                 <Typography variant="subtitle2" sx={{ mb: 1, color: '#051F20' }}>
                   {t('filter_type')}
@@ -197,7 +197,7 @@ const Archive: React.FC = () => {
                 </Stack>
               </Box>
 
-              {/* المرحلة */}
+              {/* ??????? */}
               <Box>
                 <Typography variant="subtitle2" sx={{ mb: 1, color: '#051F20' }}>
                   {t('filter_stage')}
@@ -226,7 +226,7 @@ const Archive: React.FC = () => {
           </Paper>
         )}
 
-        {/* شبكة البطاقات */}
+        {/* ???? ???????? */}
         {loading ? (
           <Box
             minHeight={200}
@@ -245,7 +245,7 @@ const Archive: React.FC = () => {
         ) : (
           <Grid container spacing={3} pb={6}>
             {filteredParasites.map((parasite) => (
-              <Grid item xs={12} sm={6} md={4} lg={3} key={parasite.id}>
+              <Grid size={{ xs={12} sm={6} md={4} lg={3} key={parasite.id}>
                 <ParasiteCard parasite={parasite} />
               </Grid>
             ))}
