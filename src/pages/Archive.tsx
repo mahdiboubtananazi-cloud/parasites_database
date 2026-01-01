@@ -18,6 +18,7 @@ import { Search, Filter, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useParasitesPaginated, useFilterOptions } from '../hooks/useParasitesQuery';
 import ParasiteCard from '../components/archive/ParasiteCard';
+import { colors } from '../theme/colors';
 
 const Archive: React.FC = () => {
   const { t } = useTranslation();
@@ -34,7 +35,7 @@ const Archive: React.FC = () => {
   React.useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(searchTerm);
-      setPage(1); // إعادة للصفحة الأولى عند البحث
+      setPage(1);
     }, 500);
     return () => clearTimeout(timer);
   }, [searchTerm]);
@@ -69,8 +70,9 @@ const Archive: React.FC = () => {
     <Box
       sx={{
         minHeight: '100vh',
-        background: 'linear-gradient(to bottom, #0d1f15, #1a3d2a, #2d5a3d)',
-        pt: 10,
+        // خلفية فاتحة بدل الغامقة
+        background: `linear-gradient(to bottom, ${colors.background.default}, #f0f7f4, #e8f5e9)`,
+        pt: { xs: 8, md: 10 },
         pb: 6,
       }}
     >
@@ -83,10 +85,9 @@ const Archive: React.FC = () => {
               sx={{
                 fontWeight: 900,
                 mb: 2,
-                background: 'linear-gradient(135deg, #ffffff 0%, #c8e6d5 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
+                color: colors.primary.main,
                 textAlign: 'center',
+                fontSize: { xs: '1.8rem', sm: '2.2rem', md: '2.8rem' },
               }}
             >
               {t('archive_title', { defaultValue: 'أرشيف الطفيليات' })}
@@ -95,10 +96,11 @@ const Archive: React.FC = () => {
             <Typography
               variant="body1"
               sx={{
-                color: 'rgba(255,255,255,0.8)',
+                color: colors.text.secondary,
                 textAlign: 'center',
                 maxWidth: 600,
                 mx: 'auto',
+                fontSize: { xs: '0.9rem', md: '1rem' },
               }}
             >
               {t('archive_subtitle', {
@@ -111,9 +113,10 @@ const Archive: React.FC = () => {
               <Typography
                 variant="body2"
                 sx={{
-                  color: 'rgba(255,255,255,0.6)',
+                  color: colors.text.secondary,
                   textAlign: 'center',
                   mt: 1,
+                  opacity: 0.8,
                 }}
               >
                 {t('total_results', {
@@ -139,14 +142,18 @@ const Archive: React.FC = () => {
                 mx: 'auto',
                 width: '100%',
                 borderRadius: '50px',
-                background: 'rgba(255,255,255,0.95)',
-                backdropFilter: 'blur(20px)',
-                border: '2px solid rgba(127,184,150,0.3)',
-                boxShadow: '0 20px 50px -10px rgba(0,0,0,0.4)',
+                background: '#ffffff',
+                border: `2px solid ${colors.primary.lighter}`,
+                boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+                transition: 'all 0.3s ease',
+                '&:focus-within': {
+                  borderColor: colors.primary.main,
+                  boxShadow: `0 4px 25px ${colors.primary.main}20`,
+                },
               }}
             >
-              <InputAdornment position="start" sx={{ pl: 3, color: '#2d5a3d' }}>
-                <Search size={26} strokeWidth={2.5} />
+              <InputAdornment position="start" sx={{ pl: 3, color: colors.primary.main }}>
+                <Search size={24} strokeWidth={2.5} />
               </InputAdornment>
 
               <TextField
@@ -160,10 +167,10 @@ const Archive: React.FC = () => {
                 InputProps={{
                   disableUnderline: true,
                   sx: {
-                    fontSize: '1.1rem',
-                    fontWeight: 600,
-                    color: '#0d1f15',
-                    px: 3,
+                    fontSize: '1rem',
+                    fontWeight: 500,
+                    color: colors.text.primary,
+                    px: 2,
                   },
                 }}
               />
@@ -177,16 +184,17 @@ const Archive: React.FC = () => {
                     borderRadius: '50%',
                     cursor: 'pointer',
                     display: 'flex',
-                    '&:hover': { bgcolor: alpha('#2d5a3d', 0.1) },
+                    transition: 'all 0.2s',
+                    '&:hover': { bgcolor: alpha(colors.primary.main, 0.1) },
                   }}
                 >
-                  <X size={20} color="#5a7a66" />
+                  <X size={20} color={colors.text.secondary} />
                 </Box>
               )}
 
               {/* Loading indicator */}
               {isFetching && (
-                <CircularProgress size={20} sx={{ mr: 2, color: '#2d5a3d' }} />
+                <CircularProgress size={20} sx={{ mr: 2, color: colors.primary.main }} />
               )}
             </Paper>
 
@@ -194,25 +202,28 @@ const Archive: React.FC = () => {
             <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, flexWrap: 'wrap' }}>
               <Paper
                 onClick={() => setShowFilters(!showFilters)}
+                elevation={0}
                 sx={{
-                  px: 4,
-                  py: 1.5,
+                  px: 3,
+                  py: 1.2,
                   borderRadius: '50px',
                   cursor: 'pointer',
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: 1.5,
-                  background: showFilters
-                    ? 'linear-gradient(135deg, #3a7050 0%, #2d5a3d 100%)'
-                    : 'rgba(255,255,255,0.1)',
-                  color: showFilters ? '#ffffff' : 'rgba(255,255,255,0.9)',
+                  background: showFilters ? colors.primary.main : '#ffffff',
+                  color: showFilters ? '#ffffff' : colors.primary.main,
+                  border: `2px solid ${colors.primary.main}`,
                   fontWeight: 700,
                   transition: 'all 0.3s ease',
-                  '&:hover': { transform: 'translateY(-2px)' },
+                  '&:hover': {
+                    transform: 'translateY(-2px)',
+                    boxShadow: `0 4px 15px ${colors.primary.main}30`,
+                  },
                 }}
               >
-                <Filter size={20} strokeWidth={2.5} />
-                <Typography variant="body1" fontWeight={700}>
+                <Filter size={18} strokeWidth={2.5} />
+                <Typography variant="body2" fontWeight={700}>
                   {t('filter_toggle', { defaultValue: 'الفلاتر' })}
                   {activeFiltersCount > 0 && ` (${activeFiltersCount})`}
                 </Typography>
@@ -221,20 +232,26 @@ const Archive: React.FC = () => {
               {activeFiltersCount > 0 && (
                 <Paper
                   onClick={clearAllFilters}
+                  elevation={0}
                   sx={{
                     px: 3,
-                    py: 1.5,
+                    py: 1.2,
                     borderRadius: '50px',
                     cursor: 'pointer',
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: 1,
-                    background: 'rgba(220, 38, 38, 0.9)',
+                    background: '#ef4444',
                     color: '#ffffff',
                     fontWeight: 600,
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      background: '#dc2626',
+                      transform: 'translateY(-2px)',
+                    },
                   }}
                 >
-                  <X size={18} />
+                  <X size={16} />
                   <Typography variant="body2" fontWeight={600}>
                     {t('clear_filters', { defaultValue: 'مسح الكل' })}
                   </Typography>
@@ -251,11 +268,11 @@ const Archive: React.FC = () => {
               elevation={0}
               sx={{
                 mb: 4,
-                p: 4,
+                p: { xs: 3, md: 4 },
                 borderRadius: 4,
-                background: 'rgba(255,255,255,0.1)',
-                backdropFilter: 'blur(20px)',
-                border: '1px solid rgba(127,184,150,0.2)',
+                background: '#ffffff',
+                border: `1px solid ${colors.primary.lighter}`,
+                boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
               }}
             >
               <Stack spacing={3}>
@@ -263,11 +280,11 @@ const Archive: React.FC = () => {
                 <Box>
                   <Typography
                     variant="subtitle1"
-                    sx={{ mb: 2, color: '#ffffff', fontWeight: 700 }}
+                    sx={{ mb: 2, color: colors.primary.main, fontWeight: 700 }}
                   >
                     {t('filter_type', { defaultValue: 'نوع الطفيلي' })}
                   </Typography>
-                  <Stack direction="row" spacing={1.5} flexWrap="wrap" sx={{ gap: 1.5 }}>
+                  <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ gap: 1 }}>
                     <Chip
                       label={t('filter_all', { defaultValue: 'الكل' })}
                       onClick={() => {
@@ -275,9 +292,12 @@ const Archive: React.FC = () => {
                         setPage(1);
                       }}
                       sx={{
-                        bgcolor: typeFilter === 'all' ? '#3a7050' : 'rgba(255,255,255,0.1)',
-                        color: typeFilter === 'all' ? '#ffffff' : 'rgba(255,255,255,0.8)',
+                        bgcolor: typeFilter === 'all' ? colors.primary.main : alpha(colors.primary.main, 0.1),
+                        color: typeFilter === 'all' ? '#ffffff' : colors.primary.main,
                         fontWeight: 600,
+                        '&:hover': {
+                          bgcolor: typeFilter === 'all' ? colors.primary.dark : alpha(colors.primary.main, 0.2),
+                        },
                       }}
                     />
                     {filterOptions?.types.map((type) => (
@@ -289,9 +309,12 @@ const Archive: React.FC = () => {
                           setPage(1);
                         }}
                         sx={{
-                          bgcolor: typeFilter === type ? '#3a7050' : 'rgba(255,255,255,0.1)',
-                          color: typeFilter === type ? '#ffffff' : 'rgba(255,255,255,0.8)',
+                          bgcolor: typeFilter === type ? colors.primary.main : alpha(colors.primary.main, 0.1),
+                          color: typeFilter === type ? '#ffffff' : colors.primary.main,
                           fontWeight: 600,
+                          '&:hover': {
+                            bgcolor: typeFilter === type ? colors.primary.dark : alpha(colors.primary.main, 0.2),
+                          },
                         }}
                       />
                     ))}
@@ -302,11 +325,11 @@ const Archive: React.FC = () => {
                 <Box>
                   <Typography
                     variant="subtitle1"
-                    sx={{ mb: 2, color: '#ffffff', fontWeight: 700 }}
+                    sx={{ mb: 2, color: colors.primary.main, fontWeight: 700 }}
                   >
                     {t('filter_stage', { defaultValue: 'المرحلة' })}
                   </Typography>
-                  <Stack direction="row" spacing={1.5} flexWrap="wrap" sx={{ gap: 1.5 }}>
+                  <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ gap: 1 }}>
                     <Chip
                       label={t('filter_all', { defaultValue: 'الكل' })}
                       onClick={() => {
@@ -314,9 +337,12 @@ const Archive: React.FC = () => {
                         setPage(1);
                       }}
                       sx={{
-                        bgcolor: stageFilter === 'all' ? '#3a7050' : 'rgba(255,255,255,0.1)',
-                        color: stageFilter === 'all' ? '#ffffff' : 'rgba(255,255,255,0.8)',
+                        bgcolor: stageFilter === 'all' ? colors.primary.main : alpha(colors.primary.main, 0.1),
+                        color: stageFilter === 'all' ? '#ffffff' : colors.primary.main,
                         fontWeight: 600,
+                        '&:hover': {
+                          bgcolor: stageFilter === 'all' ? colors.primary.dark : alpha(colors.primary.main, 0.2),
+                        },
                       }}
                     />
                     {filterOptions?.stages.map((stage) => (
@@ -328,9 +354,12 @@ const Archive: React.FC = () => {
                           setPage(1);
                         }}
                         sx={{
-                          bgcolor: stageFilter === stage ? '#3a7050' : 'rgba(255,255,255,0.1)',
-                          color: stageFilter === stage ? '#ffffff' : 'rgba(255,255,255,0.8)',
+                          bgcolor: stageFilter === stage ? colors.primary.main : alpha(colors.primary.main, 0.1),
+                          color: stageFilter === stage ? '#ffffff' : colors.primary.main,
                           fontWeight: 600,
+                          '&:hover': {
+                            bgcolor: stageFilter === stage ? colors.primary.dark : alpha(colors.primary.main, 0.2),
+                          },
                         }}
                       />
                     ))}
@@ -361,7 +390,7 @@ const Archive: React.FC = () => {
                 key={i}
                 variant="rounded"
                 height={320}
-                sx={{ bgcolor: 'rgba(255,255,255,0.1)', borderRadius: 3 }}
+                sx={{ bgcolor: alpha(colors.primary.main, 0.08), borderRadius: 3 }}
               />
             ))}
           </Box>
@@ -371,14 +400,15 @@ const Archive: React.FC = () => {
             sx={{
               textAlign: 'center',
               py: 10,
-              background: 'rgba(255,255,255,0.05)',
+              background: '#ffffff',
               borderRadius: 4,
+              border: `1px solid ${colors.primary.lighter}`,
             }}
           >
-            <Typography variant="h6" sx={{ color: 'rgba(255,255,255,0.7)' }}>
+            <Typography variant="h6" sx={{ color: colors.text.secondary }}>
               {t('archive_no_results', { defaultValue: 'لم يتم العثور على نتائج' })}
             </Typography>
-            <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.5)', mt: 1 }}>
+            <Typography variant="body2" sx={{ color: colors.text.secondary, mt: 1, opacity: 0.7 }}>
               {t('archive_try_different', {
                 defaultValue: 'جرب مصطلحات بحث أخرى أو قم بمسح الفلاتر',
               })}
@@ -390,7 +420,7 @@ const Archive: React.FC = () => {
             <Box sx={{ mb: 3 }}>
               <Typography
                 variant="body1"
-                sx={{ color: 'rgba(255,255,255,0.8)', fontWeight: 600 }}
+                sx={{ color: colors.text.secondary, fontWeight: 600 }}
               >
                 {t('showing_results', {
                   defaultValue: `عرض ${parasites.length} من ${pagination?.total || 0} عينة`,
@@ -436,13 +466,15 @@ const Archive: React.FC = () => {
                   size="large"
                   sx={{
                     '& .MuiPaginationItem-root': {
-                      color: '#ffffff',
-                      borderColor: 'rgba(255,255,255,0.3)',
+                      color: colors.primary.main,
+                      borderColor: colors.primary.lighter,
+                      fontWeight: 600,
                       '&.Mui-selected': {
-                        bgcolor: '#3a7050',
-                        '&:hover': { bgcolor: '#4a8a67' },
+                        bgcolor: colors.primary.main,
+                        color: '#ffffff',
+                        '&:hover': { bgcolor: colors.primary.dark },
                       },
-                      '&:hover': { bgcolor: 'rgba(255,255,255,0.1)' },
+                      '&:hover': { bgcolor: alpha(colors.primary.main, 0.1) },
                     },
                   }}
                 />

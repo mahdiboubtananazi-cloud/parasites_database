@@ -4,7 +4,7 @@ import { useParasites } from '../hooks/useParasites';
 import { useTranslation } from 'react-i18next';
 import { colors } from '../theme/colors';
 
-// استيراد المكونات الفرعية التي قمنا بإنشائها
+// استيراد المكونات الفرعية
 import HeroSection from '../components/home/Hero';
 import StatsSection from '../components/home/StatsSection';
 import CtaSection from '../components/home/CtaSection';
@@ -14,14 +14,14 @@ const Home = () => {
   const { parasites, loading } = useParasites();
   const { t, i18n } = useTranslation();
 
-  // ضبط عنوان الصفحة واتجاه النص (عربي/إنجليزي)
+  // ضبط عنوان الصفحة واتجاه النص
   useEffect(() => {
     document.title = t('app_title') || 'Parasites Archive';
     document.documentElement.dir = i18n.language === 'ar' ? 'rtl' : 'ltr';
     document.documentElement.lang = i18n.language;
   }, [t, i18n.language]);
 
-  // حساب الإحصائيات (عدد العينات، الأنواع، الإضافات الحديثة)
+  // حساب الإحصائيات
   const stats = useMemo(() => {
     if (!parasites || parasites.length === 0) return { total: 0, types: 0, recent: 0 };
 
@@ -37,16 +37,16 @@ const Home = () => {
     return { total: parasites.length, types: uniqueTypes.size, recent: recentSamples };
   }, [parasites]);
 
-  // عرض شاشة التحميل أثناء جلب البيانات
+  // عرض شاشة التحميل
   if (loading) {
     return (
-      <Box 
-        sx={{ 
-          display: 'flex', 
-          justifyContent: 'center', 
-          alignItems: 'center', 
-          minHeight: '100vh', 
-          bgcolor: colors.background.default 
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: '100vh',
+          bgcolor: colors.background.default,
         }}
       >
         <CircularProgress size={60} thickness={4} sx={{ color: colors.primary.main }} />
@@ -57,7 +57,6 @@ const Home = () => {
   // عرض الصفحة الرئيسية مجمعة
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: colors.background.default, overflowX: 'hidden' }}>
-      
       {/* 1. قسم الواجهة الرئيسية (Hero) */}
       <HeroSection />
 
@@ -69,7 +68,6 @@ const Home = () => {
 
       {/* 4. الذيل (Footer) */}
       <Footer />
-      
     </Box>
   );
 };

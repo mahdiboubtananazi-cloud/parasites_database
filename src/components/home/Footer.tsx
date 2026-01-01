@@ -13,6 +13,7 @@ import {
   School,
   Globe,
   TestTube2,
+  Code,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -20,16 +21,17 @@ import { useTranslation } from 'react-i18next';
 const Footer: React.FC = () => {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
+  const isRtl = i18n.language === 'ar';
 
   return (
     <Box>
       <Box
         sx={{
-          background: 'linear-gradient(to bottom, rgba(13,31,21,0.9), rgba(0,0,0,0.95))',
+          background: 'linear-gradient(to bottom, rgba(13,31,21,0.95), rgba(0,0,0,0.98))',
           backdropFilter: 'blur(20px)',
-          color: 'rgba(255,255,255,0.7)',
-          pt: 12,
-          pb: 6,
+          color: 'rgba(255,255,255,0.85)',
+          pt: { xs: 6, md: 10 },
+          pb: 5,
           borderTop: '1px solid rgba(127,184,150,0.2)',
         }}
       >
@@ -37,42 +39,47 @@ const Footer: React.FC = () => {
           <Box
             sx={{
               display: 'grid',
-              gridTemplateColumns: { xs: '1fr', md: '4fr 2fr 3fr 3fr' },
-              gap: 6,
-              mb: 8,
-              textAlign: i18n.language === 'ar' ? 'right' : 'left',
+              gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' },
+              gap: { xs: 4, md: 5 },
+              mb: 5,
             }}
           >
             {/* معلومات الجامعة */}
             <Box>
-              <Stack spacing={3}>
-                <Stack direction="row" spacing={2} alignItems="center">
+              <Stack spacing={2}>
+                <Stack direction="row" spacing={2.5} alignItems="flex-start">
                   <Box
                     sx={{
-                      p: 1.5,
+                      p: 1.2,
                       background: 'linear-gradient(135deg, #3a7050 0%, #2d5a3d 100%)',
                       borderRadius: 2,
                       display: 'flex',
-                      boxShadow: '0 8px 24px rgba(58,112,80,0.4)',
+                      boxShadow: '0 6px 20px rgba(58,112,80,0.35)',
+                      flexShrink: 0,
                     }}
                   >
-                    <School size={28} color="#ffffff" strokeWidth={2} />
+                    <School size={22} color="#ffffff" strokeWidth={2} />
                   </Box>
                   <Box>
                     <Typography
-                      variant="h6"
-                      fontWeight={800}
-                      sx={{ color: '#ffffff', lineHeight: 1.2 }}
+                      variant="subtitle1"
+                      fontWeight={700}
+                      sx={{ color: '#ffffff', lineHeight: 1.3 }}
                     >
                       University of Larbi Ben M'hidi
                     </Typography>
-                    <Typography variant="body2" sx={{ opacity: 0.6, mt: 0.5 }}>
+                    <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.6)', mt: 0.3 }}>
                       Oum El Bouaghi, Algeria
                     </Typography>
                   </Box>
                 </Stack>
-                <Divider sx={{ borderColor: 'rgba(255,255,255,0.1)' }} />
-                <Typography variant="body2" sx={{ lineHeight: 1.8, maxWidth: 320, opacity: 0.8 }}>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    lineHeight: 1.7,
+                    color: 'rgba(255,255,255,0.7)',
+                  }}
+                >
                   {t('app_subtitle')}
                 </Typography>
               </Stack>
@@ -82,10 +89,10 @@ const Footer: React.FC = () => {
             <Box>
               <Typography
                 variant="subtitle2"
-                fontWeight={800}
+                fontWeight={700}
                 sx={{
-                  color: '#ffffff',
-                  mb: 3,
+                  color: '#7fb896',
+                  mb: 2,
                   textTransform: 'uppercase',
                   letterSpacing: 1.5,
                   fontSize: '0.75rem',
@@ -93,7 +100,7 @@ const Footer: React.FC = () => {
               >
                 {t('nav_dashboard')}
               </Typography>
-              <Stack spacing={2}>
+              <Stack spacing={1.5}>
                 {[
                   { label: t('nav_archive'), path: '/archive' },
                   { label: t('nav_add_parasite'), path: '/add' },
@@ -104,12 +111,16 @@ const Footer: React.FC = () => {
                     component="button"
                     onClick={() => navigate(item.path)}
                     sx={{
-                      color: 'inherit',
+                      color: 'rgba(255,255,255,0.75)',
                       textDecoration: 'none',
-                      textAlign: 'inherit',
+                      textAlign: isRtl ? 'right' : 'left',
                       display: 'block',
+                      fontSize: '0.9rem',
                       transition: 'all 0.3s ease',
-                      '&:hover': { color: '#7fb896', transform: 'translateX(5px)' },
+                      '&:hover': {
+                        color: '#7fb896',
+                        transform: isRtl ? 'translateX(-5px)' : 'translateX(5px)',
+                      },
                     }}
                   >
                     {item.label}
@@ -122,34 +133,22 @@ const Footer: React.FC = () => {
             <Box>
               <Typography
                 variant="subtitle2"
-                fontWeight={800}
+                fontWeight={700}
                 sx={{
-                  color: '#ffffff',
-                  mb: 3,
+                  color: '#7fb896',
+                  mb: 2,
                   textTransform: 'uppercase',
                   letterSpacing: 1.5,
                   fontSize: '0.75rem',
                 }}
               >
-                Global Resources
+                {t('global_resources', { defaultValue: 'Global Resources' })}
               </Typography>
-              <Stack spacing={2}>
+              <Stack spacing={1.5}>
                 {[
-                  {
-                    label: 'CDC Parasites',
-                    url: 'https://www.cdc.gov/parasites/index.html',
-                    icon: Globe,
-                  },
-                  {
-                    label: 'WHO Tropical Diseases',
-                    url: 'https://www.who.int/health-topics/neglected-tropical-diseases',
-                    icon: Globe,
-                  },
-                  {
-                    label: 'DPDx Diagnostic',
-                    url: 'https://dpd.cdc.gov/dpdx',
-                    icon: TestTube2,
-                  },
+                  { label: 'CDC Parasites', url: 'https://www.cdc.gov/parasites/index.html', icon: Globe },
+                  { label: 'WHO Tropical Diseases', url: 'https://www.who.int/health-topics/neglected-tropical-diseases', icon: Globe },
+                  { label: 'DPDx Diagnostic', url: 'https://dpd.cdc.gov/dpdx', icon: TestTube2 },
                 ].map((item, idx) => (
                   <Link
                     key={idx}
@@ -157,42 +156,49 @@ const Footer: React.FC = () => {
                     target="_blank"
                     rel="noopener noreferrer"
                     sx={{
-                      color: 'inherit',
+                      color: 'rgba(255,255,255,0.75)',
                       textDecoration: 'none',
                       display: 'flex',
                       alignItems: 'center',
                       gap: 1.5,
+                      fontSize: '0.9rem',
                       transition: 'all 0.3s ease',
-                      '&:hover': { color: '#7fb896', transform: 'translateX(5px)' },
+                      flexDirection: isRtl ? 'row-reverse' : 'row',
+                      justifyContent: isRtl ? 'flex-end' : 'flex-start',
+                      '&:hover': {
+                        color: '#7fb896',
+                        transform: isRtl ? 'translateX(-5px)' : 'translateX(5px)',
+                      },
                     }}
                   >
-                    <item.icon size={16} /> {item.label}
+                    <item.icon size={16} style={{ flexShrink: 0 }} />
+                    <span>{item.label}</span>
                   </Link>
                 ))}
               </Stack>
             </Box>
 
-            {/* التواصل */}
+            {/* المطور - Développeur ثابتة */}
             <Box>
               <Typography
                 variant="subtitle2"
-                fontWeight={800}
+                fontWeight={700}
                 sx={{
-                  color: '#ffffff',
-                  mb: 3,
+                  color: '#7fb896',
+                  mb: 2,
                   textTransform: 'uppercase',
                   letterSpacing: 1.5,
                   fontSize: '0.75rem',
                 }}
               >
-                Contact
+                Développeur
               </Typography>
               <Paper
                 sx={{
-                  p: 3,
+                  p: 2.5,
                   background: 'rgba(255,255,255,0.05)',
                   backdropFilter: 'blur(10px)',
-                  borderRadius: 3,
+                  borderRadius: 2.5,
                   border: '1px solid rgba(255,255,255,0.1)',
                   transition: 'all 0.3s ease',
                   '&:hover': {
@@ -201,13 +207,16 @@ const Footer: React.FC = () => {
                   },
                 }}
               >
-                <Typography variant="body1" fontWeight={700} sx={{ color: '#ffffff', mb: 1.5 }}>
-                  {t('developer')}
-                </Typography>
+                <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1.5 }}>
+                  <Code size={18} color="#7fb896" />
+                  <Typography variant="body1" fontWeight={600} sx={{ color: '#ffffff' }}>
+                    Mehdi Boubetana
+                  </Typography>
+                </Stack>
                 <Link
                   href="mailto:mehdi.boubetana@gmail.com"
                   sx={{
-                    color: 'inherit',
+                    color: 'rgba(255,255,255,0.75)',
                     textDecoration: 'none',
                     display: 'flex',
                     alignItems: 'center',
@@ -215,19 +224,24 @@ const Footer: React.FC = () => {
                     fontSize: '0.85rem',
                     transition: 'color 0.3s ease',
                     '&:hover': { color: '#7fb896' },
-                    wordBreak: 'break-all',
                   }}
                 >
-                  <Mail size={16} /> mehdi.boubetana@gmail.com
+                  <Mail size={16} style={{ flexShrink: 0 }} />
+                  <span style={{ direction: 'ltr' }}>mehdi.boubetana@gmail.com</span>
                 </Link>
               </Paper>
             </Box>
           </Box>
 
-          <Divider sx={{ my: 4, borderColor: 'rgba(127,184,150,0.15)' }} />
+          <Divider sx={{ my: 3, borderColor: 'rgba(127,184,150,0.15)' }} />
 
-          <Typography variant="body2" align="center" sx={{ opacity: 0.5 }}>
-             2025 {t('app_title')}. University of Larbi Ben M'hidi.
+          {/* حقوق النشر */}
+          <Typography
+            variant="body2"
+            align="center"
+            sx={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.85rem' }}
+          >
+            © 2025 {t('app_title')}. University of Larbi Ben M'hidi.
           </Typography>
         </Container>
       </Box>
