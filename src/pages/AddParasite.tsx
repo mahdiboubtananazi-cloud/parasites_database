@@ -111,31 +111,33 @@ export default function AddParasite() {
     setIsSubmitting(true);
 
     try {
+      // استخدام camelCase - التحويل يتم في API layer
       const newParasite = await parasitesApi.create({
         name: data.name,
-        scientific_name: data.scientificName,
+        scientificName: data.scientificName,
         type: data.type,
         stage: data.stage,
         description: data.description,
-        sample_type: data.sampleType,
-        stain_color: data.stainColor,
-        host: data.host || null,
-        location: data.location || null,
-        student_name: data.studentName,
-        supervisor_name: data.supervisorName || null,
-        imageFile: selectedFile,
+        sampleType: data.sampleType,
+        stainColor: data.stainColor,
+        host: data.host,
+        location: data.location,
+        studentName: data.studentName,
+        supervisorName: data.supervisorName,
+        image: selectedFile,
       });
 
-      console.log(' تم الحفظ بنجاح:', newParasite);
+      console.log('✅ تم الحفظ بنجاح:', newParasite);
       showSuccess(t('success_parasite_added'));
 
       setSelectedFile(null);
       setImagePreview(null);
       reset();
       setTimeout(() => navigate('/archive'), 1500);
-    } catch (error: any) {
-      console.error(' خطأ:', error);
-      showError(error?.message || t('error_save_parasite'));
+    } catch (error: unknown) {
+      console.error('❌ خطأ:', error);
+      const errorMessage = error instanceof Error ? error.message : t('error_save_parasite');
+      showError(errorMessage);
     } finally {
       setIsSubmitting(false);
     }

@@ -16,6 +16,11 @@ export interface ParasiteFromDB {
   description?: string;
   imageurl?: string;
   sampletype?: string;
+  staincolor?: string;
+  host?: string;
+  location?: string;
+  studentname?: string;
+  supervisorname?: string;
   status?: 'pending' | 'approved' | 'rejected';
   createdat?: string;
   created_at?: string;
@@ -118,7 +123,12 @@ export function transformFromDB(data: ParasiteFromDB): Parasite {
     stage: data.stage,
     description: data.description,
     imageUrl: data.imageurl,
+    host: data.host,
+    location: data.location,
     sampleType: data.sampletype,
+    stainColor: data.staincolor,
+    studentName: data.studentname,
+    supervisorName: data.supervisorname,
     createdAt: data.created_at || data.createdat,
     status: data.status,
     uploadedBy: data.uploaded_by,
@@ -130,6 +140,7 @@ export function transformFromDB(data: ParasiteFromDB): Parasite {
 
 /**
  * تحويل من التطبيق إلى قاعدة البيانات
+ * قاعدة البيانات تستخدم: imageurl, scientificname, sampletype (بدون فواصل)
  */
 export function transformToDB(data: CreateParasiteInput | UpdateParasiteInput): Record<string, unknown> {
   const result: Record<string, unknown> = {};
@@ -139,7 +150,12 @@ export function transformToDB(data: CreateParasiteInput | UpdateParasiteInput): 
   if ('type' in data && data.type !== undefined) result.type = data.type;
   if ('stage' in data && data.stage !== undefined) result.stage = data.stage;
   if ('description' in data && data.description !== undefined) result.description = data.description;
+  if ('host' in data && data.host !== undefined) result.host = data.host;
+  if ('location' in data && data.location !== undefined) result.location = data.location;
   if ('sampleType' in data && data.sampleType !== undefined) result.sampletype = data.sampleType;
+  if ('stainColor' in data && data.stainColor !== undefined) result.staincolor = data.stainColor;
+  if ('studentName' in data && data.studentName !== undefined) result.studentname = data.studentName;
+  if ('supervisorName' in data && data.supervisorName !== undefined) result.supervisorname = data.supervisorName;
 
   return result;
 }

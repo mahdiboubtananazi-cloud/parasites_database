@@ -102,13 +102,13 @@ const uploadImage = async (image: File): Promise<string> => {
 const createParasite = async (input: CreateParasiteInput): Promise<Parasite> => {
   // فصل الصورة عن باقي البيانات
   const { image, ...parasiteData } = input;
-  
+
   // تحويل البيانات لصيغة قاعدة البيانات
   const dbData = transformToDB(parasiteData);
 
   // رفع الصورة إذا وجدت
   if (image) {
-    dbData.image_url = await uploadImage(image);
+    dbData.imageurl = await uploadImage(image);
   }
 
   // الإدراج في قاعدة البيانات
@@ -131,13 +131,13 @@ const createParasite = async (input: CreateParasiteInput): Promise<Parasite> => 
 const updateParasite = async (id: string, input: UpdateParasiteInput): Promise<Parasite> => {
   // فصل الصورة عن باقي البيانات
   const { image, ...parasiteData } = input;
-  
+
   // تحويل البيانات لصيغة قاعدة البيانات
   const dbData = transformToDB(parasiteData);
 
   // رفع الصورة الجديدة إذا وجدت
   if (image) {
-    dbData.image_url = await uploadImage(image);
+    dbData.imageurl = await uploadImage(image);
   }
 
   // التحديث في قاعدة البيانات
