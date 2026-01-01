@@ -5,14 +5,18 @@ export const useParasiteReview = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const reviewParasite = async (id: string, status: 'approved' | 'rejected', comments?: string) => {
+  const reviewParasite = async (
+    id: string,
+    status: 'approved' | 'rejected',
+    reviewNotes?: string
+  ) => {
     setLoading(true);
     setError(null);
     try {
-      // ?????? ???? ??????? ???????? ?? API ??????
-      await parasitesApi.update(id, { 
-        validation_status: status,
-        validation_comments: comments 
+      await parasitesApi.update(id, {
+        status: status,
+        reviewNotes: reviewNotes,
+        reviewedAt: new Date().toISOString(),
       });
       return true;
     } catch (err) {

@@ -5,7 +5,6 @@
 
 /**
  * الحقول كما تأتي من قاعدة البيانات
- * ملاحظة: قاعدة البيانات تستخدم camelCase بدون فواصل
  */
 export interface ParasiteFromDB {
   id: string;
@@ -93,6 +92,11 @@ export interface UpdateParasiteInput {
   stainColor?: string;
   studentName?: string;
   supervisorName?: string;
+  // حقول المراجعة
+  status?: 'pending' | 'approved' | 'rejected';
+  reviewedBy?: string;
+  reviewedAt?: string;
+  reviewNotes?: string;
 }
 
 /**
@@ -112,7 +116,6 @@ export interface ParasiteFilter {
 
 /**
  * تحويل من قاعدة البيانات إلى التطبيق
- * قاعدة البيانات تستخدم: imageurl, scientificname, sampletype, createdat
  */
 export function transformFromDB(data: ParasiteFromDB): Parasite {
   return {
@@ -140,7 +143,6 @@ export function transformFromDB(data: ParasiteFromDB): Parasite {
 
 /**
  * تحويل من التطبيق إلى قاعدة البيانات
- * قاعدة البيانات تستخدم: imageurl, scientificname, sampletype (بدون فواصل)
  */
 export function transformToDB(data: CreateParasiteInput | UpdateParasiteInput): Record<string, unknown> {
   const result: Record<string, unknown> = {};
@@ -156,6 +158,12 @@ export function transformToDB(data: CreateParasiteInput | UpdateParasiteInput): 
   if ('stainColor' in data && data.stainColor !== undefined) result.staincolor = data.stainColor;
   if ('studentName' in data && data.studentName !== undefined) result.studentname = data.studentName;
   if ('supervisorName' in data && data.supervisorName !== undefined) result.supervisorname = data.supervisorName;
+  
+  // حقول المراجعة
+  if ('status' in data && data.status !== undefined) result.status = data.status;
+  if ('reviewedBy' in data && data.reviewedBy !== undefined) result.reviewed_by = data.reviewedBy;
+  if ('reviewedAt' in data && data.reviewedAt !== undefined) result.reviewed_at = data.reviewedAt;
+  if ('reviewNotes' in data && data.reviewNotes !== undefined) result.review_notes = data.reviewNotes;
 
   return result;
 }

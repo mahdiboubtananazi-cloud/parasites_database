@@ -27,17 +27,28 @@ import {
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useParasites } from '../hooks/useParasites';
+import { Parasite } from '../types/parasite';
 
-const fixImageUrl = (url?: string) => {
-  if (!url) return 'https://placehold.co/800x600?text=No+Image';
+// دالة لإصلاح رابط الصورة
+const getImageUrl = (parasite: Parasite): string => {
+  const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+  const DEFAULT_IMAGE = 'https://placehold.co/800x600?text=No+Image';
 
-  if (url.startsWith('http')) return url;
+  const imageValue = parasite.imageUrl;
 
-  const apiBase =
-    import.meta.env.VITE_API_BASE_URL ||
-    'https://parasites-api-boubetana.onrender.com';
+  if (!imageValue) {
+    return DEFAULT_IMAGE;
+  }
 
-  return `${apiBase}${url}`;
+  if (imageValue.startsWith('http')) {
+    return imageValue;
+  }
+
+  if (SUPABASE_URL) {
+    return `${SUPABASE_URL}/storage/v1/object/public/parasites/${imageValue}`;
+  }
+
+  return DEFAULT_IMAGE;
 };
 
 export default function ParasiteDetails() {
@@ -50,7 +61,7 @@ export default function ParasiteDetails() {
 
   const { parasites, loading: loadingParasites } = useParasites();
 
-  const [parasite, setParasite] = useState<any>(null);
+  const [parasite, setParasite] = useState<Parasite | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -71,17 +82,17 @@ export default function ParasiteDetails() {
     setLoading(loadingParasites);
 
     if (!loadingParasites && parasites && parasites.length > 0) {
-      const found = parasites.find((p: any) => String(p.id) === String(id));
+      const found = parasites.find((p) => String(p.id) === String(id));
 
       if (found) {
         setParasite(found);
         setError(null);
       } else {
-        setError(t('details_title'));
+        setError(t('error_not_found', { defaultValue: 'العينة غير موجودة' }));
         setParasite(null);
       }
     }
-  }, [id, parasites, loadingParasites]);
+  }, [id, parasites, loadingParasites, t]);
 
   if (loading) {
     return (
@@ -150,7 +161,7 @@ export default function ParasiteDetails() {
               {t('nav_archive')}
             </Button>
             <Button onClick={() => window.location.reload()} variant="outlined">
-              {t('loading')}
+              {t('btn_retry', { defaultValue: 'إعادة المحاولة' })}
             </Button>
           </Stack>
         </Paper>
@@ -158,20 +169,8 @@ export default function ParasiteDetails() {
     );
   }
 
-  // الحقول المستخدمة
-  const imageUrl = fixImageUrl(
-    (parasite as any).imageurl || (parasite as any).imageUrl
-  );
-  const sampleType =
-    (parasite as any).sampleType || (parasite as any).sampletype;
-  const stainColor = (parasite as any).stainColor;
-  const stage = (parasite as any).stage;
-  const host = (parasite as any).host || (parasite as any).hostSpecies;
-  const location = (parasite as any).location;
-  const studentName = (parasite as any).studentName;
-  const supervisorName = (parasite as any).supervisorName;
-  const createdAt =
-    (parasite as any).createdAt || (parasite as any).createdat;
+  // استخدام الحقول من Parasite interface مباشرة
+  const imageUrl = getImageUrl(parasite);
 
   return (
     <Box
@@ -302,7 +301,7 @@ export default function ParasiteDetails() {
                 display="block"
                 sx={{ mb: 2, color: 'text.secondary' }}
               >
-                {t('details_scientific_name')}
+                {t('details_zoom_hint', { defaultValue: 'حرك الماوس للتكبير' })}
               </Typography>
 
               <Stack direction="row" spacing={1.5}>
@@ -313,7 +312,7 @@ export default function ParasiteDetails() {
                   onClick={() => {
                     const link = document.createElement('a');
                     link.href = imageUrl;
-                    link.download = `${parasite.scientificName || 'parasite'}.jpg`;
+                    link.download = `${parasite.scientificName || parasite.name || 'parasite'}.jpg`;
                     link.click();
                   }}
                 >
@@ -334,7 +333,7 @@ export default function ParasiteDetails() {
                     mb: 1,
                     fontSize: { xs: '1.8rem', md: '2.4rem' },
                     lineHeight: 1.2,
-                    background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,      
+                    background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
                     backgroundClip: 'text',
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent',
@@ -368,7 +367,7 @@ export default function ParasiteDetails() {
                   gap: 2,
                 }}
               >
-                {stage && (
+                {parasite.stage && (
                   <Paper
                     elevation={0}
                     sx={{
@@ -401,7 +400,7 @@ export default function ParasiteDetails() {
                           {t('details_stage')}
                         </Typography>
                         <Typography variant="body1" fontWeight={700}>
-                          {stage}
+                          {parasite.stage}
                         </Typography>
                       </Box>
                     </Stack>
@@ -440,13 +439,16 @@ export default function ParasiteDetails() {
                         {t('details_added_date')}
                       </Typography>
                       <Typography variant="body1" fontWeight={700}>
-                        {createdAt
-                          ? new Date(createdAt).toLocaleDateString('ar-SA', {
-                              year: 'numeric',
-                              month: 'long',
-                              day: 'numeric',
-                            })
-                          : t('no_data')}
+                        {parasite.createdAt
+                          ? new Date(parasite.createdAt).toLocaleDateString(
+                              i18n.language === 'ar' ? 'ar-SA' : 'en-US',
+                              {
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric',
+                              }
+                            )
+                          : t('no_data', { defaultValue: 'غير متوفر' })}
                       </Typography>
                     </Box>
                   </Stack>
@@ -455,7 +457,7 @@ export default function ParasiteDetails() {
 
               <Divider />
 
-              {(parasite as any).description && (
+              {parasite.description && (
                 <Box>
                   <Typography
                     variant="h6"
@@ -484,12 +486,12 @@ export default function ParasiteDetails() {
                       borderInlineStart: `4px solid ${theme.palette.primary.main}`,
                     }}
                   >
-                    {(parasite as any).description}
+                    {parasite.description}
                   </Typography>
                 </Box>
               )}
 
-              {(sampleType || stainColor) && (
+              {(parasite.sampleType || parasite.stainColor) && (
                 <Paper
                   elevation={0}
                   sx={{
@@ -512,10 +514,10 @@ export default function ParasiteDetails() {
                     }}
                   >
                     <Microscope size={20} />
-                    {t('details_sample_type')}
+                    {t('details_sample_info', { defaultValue: 'معلومات العينة' })}
                   </Typography>
                   <Stack spacing={1.5}>
-                    {sampleType && (
+                    {parasite.sampleType && (
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <Beaker size={16} color={theme.palette.success.main} />
                         <Typography variant="body2">
@@ -527,14 +529,14 @@ export default function ParasiteDetails() {
                             {t('details_sample_type')}:
                           </Typography>{' '}
                           <Chip
-                            label={sampleType}
+                            label={parasite.sampleType}
                             size="small"
                             sx={{ ml: 1, fontWeight: 600 }}
                           />
                         </Typography>
                       </Box>
                     )}
-                    {stainColor && (
+                    {parasite.stainColor && (
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <Beaker size={16} color={theme.palette.success.main} />
                         <Typography variant="body2">
@@ -546,7 +548,7 @@ export default function ParasiteDetails() {
                             {t('details_stain_color')}:
                           </Typography>{' '}
                           <Chip
-                            label={stainColor}
+                            label={parasite.stainColor}
                             size="small"
                             sx={{ ml: 1, fontWeight: 600 }}
                           />
@@ -557,7 +559,7 @@ export default function ParasiteDetails() {
                 </Paper>
               )}
 
-              {(host || location) && (
+              {(parasite.host || parasite.location) && (
                 <Paper
                   elevation={0}
                   sx={{
@@ -580,10 +582,10 @@ export default function ParasiteDetails() {
                     }}
                   >
                     <MapPin size={20} />
-                    {t('details_location')}
+                    {t('details_location_info', { defaultValue: 'معلومات الموقع' })}
                   </Typography>
                   <Stack spacing={1.5}>
-                    {host && (
+                    {parasite.host && (
                       <Typography variant="body2">
                         <Typography
                           component="span"
@@ -592,10 +594,10 @@ export default function ParasiteDetails() {
                         >
                           {t('details_host')}:
                         </Typography>{' '}
-                        {host}
+                        {parasite.host}
                       </Typography>
                     )}
-                    {location && (
+                    {parasite.location && (
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <MapPin size={16} />
                         <Typography variant="body2">
@@ -606,7 +608,7 @@ export default function ParasiteDetails() {
                           >
                             {t('details_location')}:
                           </Typography>{' '}
-                          {location}
+                          {parasite.location}
                         </Typography>
                       </Box>
                     )}
@@ -614,7 +616,7 @@ export default function ParasiteDetails() {
                 </Paper>
               )}
 
-              {(studentName || supervisorName) && (
+              {(parasite.studentName || parasite.supervisorName) && (
                 <Paper
                   elevation={0}
                   sx={{
@@ -637,10 +639,10 @@ export default function ParasiteDetails() {
                     }}
                   >
                     <User size={20} />
-                    {t('details_student_name')}
+                    {t('details_researcher_info', { defaultValue: 'معلومات الباحث' })}
                   </Typography>
                   <Stack spacing={1.5}>
-                    {studentName && (
+                    {parasite.studentName && (
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <User size={16} />
                         <Typography variant="body2">
@@ -651,11 +653,11 @@ export default function ParasiteDetails() {
                           >
                             {t('details_student_name')}:
                           </Typography>{' '}
-                          {studentName}
+                          {parasite.studentName}
                         </Typography>
                       </Box>
                     )}
-                    {supervisorName && (
+                    {parasite.supervisorName && (
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <User size={16} />
                         <Typography variant="body2">
@@ -666,7 +668,7 @@ export default function ParasiteDetails() {
                           >
                             {t('details_supervisor_name')}:
                           </Typography>{' '}
-                          {supervisorName}
+                          {parasite.supervisorName}
                         </Typography>
                       </Box>
                     )}
