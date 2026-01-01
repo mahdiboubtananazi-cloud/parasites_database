@@ -1,3 +1,5 @@
+// src/components/archive/ParasiteCard.tsx
+
 import React from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 import {
@@ -13,15 +15,40 @@ import {
 } from '@mui/material';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import { Parasite } from '../../types/parasite';
-import { fixImageUrl } from '../../utils/image';
+import { useTranslation } from 'react-i18next';
 
 interface ParasiteCardProps {
-  parasite: Parasite | any;
+  parasite: Parasite;
 }
 
+// دالة لإصلاح رابط الصورة
+const getImageUrl = (parasite: Parasite): string => {
+  const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+  const DEFAULT_IMAGE = 'https://placehold.co/600x400?text=No+Image';
+  
+  // نجرب كل الاحتمالات
+  const imageValue = parasite.imageUrl;
+  
+  if (!imageValue) {
+    return DEFAULT_IMAGE;
+  }
+  
+  // إذا كان رابط كامل
+  if (imageValue.startsWith('http')) {
+    return imageValue;
+  }
+  
+  // إذا كان مسار فقط - نضيف Supabase URL
+  if (SUPABASE_URL) {
+    return `${SUPABASE_URL}/storage/v1/object/public/parasites/${imageValue}`;
+  }
+  
+  return DEFAULT_IMAGE;
+};
+
 const ParasiteCard: React.FC<ParasiteCardProps> = ({ parasite }) => {
-  // 👇 نفس المنطق المستعمل في صفحة التفاصيل
-  const imageUrl = fixImageUrl(parasite.imageurl || parasite.imageUrl);
+  const { t } = useTranslation();
+  const imageUrl = getImageUrl(parasite);
 
   return (
     <Card
@@ -43,7 +70,7 @@ const ParasiteCard: React.FC<ParasiteCardProps> = ({ parasite }) => {
           <CardMedia
             component="img"
             image={imageUrl}
-            alt={parasite.name || parasite.scientificName}
+            alt={parasite.name || parasite.scientificName || 'Parasite'}
             sx={{
               position: 'absolute',
               inset: 0,
@@ -67,7 +94,7 @@ const ParasiteCard: React.FC<ParasiteCardProps> = ({ parasite }) => {
             mb={1.5}
           >
             <Chip
-              label={parasite.type || 'Unknown'}
+              label={parasite.type || t('unknown', { defaultValue: 'غير محدد' })}
               size="small"
               sx={{
                 bgcolor: '#DAF1DE',
@@ -76,10 +103,7 @@ const ParasiteCard: React.FC<ParasiteCardProps> = ({ parasite }) => {
                 fontSize: 11,
               }}
             />
-            <Typography
-              variant="caption"
-              sx={{ color: 'text.secondary' }}
-            >
+            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
               {parasite.stage || 'N/A'}
             </Typography>
           </Stack>
@@ -107,7 +131,7 @@ const ParasiteCard: React.FC<ParasiteCardProps> = ({ parasite }) => {
                 color: '#0B2B26',
               }}
             >
-              عرض التفاصيل
+              {t('view_details', { defaultValue: 'عرض التفاصيل' })}
             </Button>
           </Box>
         </CardContent>

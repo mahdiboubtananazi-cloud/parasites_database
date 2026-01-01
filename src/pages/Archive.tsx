@@ -1,4 +1,7 @@
-﻿import React, { useEffect, useMemo, useState } from 'react';
+﻿// src/pages/Archive.tsx
+// النسخة المحدثة - تستخدم useParasites hook
+
+import React, { useMemo, useState } from 'react';
 import {
   Box,
   CircularProgress,
@@ -11,50 +14,31 @@ import {
   Stack,
   Fade,
   alpha,
-  useTheme,
 } from '@mui/material';
 import { Search, Filter, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { supabase } from '../lib/supabase';
+import { useParasites } from '../hooks/useParasites';
 import { Parasite } from '../types/parasite';
 import ParasiteCard from '../components/archive/ParasiteCard';
 
 const Archive: React.FC = () => {
   const { t } = useTranslation();
-  const theme = useTheme();
-  const [parasites, setParasites] = useState<Parasite[]>([]);
-  const [loading, setLoading] = useState(true);
+  
+  // ✅ استخدام الـ hook بدلاً من Supabase مباشرة
+  const { parasites, loading, error } = useParasites();
+  console.log('🔍 First parasite:', parasites[0]);
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [typeFilter, setTypeFilter] = useState<string | 'all'>('all');
   const [stageFilter, setStageFilter] = useState<string | 'all'>('all');
-
-  useEffect(() => {
-    const fetchParasites = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('parasites')
-          .select('*')
-          .order('created_at', { ascending: false });
-
-        if (error) throw error;
-        setParasites(data || []);
-      } catch (err) {
-        console.error('Error fetching parasites:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchParasites();
-  }, []);
 
   // استخراج القيم المميزة للفلاتر
   const distinctTypes = useMemo(
     () => Array.from(new Set(parasites.map((p) => p.type).filter(Boolean))) as string[],
     [parasites]
   );
-  
+
   const distinctStages = useMemo(
     () => Array.from(new Set(parasites.map((p) => p.stage).filter(Boolean))) as string[],
     [parasites]
@@ -62,12 +46,13 @@ const Archive: React.FC = () => {
 
   const filteredParasites = useMemo(
     () =>
-      parasites.filter((p) => {
+      parasites.filter((p: Parasite) => {
         const searchLower = searchTerm.toLowerCase();
         const matchesSearch =
           (p.name || '').toLowerCase().includes(searchLower) ||
           (p.type || '').toLowerCase().includes(searchLower) ||
-          (p.host || '').toLowerCase().includes(searchLower);
+          (p.host || '').toLowerCase().includes(searchLower) ||
+          (p.scientificName || '').toLowerCase().includes(searchLower);
 
         const matchesType = typeFilter === 'all' || p.type === typeFilter;
         const matchesStage = stageFilter === 'all' || p.stage === stageFilter;
@@ -90,15 +75,39 @@ const Archive: React.FC = () => {
     setSearchTerm('');
   };
 
+  // ✅ إضافة معالجة الخطأ
+  if (error) {
+    return (
+      <Box sx={{
+        minHeight: '100vh',
+        background: 'linear-gradient(to bottom, #0d1f15, #1a3d2a, #2d5a3d)',
+        pt: 10,
+        pb: 6,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
+        <Paper sx={{ p: 4, textAlign: 'center', bgcolor: 'rgba(255,255,255,0.1)' }}>
+          <Typography color="error" variant="h6">
+            {t('error_loading', { defaultValue: 'حدث خطأ في تحميل البيانات' })}
+          </Typography>
+          <Typography color="text.secondary" sx={{ mt: 1 }}>
+            {error}
+          </Typography>
+        </Paper>
+      </Box>
+    );
+  }
+
   return (
-    <Box sx={{ 
-      minHeight: '100vh', 
+    <Box sx={{
+      minHeight: '100vh',
       background: 'linear-gradient(to bottom, #0d1f15, #1a3d2a, #2d5a3d)',
       pt: 10,
       pb: 6
     }}>
       <Container maxWidth="lg">
-        
+
         {/* ===== HEADER SECTION ===== */}
         <Fade in timeout={800}>
           <Box sx={{ mb: 5 }}>
@@ -115,10 +124,10 @@ const Archive: React.FC = () => {
             >
               {t('archive_title', { defaultValue: 'أرشيف الطفيليات' })}
             </Typography>
-            
-            <Typography 
-              variant="body1" 
-              sx={{ 
+
+            <Typography
+              variant="body1"
+              sx={{
                 color: 'rgba(255,255,255,0.8)',
                 textAlign: 'center',
                 maxWidth: 600,
@@ -133,7 +142,7 @@ const Archive: React.FC = () => {
         {/* ===== SEARCH & FILTER BAR ===== */}
         <Fade in timeout={1000}>
           <Stack spacing={3} sx={{ mb: 4 }}>
-            
+
             {/* Search Bar */}
             <Paper
               elevation={0}
@@ -150,7 +159,7 @@ const Archive: React.FC = () => {
                 border: '2px solid rgba(127,184,150,0.3)',
                 boxShadow: '0 20px 50px -10px rgba(0,0,0,0.4)',
                 transition: 'all 0.3s ease',
-                '&:hover': { 
+                '&:hover': {
                   transform: 'translateY(-2px)',
                   boxShadow: '0 25px 60px -10px rgba(45,90,61,0.5)',
                   borderColor: 'rgba(127,184,150,0.5)'
@@ -164,16 +173,16 @@ const Archive: React.FC = () => {
               <InputAdornment position="start" sx={{ pl: 3, color: '#2d5a3d' }}>
                 <Search size={26} strokeWidth={2.5} />
               </InputAdornment>
-              
+
               <TextField
                 fullWidth
                 placeholder={t('search_placeholder', { defaultValue: 'البحث بالاسم العلمي، النوع، العائل...' })}
                 variant="standard"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                InputProps={{ 
+                InputProps={{
                   disableUnderline: true,
-                  sx: { 
+                  sx: {
                     fontSize: '1.1rem',
                     fontWeight: 600,
                     color: '#0d1f15',
@@ -219,8 +228,8 @@ const Archive: React.FC = () => {
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: 1.5,
-                  background: showFilters 
-                    ? 'linear-gradient(135deg, #3a7050 0%, #2d5a3d 100%)' 
+                  background: showFilters
+                    ? 'linear-gradient(135deg, #3a7050 0%, #2d5a3d 100%)'
                     : 'rgba(255,255,255,0.1)',
                   backdropFilter: 'blur(10px)',
                   border: `2px solid ${showFilters ? '#3a7050' : 'rgba(127,184,150,0.3)'}`,
@@ -228,7 +237,7 @@ const Archive: React.FC = () => {
                   fontWeight: 700,
                   transition: 'all 0.3s ease',
                   '&:hover': {
-                    background: showFilters 
+                    background: showFilters
                       ? 'linear-gradient(135deg, #4a8a67 0%, #3a7050 100%)'
                       : 'rgba(255,255,255,0.15)',
                     transform: 'translateY(-2px)',
@@ -289,13 +298,13 @@ const Archive: React.FC = () => {
               }}
             >
               <Stack spacing={3}>
-                
+
                 {/* Type Filter */}
                 <Box>
-                  <Typography 
-                    variant="subtitle1" 
-                    sx={{ 
-                      mb: 2, 
+                  <Typography
+                    variant="subtitle1"
+                    sx={{
+                      mb: 2,
                       color: '#ffffff',
                       fontWeight: 700,
                       letterSpacing: '0.5px'
@@ -338,10 +347,10 @@ const Archive: React.FC = () => {
 
                 {/* Stage Filter */}
                 <Box>
-                  <Typography 
+                  <Typography
                     variant="subtitle1" 
-                    sx={{ 
-                      mb: 2, 
+                    sx={{
+                      mb: 2,
                       color: '#ffffff',
                       fontWeight: 700,
                       letterSpacing: '0.5px'
@@ -421,16 +430,16 @@ const Archive: React.FC = () => {
           <>
             {/* Results Count */}
             <Box sx={{ mb: 3 }}>
-              <Typography 
-                variant="body1" 
-                sx={{ 
+              <Typography
+                variant="body1"
+                sx={{
                   color: 'rgba(255,255,255,0.8)',
-                  fontWeight: 600 
+                  fontWeight: 600
                 }}
               >
-                {t('results_count', { 
+                {t('results_count', {
                   defaultValue: `تم العثور على ${filteredParasites.length} عينة`,
-                  count: filteredParasites.length 
+                  count: filteredParasites.length
                 })}
               </Typography>
             </Box>
