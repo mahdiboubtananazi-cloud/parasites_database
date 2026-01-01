@@ -1,7 +1,4 @@
-﻿// src/pages/Archive.tsx
-// النسخة المحدثة - تستخدم useParasites hook
-
-import React, { useMemo, useState } from 'react';
+﻿import React, { useState } from 'react';
 import {
   Box,
   CircularProgress,
@@ -14,101 +11,71 @@ import {
   Stack,
   Fade,
   alpha,
+  Pagination,
+  Skeleton,
 } from '@mui/material';
 import { Search, Filter, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useParasites } from '../hooks/useParasites';
-import { Parasite } from '../types/parasite';
+import { useParasitesPaginated, useFilterOptions } from '../hooks/useParasitesQuery';
 import ParasiteCard from '../components/archive/ParasiteCard';
 
 const Archive: React.FC = () => {
   const { t } = useTranslation();
-  
-  // ✅ استخدام الـ hook بدلاً من Supabase مباشرة
-  const { parasites, loading, error } = useParasites();
-  console.log('🔍 First parasite:', parasites[0]);
-  
+
+  // حالة الفلاتر
+  const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [showFilters, setShowFilters] = useState(false);
-  const [typeFilter, setTypeFilter] = useState<string | 'all'>('all');
-  const [stageFilter, setStageFilter] = useState<string | 'all'>('all');
+  const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [stageFilter, setStageFilter] = useState<string>('all');
 
-  // استخراج القيم المميزة للفلاتر
-  const distinctTypes = useMemo(
-    () => Array.from(new Set(parasites.map((p) => p.type).filter(Boolean))) as string[],
-    [parasites]
-  );
+  // Debounce للبحث
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+      setPage(1); // إعادة للصفحة الأولى عند البحث
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
-  const distinctStages = useMemo(
-    () => Array.from(new Set(parasites.map((p) => p.stage).filter(Boolean))) as string[],
-    [parasites]
-  );
+  // جلب البيانات مع Pagination
+  const { data, isLoading, isFetching } = useParasitesPaginated({
+    page,
+    limit: 12,
+    search: debouncedSearch,
+    type: typeFilter,
+    stage: stageFilter,
+    status: 'approved',
+  });
 
-  const filteredParasites = useMemo(
-    () =>
-      parasites.filter((p: Parasite) => {
-        const searchLower = searchTerm.toLowerCase();
-        const matchesSearch =
-          (p.name || '').toLowerCase().includes(searchLower) ||
-          (p.type || '').toLowerCase().includes(searchLower) ||
-          (p.host || '').toLowerCase().includes(searchLower) ||
-          (p.scientificName || '').toLowerCase().includes(searchLower);
+  // جلب خيارات الفلاتر
+  const { data: filterOptions } = useFilterOptions();
 
-        const matchesType = typeFilter === 'all' || p.type === typeFilter;
-        const matchesStage = stageFilter === 'all' || p.stage === stageFilter;
+  const parasites = data?.data || [];
+  const pagination = data?.pagination;
 
-        return matchesSearch && matchesType && matchesStage;
-      }),
-    [parasites, searchTerm, typeFilter, stageFilter]
-  );
-
-  const activeFiltersCount = useMemo(() => {
-    let count = 0;
-    if (typeFilter !== 'all') count++;
-    if (stageFilter !== 'all') count++;
-    return count;
-  }, [typeFilter, stageFilter]);
+  const activeFiltersCount =
+    (typeFilter !== 'all' ? 1 : 0) + (stageFilter !== 'all' ? 1 : 0);
 
   const clearAllFilters = () => {
     setTypeFilter('all');
     setStageFilter('all');
     setSearchTerm('');
+    setPage(1);
   };
 
-  // ✅ إضافة معالجة الخطأ
-  if (error) {
-    return (
-      <Box sx={{
+  return (
+    <Box
+      sx={{
         minHeight: '100vh',
         background: 'linear-gradient(to bottom, #0d1f15, #1a3d2a, #2d5a3d)',
         pt: 10,
         pb: 6,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
-      }}>
-        <Paper sx={{ p: 4, textAlign: 'center', bgcolor: 'rgba(255,255,255,0.1)' }}>
-          <Typography color="error" variant="h6">
-            {t('error_loading', { defaultValue: 'حدث خطأ في تحميل البيانات' })}
-          </Typography>
-          <Typography color="text.secondary" sx={{ mt: 1 }}>
-            {error}
-          </Typography>
-        </Paper>
-      </Box>
-    );
-  }
-
-  return (
-    <Box sx={{
-      minHeight: '100vh',
-      background: 'linear-gradient(to bottom, #0d1f15, #1a3d2a, #2d5a3d)',
-      pt: 10,
-      pb: 6
-    }}>
+      }}
+    >
       <Container maxWidth="lg">
-
-        {/* ===== HEADER SECTION ===== */}
+        {/* ===== HEADER ===== */}
         <Fade in timeout={800}>
           <Box sx={{ mb: 5 }}>
             <Typography
@@ -119,7 +86,7 @@ const Archive: React.FC = () => {
                 background: 'linear-gradient(135deg, #ffffff 0%, #c8e6d5 100%)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
-                textAlign: 'center'
+                textAlign: 'center',
               }}
             >
               {t('archive_title', { defaultValue: 'أرشيف الطفيليات' })}
@@ -131,18 +98,36 @@ const Archive: React.FC = () => {
                 color: 'rgba(255,255,255,0.8)',
                 textAlign: 'center',
                 maxWidth: 600,
-                mx: 'auto'
+                mx: 'auto',
               }}
             >
-              {t('archive_subtitle', { defaultValue: 'استكشف مجموعتنا الشاملة من العينات المجهرية الموثقة' })}
+              {t('archive_subtitle', {
+                defaultValue: 'استكشف مجموعتنا الشاملة من العينات المجهرية الموثقة',
+              })}
             </Typography>
+
+            {/* عدد النتائج */}
+            {pagination && (
+              <Typography
+                variant="body2"
+                sx={{
+                  color: 'rgba(255,255,255,0.6)',
+                  textAlign: 'center',
+                  mt: 1,
+                }}
+              >
+                {t('total_results', {
+                  defaultValue: `إجمالي ${pagination.total} عينة`,
+                  count: pagination.total,
+                })}
+              </Typography>
+            )}
           </Box>
         </Fade>
 
-        {/* ===== SEARCH & FILTER BAR ===== */}
+        {/* ===== SEARCH & FILTER ===== */}
         <Fade in timeout={1000}>
           <Stack spacing={3} sx={{ mb: 4 }}>
-
             {/* Search Bar */}
             <Paper
               elevation={0}
@@ -158,16 +143,6 @@ const Archive: React.FC = () => {
                 backdropFilter: 'blur(20px)',
                 border: '2px solid rgba(127,184,150,0.3)',
                 boxShadow: '0 20px 50px -10px rgba(0,0,0,0.4)',
-                transition: 'all 0.3s ease',
-                '&:hover': {
-                  transform: 'translateY(-2px)',
-                  boxShadow: '0 25px 60px -10px rgba(45,90,61,0.5)',
-                  borderColor: 'rgba(127,184,150,0.5)'
-                },
-                '&:focus-within': {
-                  boxShadow: '0 25px 60px -10px rgba(45,90,61,0.6)',
-                  borderColor: 'rgba(127,184,150,0.7)'
-                }
               }}
             >
               <InputAdornment position="start" sx={{ pl: 3, color: '#2d5a3d' }}>
@@ -176,7 +151,9 @@ const Archive: React.FC = () => {
 
               <TextField
                 fullWidth
-                placeholder={t('search_placeholder', { defaultValue: 'البحث بالاسم العلمي، النوع، العائل...' })}
+                placeholder={t('search_placeholder', {
+                  defaultValue: 'البحث بالاسم العلمي، النوع، الوصف...',
+                })}
                 variant="standard"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -187,11 +164,7 @@ const Archive: React.FC = () => {
                     fontWeight: 600,
                     color: '#0d1f15',
                     px: 3,
-                    '& input::placeholder': {
-                      color: '#5a7a66',
-                      opacity: 1
-                    }
-                  }
+                  },
                 }}
               />
 
@@ -204,19 +177,20 @@ const Archive: React.FC = () => {
                     borderRadius: '50%',
                     cursor: 'pointer',
                     display: 'flex',
-                    alignItems: 'center',
-                    transition: 'all 0.2s',
-                    '&:hover': {
-                      bgcolor: alpha('#2d5a3d', 0.1)
-                    }
+                    '&:hover': { bgcolor: alpha('#2d5a3d', 0.1) },
                   }}
                 >
                   <X size={20} color="#5a7a66" />
                 </Box>
               )}
+
+              {/* Loading indicator */}
+              {isFetching && (
+                <CircularProgress size={20} sx={{ mr: 2, color: '#2d5a3d' }} />
+              )}
             </Paper>
 
-            {/* Filter Toggle Button */}
+            {/* Filter Toggle */}
             <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, flexWrap: 'wrap' }}>
               <Paper
                 onClick={() => setShowFilters(!showFilters)}
@@ -231,18 +205,10 @@ const Archive: React.FC = () => {
                   background: showFilters
                     ? 'linear-gradient(135deg, #3a7050 0%, #2d5a3d 100%)'
                     : 'rgba(255,255,255,0.1)',
-                  backdropFilter: 'blur(10px)',
-                  border: `2px solid ${showFilters ? '#3a7050' : 'rgba(127,184,150,0.3)'}`,
                   color: showFilters ? '#ffffff' : 'rgba(255,255,255,0.9)',
                   fontWeight: 700,
                   transition: 'all 0.3s ease',
-                  '&:hover': {
-                    background: showFilters
-                      ? 'linear-gradient(135deg, #4a8a67 0%, #3a7050 100%)'
-                      : 'rgba(255,255,255,0.15)',
-                    transform: 'translateY(-2px)',
-                    boxShadow: '0 8px 24px rgba(0,0,0,0.3)'
-                  }
+                  '&:hover': { transform: 'translateY(-2px)' },
                 }}
               >
                 <Filter size={20} strokeWidth={2.5} />
@@ -266,11 +232,6 @@ const Archive: React.FC = () => {
                     background: 'rgba(220, 38, 38, 0.9)',
                     color: '#ffffff',
                     fontWeight: 600,
-                    transition: 'all 0.3s ease',
-                    '&:hover': {
-                      background: 'rgba(185, 28, 28, 1)',
-                      transform: 'translateY(-2px)'
-                    }
                   }}
                 >
                   <X size={18} />
@@ -298,47 +259,39 @@ const Archive: React.FC = () => {
               }}
             >
               <Stack spacing={3}>
-
                 {/* Type Filter */}
                 <Box>
                   <Typography
                     variant="subtitle1"
-                    sx={{
-                      mb: 2,
-                      color: '#ffffff',
-                      fontWeight: 700,
-                      letterSpacing: '0.5px'
-                    }}
+                    sx={{ mb: 2, color: '#ffffff', fontWeight: 700 }}
                   >
                     {t('filter_type', { defaultValue: 'نوع الطفيلي' })}
                   </Typography>
                   <Stack direction="row" spacing={1.5} flexWrap="wrap" sx={{ gap: 1.5 }}>
                     <Chip
                       label={t('filter_all', { defaultValue: 'الكل' })}
-                      onClick={() => setTypeFilter('all')}
+                      onClick={() => {
+                        setTypeFilter('all');
+                        setPage(1);
+                      }}
                       sx={{
                         bgcolor: typeFilter === 'all' ? '#3a7050' : 'rgba(255,255,255,0.1)',
                         color: typeFilter === 'all' ? '#ffffff' : 'rgba(255,255,255,0.8)',
                         fontWeight: 600,
-                        border: `1px solid ${typeFilter === 'all' ? '#3a7050' : 'rgba(127,184,150,0.3)'}`,
-                        '&:hover': {
-                          bgcolor: typeFilter === 'all' ? '#4a8a67' : 'rgba(255,255,255,0.15)',
-                        }
                       }}
                     />
-                    {distinctTypes.map((type) => (
+                    {filterOptions?.types.map((type) => (
                       <Chip
                         key={type}
                         label={type}
-                        onClick={() => setTypeFilter(type)}
+                        onClick={() => {
+                          setTypeFilter(type);
+                          setPage(1);
+                        }}
                         sx={{
                           bgcolor: typeFilter === type ? '#3a7050' : 'rgba(255,255,255,0.1)',
                           color: typeFilter === type ? '#ffffff' : 'rgba(255,255,255,0.8)',
                           fontWeight: 600,
-                          border: `1px solid ${typeFilter === type ? '#3a7050' : 'rgba(127,184,150,0.3)'}`,
-                          '&:hover': {
-                            bgcolor: typeFilter === type ? '#4a8a67' : 'rgba(255,255,255,0.15)',
-                          }
                         }}
                       />
                     ))}
@@ -348,43 +301,36 @@ const Archive: React.FC = () => {
                 {/* Stage Filter */}
                 <Box>
                   <Typography
-                    variant="subtitle1" 
-                    sx={{
-                      mb: 2,
-                      color: '#ffffff',
-                      fontWeight: 700,
-                      letterSpacing: '0.5px'
-                    }}
+                    variant="subtitle1"
+                    sx={{ mb: 2, color: '#ffffff', fontWeight: 700 }}
                   >
                     {t('filter_stage', { defaultValue: 'المرحلة' })}
                   </Typography>
                   <Stack direction="row" spacing={1.5} flexWrap="wrap" sx={{ gap: 1.5 }}>
                     <Chip
                       label={t('filter_all', { defaultValue: 'الكل' })}
-                      onClick={() => setStageFilter('all')}
+                      onClick={() => {
+                        setStageFilter('all');
+                        setPage(1);
+                      }}
                       sx={{
                         bgcolor: stageFilter === 'all' ? '#3a7050' : 'rgba(255,255,255,0.1)',
                         color: stageFilter === 'all' ? '#ffffff' : 'rgba(255,255,255,0.8)',
                         fontWeight: 600,
-                        border: `1px solid ${stageFilter === 'all' ? '#3a7050' : 'rgba(127,184,150,0.3)'}`,
-                        '&:hover': {
-                          bgcolor: stageFilter === 'all' ? '#4a8a67' : 'rgba(255,255,255,0.15)',
-                        }
                       }}
                     />
-                    {distinctStages.map((stage) => (
+                    {filterOptions?.stages.map((stage) => (
                       <Chip
                         key={stage}
                         label={stage}
-                        onClick={() => setStageFilter(stage)}
+                        onClick={() => {
+                          setStageFilter(stage);
+                          setPage(1);
+                        }}
                         sx={{
                           bgcolor: stageFilter === stage ? '#3a7050' : 'rgba(255,255,255,0.1)',
                           color: stageFilter === stage ? '#ffffff' : 'rgba(255,255,255,0.8)',
                           fontWeight: 600,
-                          border: `1px solid ${stageFilter === stage ? '#3a7050' : 'rgba(127,184,150,0.3)'}`,
-                          '&:hover': {
-                            bgcolor: stageFilter === stage ? '#4a8a67' : 'rgba(255,255,255,0.15)',
-                          }
                         }}
                       />
                     ))}
@@ -395,35 +341,47 @@ const Archive: React.FC = () => {
           </Fade>
         )}
 
-        {/* ===== RESULTS SECTION ===== */}
-        {loading ? (
+        {/* ===== RESULTS ===== */}
+        {isLoading ? (
+          // Skeleton Loading
           <Box
             sx={{
-              minHeight: 400,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
+              display: 'grid',
+              gridTemplateColumns: {
+                xs: '1fr',
+                sm: 'repeat(2, 1fr)',
+                md: 'repeat(3, 1fr)',
+                lg: 'repeat(4, 1fr)',
+              },
+              gap: 3,
             }}
           >
-            <CircularProgress size={60} thickness={4} sx={{ color: '#7fb896' }} />
+            {[...Array(8)].map((_, i) => (
+              <Skeleton
+                key={i}
+                variant="rounded"
+                height={320}
+                sx={{ bgcolor: 'rgba(255,255,255,0.1)', borderRadius: 3 }}
+              />
+            ))}
           </Box>
-        ) : filteredParasites.length === 0 ? (
+        ) : parasites.length === 0 ? (
           <Paper
             elevation={0}
             sx={{
               textAlign: 'center',
               py: 10,
               background: 'rgba(255,255,255,0.05)',
-              backdropFilter: 'blur(10px)',
               borderRadius: 4,
-              border: '1px solid rgba(127,184,150,0.2)'
             }}
           >
             <Typography variant="h6" sx={{ color: 'rgba(255,255,255,0.7)' }}>
               {t('archive_no_results', { defaultValue: 'لم يتم العثور على نتائج' })}
             </Typography>
             <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.5)', mt: 1 }}>
-              {t('archive_try_different', { defaultValue: 'جرب مصطلحات بحث أخرى أو قم بمسح الفلاتر' })}
+              {t('archive_try_different', {
+                defaultValue: 'جرب مصطلحات بحث أخرى أو قم بمسح الفلاتر',
+              })}
             </Typography>
           </Paper>
         ) : (
@@ -432,14 +390,10 @@ const Archive: React.FC = () => {
             <Box sx={{ mb: 3 }}>
               <Typography
                 variant="body1"
-                sx={{
-                  color: 'rgba(255,255,255,0.8)',
-                  fontWeight: 600
-                }}
+                sx={{ color: 'rgba(255,255,255,0.8)', fontWeight: 600 }}
               >
-                {t('results_count', {
-                  defaultValue: `تم العثور على ${filteredParasites.length} عينة`,
-                  count: filteredParasites.length
+                {t('showing_results', {
+                  defaultValue: `عرض ${parasites.length} من ${pagination?.total || 0} عينة`,
                 })}
               </Typography>
             </Box>
@@ -455,16 +409,45 @@ const Archive: React.FC = () => {
                   lg: 'repeat(4, 1fr)',
                 },
                 gap: 3,
+                opacity: isFetching ? 0.7 : 1,
+                transition: 'opacity 0.3s',
               }}
             >
-              {filteredParasites.map((parasite, index) => (
-                <Fade in timeout={800 + index * 100} key={parasite.id}>
+              {parasites.map((parasite, index) => (
+                <Fade in timeout={300 + index * 50} key={parasite.id}>
                   <Box>
                     <ParasiteCard parasite={parasite} />
                   </Box>
                 </Fade>
               ))}
             </Box>
+
+            {/* Pagination */}
+            {pagination && pagination.totalPages > 1 && (
+              <Box sx={{ display: 'flex', justifyContent: 'center', mt: 6 }}>
+                <Pagination
+                  count={pagination.totalPages}
+                  page={page}
+                  onChange={(_, value) => {
+                    setPage(value);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  color="primary"
+                  size="large"
+                  sx={{
+                    '& .MuiPaginationItem-root': {
+                      color: '#ffffff',
+                      borderColor: 'rgba(255,255,255,0.3)',
+                      '&.Mui-selected': {
+                        bgcolor: '#3a7050',
+                        '&:hover': { bgcolor: '#4a8a67' },
+                      },
+                      '&:hover': { bgcolor: 'rgba(255,255,255,0.1)' },
+                    },
+                  }}
+                />
+              </Box>
+            )}
           </>
         )}
       </Container>

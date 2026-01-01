@@ -1,136 +1,87 @@
-﻿import { useState, useEffect } from 'react';
-import { parasitesApi, Parasite } from '@/api/parasites';
+﻿// src/hooks/useParasites.ts
+// للتوافق مع الكود القديم - يستخدم React Query داخلياً
+
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { parasitesApi } from '@/api/parasites';
+import { Parasite, CreateParasiteInput, UpdateParasiteInput } from '@/types/parasite';
 
 interface UseParasitesOptions {
   autoFetch?: boolean;
 }
 
+// Query Keys
+const PARASITES_KEY = ['parasites'];
+
 export const useParasites = (options: UseParasitesOptions = { autoFetch: true }) => {
-  const [parasites, setParasites] = useState<Parasite[]>([]);
-  const [loading, setLoading] = useState(options.autoFetch !== false);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
   // جلب جميع الطفيليات
-  const fetchParasites = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      console.log('🔄 Fetching all parasites...');
-      
-      const response = await parasitesApi.getAll();
-      
-      // ✅ التصحيح: Supabase يعيد البيانات مباشرة كمصفوفة
-      let data = response;
+  const {
+    data: parasites = [],
+    isLoading: loading,
+    error: queryError,
+    refetch,
+  } = useQuery({
+    queryKey: PARASITES_KEY,
+    queryFn: parasitesApi.getAll,
+    enabled: options.autoFetch !== false,
+  });
 
-      // تحسباً إذا كان الرد ملفوفاً داخل خاصية data (للتوافق القديم)
-      if (
-        response && 
-        !Array.isArray(response) && 
-        typeof response === 'object' && 
-        'data' in response && 
-        Array.isArray((response as { data?: unknown }).data)
-      ) {
-        data = (response as { data: Parasite[] }).data;
-      }
-      
-      if (!data || !Array.isArray(data)) {
-        console.warn('⚠️ Invalid response format:', response);
-        // لا نفرغ المصفوفة فوراً لكي لا تختفي البيانات القديمة في حال الخطأ العابر
-        setParasites([]); 
-        setLoading(false);
-        return;
-      }
-      
-      console.log('✅ Parasites fetched:', data.length);
-      setParasites(data);
-    } catch (err: unknown) {
-      console.error('❌ Error fetching parasites:', err);
-      setError(err instanceof Error ? err.message : 'خطأ في تحميل البيانات');
-      setParasites([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const error = queryError ? (queryError as Error).message : null;
 
   // جلب طفيلي بواسطة ID
   const getParasiteById = async (id: number | string): Promise<Parasite | null> => {
     try {
-      console.log('🔄 Fetching parasite with ID:', id);
-      const parasite = await parasitesApi.getById(id.toString()); // التأكد من تحويل المعرف لنص
-      console.log('✅ Parasite fetched:', parasite);
+      const parasite = await parasitesApi.getById(id.toString());
       return parasite || null;
-    } catch (err: unknown) {
+    } catch (err) {
       console.error('❌ Error fetching parasite:', err);
       return null;
     }
   };
 
   // إنشاء طفيلي جديد
-  const createParasite = async (data: any) => {
-    try {
-      setLoading(true);
-      const newParasite = await parasitesApi.create(data);
-      // إضافة العنصر الجديد في أول القائمة
-      setParasites((prev) => [newParasite, ...prev]);
-      setError(null);
-      return newParasite;
-    } catch (err: unknown) {
-      const errorMsg = err instanceof Error ? err.message : 'خطأ في الإنشاء';
-      console.error('❌ Error creating parasite:', errorMsg);
-      setError(errorMsg);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
+  const createMutation = useMutation({
+    mutationFn: (data: CreateParasiteInput) => parasitesApi.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: PARASITES_KEY });
+    },
+  });
+
+  const createParasite = async (data: CreateParasiteInput) => {
+    return createMutation.mutateAsync(data);
   };
 
   // تحديث طفيلي
-  const updateParasite = async (id: number | string, data: any) => {
-    try {
-      setLoading(true);
-      const updatedParasite = await parasitesApi.update(id.toString(), data);
-      setParasites((prev) => prev.map((p) => (p.id === id ? updatedParasite : p)));
-      setError(null);
-      return updatedParasite;
-    } catch (err: unknown) {
-      const errorMsg = err instanceof Error ? err.message : 'خطأ في التحديث';
-      console.error('❌ Error updating parasite:', errorMsg);
-      setError(errorMsg);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: UpdateParasiteInput }) =>
+      parasitesApi.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: PARASITES_KEY });
+    },
+  });
+
+  const updateParasite = async (id: number | string, data: UpdateParasiteInput) => {
+    return updateMutation.mutateAsync({ id: id.toString(), data });
   };
 
   // حذف طفيلي
-  const deleteParasite = async (id: number | string) => {
-    try {
-      setLoading(true);
-      await parasitesApi.delete(id.toString());
-      setParasites((prev) => prev.filter((p) => p.id !== id));
-      setError(null);
-    } catch (err: unknown) {
-      const errorMsg = err instanceof Error ? err.message : 'خطأ في الحذف';
-      console.error('❌ Error deleting parasite:', errorMsg);
-      setError(errorMsg);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => parasitesApi.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: PARASITES_KEY });
+    },
+  });
 
-  // تحميل البيانات عند التثبيت
-  useEffect(() => {
-    if (options.autoFetch !== false) {
-      fetchParasites();
-    }
-  }, [options.autoFetch]);
+  const deleteParasite = async (id: number | string) => {
+    return deleteMutation.mutateAsync(id.toString());
+  };
 
   return {
     parasites,
-    loading,
+    loading: loading || createMutation.isPending || updateMutation.isPending || deleteMutation.isPending,
     error,
-    refetch: fetchParasites,
+    refetch,
     getParasiteById,
     createParasite,
     updateParasite,

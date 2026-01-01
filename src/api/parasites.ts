@@ -15,11 +15,36 @@ import {
 } from '../types/parasite';
 
 // ==============================================
+// أنواع Pagination
+// ==============================================
+
+export interface PaginationParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  type?: string;
+  stage?: string;
+  status?: 'pending' | 'approved' | 'rejected' | 'all';
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  };
+}
+
+// ==============================================
 // دوال جلب البيانات (Read)
 // ==============================================
 
 /**
- * جلب جميع الطفيليات
+ * جلب جميع الطفيليات (بدون pagination - للتوافق)
  */
 const getParasites = async (): Promise<Parasite[]> => {
   const { data, error } = await supabase
@@ -35,13 +60,88 @@ const getParasites = async (): Promise<Parasite[]> => {
 };
 
 /**
+ * جلب الطفيليات مع Pagination والفلاتر
+ */
+const getParasitesPaginated = async (
+  params: PaginationParams = {}
+): Promise<PaginatedResponse<Parasite>> => {
+  const {
+    page = 1,
+    limit = 12,
+    search = '',
+    type = 'all',
+    stage = 'all',
+    status = 'approved',
+  } = params;
+
+  const from = (page - 1) * limit;
+  const to = from + limit - 1;
+
+  // بناء الاستعلام
+  let query = supabase
+    .from('parasites')
+    .select('*', { count: 'exact' });
+
+  // فلتر الحالة
+  if (status !== 'all') {
+    query = query.eq('status', status);
+  }
+
+  // فلتر النوع
+  if (type !== 'all') {
+    query = query.eq('type', type);
+  }
+
+  // فلتر المرحلة
+  if (stage !== 'all') {
+    query = query.eq('stage', stage);
+  }
+
+  // البحث
+  if (search) {
+    query = query.or(
+      `name.ilike.%${search}%,scientificname.ilike.%${search}%,description.ilike.%${search}%`
+    );
+  }
+
+  // الترتيب والتقسيم
+  query = query
+    .order('created_at', { ascending: false })
+    .range(from, to);
+
+  const { data, error, count } = await query;
+
+  if (error) {
+    throw new Error(`فشل في جلب البيانات: ${error.message}`);
+  }
+
+  const total = count || 0;
+  const totalPages = Math.ceil(total / limit);
+
+  return {
+    data: transformArrayFromDB(data as ParasiteFromDB[]),
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages,
+      hasNext: page < totalPages,
+      hasPrev: page > 1,
+    },
+  };
+};
+
+/**
  * البحث في الطفيليات
  */
 const searchParasites = async (query: string): Promise<Parasite[]> => {
   const { data, error } = await supabase
     .from('parasites')
     .select('*')
-    .ilike('name', `%${query}%`);
+    .or(
+      `name.ilike.%${query}%,scientificname.ilike.%${query}%,description.ilike.%${query}%`
+    )
+    .order('created_at', { ascending: false });
 
   if (error) {
     throw new Error(`فشل في البحث: ${error.message}`);
@@ -62,12 +162,34 @@ const getParasiteById = async (id: string): Promise<Parasite | null> => {
 
   if (error) {
     if (error.code === 'PGRST116') {
-      return null; // لم يتم العثور على العنصر
+      return null;
     }
     throw new Error(`فشل في جلب البيانات: ${error.message}`);
   }
 
   return transformFromDB(data as ParasiteFromDB);
+};
+
+/**
+ * جلب الأنواع المتاحة للفلاتر
+ */
+const getFilterOptions = async (): Promise<{
+  types: string[];
+  stages: string[];
+}> => {
+  const { data, error } = await supabase
+    .from('parasites')
+    .select('type, stage')
+    .eq('status', 'approved');
+
+  if (error) {
+    throw new Error(`فشل في جلب الفلاتر: ${error.message}`);
+  }
+
+  const types = [...new Set(data?.map((p) => p.type).filter(Boolean))] as string[];
+  const stages = [...new Set(data?.map((p) => p.stage).filter(Boolean))] as string[];
+
+  return { types, stages };
 };
 
 // ==============================================
@@ -100,18 +222,16 @@ const uploadImage = async (image: File): Promise<string> => {
  * إنشاء طفيلي جديد
  */
 const createParasite = async (input: CreateParasiteInput): Promise<Parasite> => {
-  // فصل الصورة عن باقي البيانات
   const { image, ...parasiteData } = input;
-
-  // تحويل البيانات لصيغة قاعدة البيانات
   const dbData = transformToDB(parasiteData);
 
-  // رفع الصورة إذا وجدت
   if (image) {
     dbData.imageurl = await uploadImage(image);
   }
 
-  // الإدراج في قاعدة البيانات
+  // الحالة الافتراضية: قيد المراجعة
+  dbData.status = 'pending';
+
   const { data, error } = await supabase
     .from('parasites')
     .insert([dbData])
@@ -129,18 +249,13 @@ const createParasite = async (input: CreateParasiteInput): Promise<Parasite> => 
  * تحديث طفيلي
  */
 const updateParasite = async (id: string, input: UpdateParasiteInput): Promise<Parasite> => {
-  // فصل الصورة عن باقي البيانات
   const { image, ...parasiteData } = input;
-
-  // تحويل البيانات لصيغة قاعدة البيانات
   const dbData = transformToDB(parasiteData);
 
-  // رفع الصورة الجديدة إذا وجدت
   if (image) {
     dbData.imageurl = await uploadImage(image);
   }
 
-  // التحديث في قاعدة البيانات
   const { data, error } = await supabase
     .from('parasites')
     .update(dbData)
@@ -176,11 +291,15 @@ const deleteParasite = async (id: string): Promise<boolean> => {
 // ==============================================
 
 export const parasitesApi = {
+  // Read
   getAll: getParasites,
   getParasites,
+  getPaginated: getParasitesPaginated,
   search: searchParasites,
   searchParasites,
   getById: getParasiteById,
+  getFilterOptions,
+  // Create/Update/Delete
   create: createParasite,
   update: updateParasite,
   delete: deleteParasite,
@@ -188,12 +307,13 @@ export const parasitesApi = {
 
 export {
   getParasites,
+  getParasitesPaginated,
   searchParasites,
   getParasiteById,
+  getFilterOptions,
   createParasite,
   updateParasite,
   deleteParasite,
 };
 
-// تصدير الأنواع للاستخدام في أماكن أخرى
 export type { Parasite, CreateParasiteInput, UpdateParasiteInput } from '../types/parasite';
