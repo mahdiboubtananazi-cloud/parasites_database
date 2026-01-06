@@ -136,7 +136,22 @@ export default function AddParasite() {
       setTimeout(() => navigate('/archive'), 1500);
     } catch (error: unknown) {
       console.error('❌ خطأ:', error);
-      const errorMessage = error instanceof Error ? error.message : t('error_save_parasite');
+      
+      let errorMessage: string;
+      if (error instanceof Error) {
+        // تحسين رسائل الخطأ الخاصة برفع الصور
+        if (error.message.includes('Bucket not found') || error.message.includes('not found')) {
+          errorMessage = t('error_bucket_not_found') || 
+            'Storage bucket not found. Please check your Supabase Storage configuration.';
+        } else if (error.message.includes('upload') || error.message.includes('رفع')) {
+          errorMessage = error.message;
+        } else {
+          errorMessage = error.message;
+        }
+      } else {
+        errorMessage = t('error_save_parasite') || 'Failed to save parasite. Please try again.';
+      }
+      
       showError(errorMessage);
     } finally {
       setIsSubmitting(false);

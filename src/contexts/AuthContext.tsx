@@ -23,36 +23,80 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(true);     // تحميل عام للتطبيق
+  const [isLoading, setIsLoading] = useState(false); // تحميل عمليات (login/register)
   const [error, setError] = useState<string | null>(null);
 
-  // ✅ تحميل الـ session عند البداية
+  // ==========================================
+  // تحميل الجلسة عند بداية التطبيق
+  // ==========================================
   useEffect(() => {
+    let isMounted = true;
+    let timeoutId: NodeJS.Timeout;
+
     const initializeAuth = async () => {
       try {
-        console.log('🔐 Initializing Auth Provider...');
+        // إضافة timeout لمنع التعليق الأبدي
+        const sessionPromise = supabase.auth.getSession();
+        const timeoutPromise = new Promise<never>((_, reject) => {
+          timeoutId = setTimeout(() => {
+            reject(new Error('Auth initialization timeout'));
+          }, 10000); // 10 seconds timeout
+        });
 
-        // ✅ Check session
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        let sessionResult;
+        try {
+          sessionResult = await Promise.race([sessionPromise, timeoutPromise]);
+        } catch (timeoutError) {
+          // إذا انتهت المهلة الزمنية، استخدم null كجلسة
+          console.warn('Auth session fetch timed out, proceeding without session');
+          sessionResult = { data: { session: null } };
+        }
         
-        if (sessionError) {
-          console.error('❌ Session error:', sessionError);
-          setError(sessionError.message);
-          setLoading(false);
-          return;
+        // تنظيف timeout إذا نجحت العملية
+        if (timeoutId) {
+          clearTimeout(timeoutId);
         }
 
-        console.log('✅ Session check:', !!session?.user);
+        const {
+          data: { session },
+        } = sessionResult;
+
+        if (!isMounted) return;
 
         if (session?.user) {
-          // ✅ Load user data with role
+          // نحاول جلب profile، لكن لا نسمح له بتعليق التطبيق
           try {
-            const { data: profile } = await supabase
+            const profilePromise = supabase
               .from('profiles')
               .select('role, name')
               .eq('id', session.user.id)
               .single();
+            
+            let profileTimeoutId: NodeJS.Timeout;
+            const profileTimeoutPromise = new Promise<never>((_, reject) => {
+              profileTimeoutId = setTimeout(() => reject(new Error('Profile fetch timeout')), 5000);
+            });
+
+            let profileResult;
+            try {
+              profileResult = await Promise.race([
+                profilePromise,
+                profileTimeoutPromise,
+              ]);
+            } catch (profileTimeoutError) {
+              // إذا انتهت المهلة الزمنية، استخدم null كـ profile
+              console.warn('Profile fetch timed out, using fallback');
+              profileResult = { data: null };
+            } finally {
+              if (profileTimeoutId) {
+                clearTimeout(profileTimeoutId);
+              }
+            }
+
+            const { data: profile } = profileResult;
+
+            if (!isMounted) return;
 
             setUser({
               id: session.user.id,
@@ -60,10 +104,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               role: profile?.role || session.user.user_metadata?.role || 'student',
               name: profile?.name || session.user.user_metadata?.name,
             });
-
-            console.log('👤 User loaded:', session.user.email);
-          } catch (err) {
-            console.warn('⚠️ Profile load error, using metadata');
+          } catch (profileErr) {
+            // fallback بدون profile
+            if (!isMounted) return;
+            console.warn('Profile fetch failed, using fallback:', profileErr);
             setUser({
               id: session.user.id,
               email: session.user.email,
@@ -71,121 +115,111 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               name: session.user.user_metadata?.name,
             });
           }
+        } else {
+          setUser(null);
         }
-
-        setLoading(false);
       } catch (err) {
-        console.error('🔴 Auth init error:', err);
-        setError(err instanceof Error ? err.message : 'Unknown error');
-        setLoading(false);
+        console.error('Auth init error:', err);
+        if (isMounted) {
+          setUser(null);
+          setError(err instanceof Error ? err.message : 'Failed to initialize authentication');
+        }
+      } finally {
+        if (isMounted) {
+          // 🔴 هذا هو السطر الأهم - يضمن عدم التعليق الأبدي
+          setLoading(false);
+        }
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+        }
       }
     };
 
     initializeAuth();
 
-    // ✅ Listen to auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('🔄 Auth state changed:', event);
-
-        if (event === 'SIGNED_IN' && session?.user) {
-          try {
-            const { data: profile } = await supabase
-              .from('profiles')
-              .select('role, name')
-              .eq('id', session.user.id)
-              .single();
-
-            setUser({
-              id: session.user.id,
-              email: session.user.email,
-              role: profile?.role || session.user.user_metadata?.role || 'student',
-              name: profile?.name || session.user.user_metadata?.name,
-            });
-          } catch (err) {
-            setUser({
-              id: session.user.id,
-              email: session.user.email,
-              role: session.user.user_metadata?.role || 'student',
-              name: session.user.user_metadata?.name,
-            });
-          }
-        } else if (event === 'SIGNED_OUT') {
-          console.log('🚪 User signed out');
-          setUser(null);
-        }
+    return () => {
+      isMounted = false;
+      if (timeoutId) {
+        clearTimeout(timeoutId);
       }
-    );
+    };
+
+    // ==========================================
+    // الاستماع لتغييرات حالة المصادقة
+    // ==========================================
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (!session?.user) {
+        setUser(null);
+        return;
+      }
+
+      try {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role, name')
+          .eq('id', session.user.id)
+          .single();
+
+        setUser({
+          id: session.user.id,
+          email: session.user.email,
+          role: profile?.role || session.user.user_metadata?.role || 'student',
+          name: profile?.name || session.user.user_metadata?.name,
+        });
+      } catch {
+        setUser({
+          id: session.user.id,
+          email: session.user.email,
+          role: session.user.user_metadata?.role || 'student',
+          name: session.user.user_metadata?.name,
+        });
+      }
+    });
 
     return () => {
       subscription?.unsubscribe();
     };
   }, []);
 
-  // ✅ دالة تسجيل الدخول
+  // ==========================================
+  // تسجيل الدخول
+  // ==========================================
   const login = async (data: { email: string; password: string }) => {
     try {
       setIsLoading(true);
       setError(null);
 
-      console.log('🔐 Attempting login for:', data.email);
-
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      const { data: authData, error } = await supabase.auth.signInWithPassword({
         email: data.email,
         password: data.password,
       });
 
-      if (authError) {
-        console.error('❌ Login error:', authError.message);
-        setError(authError.message);
-        throw authError;
-      }
-
-      console.log('✅ Login successful');
+      if (error) throw error;
 
       if (authData.user) {
-        try {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('role, name')
-            .eq('id', authData.user.id)
-            .single();
-
-          setUser({
-            id: authData.user.id,
-            email: authData.user.email,
-            role: profile?.role || authData.user.user_metadata?.role || 'student',
-            name: profile?.name || authData.user.user_metadata?.name,
-          });
-
-          console.log('👤 User set:', authData.user.email);
-        } catch (err) {
-          console.warn('⚠️ Profile load error, using metadata');
-          setUser({
-            id: authData.user.id,
-            email: authData.user.email,
-            role: authData.user.user_metadata?.role || 'student',
-            name: authData.user.user_metadata?.name,
-          });
-        }
+        setUser({
+          id: authData.user.id,
+          email: authData.user.email,
+          role: authData.user.user_metadata?.role || 'student',
+          name: authData.user.user_metadata?.name,
+        });
       }
-    } catch (err) {
-      console.error('🔴 Login error:', err);
-      throw err;
     } finally {
       setIsLoading(false);
     }
   };
 
-  // ✅ دالة التسجيل (Register)
+  // ==========================================
+  // التسجيل
+  // ==========================================
   const register = async (data: { email: string; password: string; name?: string }) => {
     try {
       setIsLoading(true);
       setError(null);
 
-      console.log('📝 Attempting register for:', data.email);
-
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+      const { data: authData, error } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
         options: {
@@ -196,31 +230,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         },
       });
 
-      if (authError) {
-        console.error('❌ Register error:', authError.message);
-        setError(authError.message);
-        throw authError;
-      }
-
-      console.log('✅ Register successful');
+      if (error) throw error;
 
       if (authData.user) {
-        // ✅ إنشء بيانات في جدول profiles
-        try {
-          const { error: profileError } = await supabase.from('profiles').insert({
-            id: authData.user.id,
-            email: authData.user.email,
-            name: data.name || '',
-            role: 'student',
-          });
-
-          if (profileError) {
-            console.warn('⚠️ Profile creation error:', profileError);
-          }
-        } catch (err) {
-          console.warn('⚠️ Profile creation failed:', err);
-        }
-
         setUser({
           id: authData.user.id,
           email: authData.user.email,
@@ -228,32 +240,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           name: data.name || '',
         });
       }
-    } catch (err) {
-      console.error('🔴 Register error:', err);
-      throw err;
     } finally {
       setIsLoading(false);
     }
   };
 
-  // ✅ دالة تسجيل الخروج
+  // ==========================================
+  // تسجيل الخروج
+  // ==========================================
   const logout = async () => {
     try {
       setIsLoading(true);
-      console.log('🚪 Logging out...');
-
-      const { error } = await supabase.auth.signOut();
-
-      if (error) {
-        console.error('❌ Logout error:', error);
-        throw error;
-      }
-
+      await supabase.auth.signOut();
       setUser(null);
-      console.log('✅ Logout successful');
-    } catch (err) {
-      console.error('🔴 Logout error:', err);
-      throw err;
     } finally {
       setIsLoading(false);
     }
@@ -262,7 +261,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const isAuthenticated = !!user;
 
   return (
-    <AuthContext.Provider value={{ user, loading, isLoading, isAuthenticated, error, login, logout, register }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        isLoading,
+        isAuthenticated,
+        error,
+        login,
+        logout,
+        register,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

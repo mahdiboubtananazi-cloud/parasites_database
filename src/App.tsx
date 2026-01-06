@@ -1,6 +1,6 @@
 ﻿import React, { useMemo } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { Box, CssBaseline, ThemeProvider } from '@mui/material';
+import { Box, CssBaseline, ThemeProvider, CircularProgress } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { colors } from './theme/colors';
 import { getTheme } from './theme/theme';
@@ -16,13 +16,13 @@ import ReviewParasites from './pages/ReviewParasites';
 import ParasiteDetails from './pages/ParasiteDetails';
 
 // السياقات
-import { AuthProvider } from './contexts/AuthContext';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ToastProvider } from './contexts/ToastContext';
 
-// المكوّن المشترك (الشريط العلوي)
+// المكوّن المشترك
 import Navbar from './components/common/Navbar';
 
-// صفحة الخطأ 404 بسيطة
+// صفحة 404
 const NotFound = () => (
   <Box sx={{ textAlign: 'center', mt: 10, color: colors.text.primary }}>
     <h1>404 - Page Not Found</h1>
@@ -31,9 +31,41 @@ const NotFound = () => (
 
 function App() {
   const { i18n } = useTranslation();
-  
-  //  Theme ديناميكي يتغير مع اللغة
+  const { loading, error } = useAuth();
+
   const theme = useMemo(() => getTheme(i18n.language), [i18n.language]);
+
+  // عرض شاشة التحميل أثناء تهيئة المصادقة
+  if (loading) {
+    return (
+      <ThemeProvider theme={theme}>
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            minHeight: '100vh',
+            bgcolor: colors.background.default,
+            color: colors.text.primary,
+          }}
+        >
+          <CssBaseline />
+          <CircularProgress size={60} thickness={4} sx={{ color: colors.primary.main }} />
+          <Box sx={{ mt: 3, textAlign: 'center' }}>
+            <Box component="p" sx={{ color: colors.text.secondary, mb: 1 }}>
+              {i18n.language === 'ar' ? 'جاري التحميل...' : 'Loading...'}
+            </Box>
+            {error && (
+              <Box component="p" sx={{ color: 'error.main', fontSize: '0.875rem', mt: 1 }}>
+                {error}
+              </Box>
+            )}
+          </Box>
+        </Box>
+      </ThemeProvider>
+    );
+  }
 
   return (
     <ThemeProvider theme={theme}>
@@ -49,28 +81,15 @@ function App() {
         <Navbar />
 
         <Routes>
-          {/* الرئيسية */}
           <Route path="/" element={<Home />} />
-
-          {/* الأرشيف + تفاصيل الطفيلي */}
           <Route path="/archive" element={<Archive />} />
           <Route path="/parasite/:id" element={<ParasiteDetails />} />
-
-          {/* إضافة عينة */}
           <Route path="/add" element={<AddParasite />} />
           <Route path="/add-parasite" element={<Navigate to="/add" replace />} />
-
-          {/* الإحصائيات */}
           <Route path="/statistics" element={<Statistics />} />
-
-          {/* مراجعة العينات من طرف الدكاترة */}
           <Route path="/review" element={<ReviewParasites />} />
-
-          {/* المصادقة */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-
-          {/* 404 */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Box>

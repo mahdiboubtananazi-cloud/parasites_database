@@ -15,6 +15,16 @@ import {
 } from '../types/parasite';
 
 // ==============================================
+// إعدادات Storage
+// ==============================================
+
+// يمكن تغيير اسم الـ bucket من متغيرات البيئة أو استخدام القيمة الافتراضية
+const STORAGE_BUCKET = import.meta.env.VITE_STORAGE_BUCKET || 'parasite-images';
+
+// أسماء الـ buckets المحتملة للتحقق
+const POSSIBLE_BUCKETS = ['parasite-images', 'parasites', 'parasite_images'];
+
+// ==============================================
 // أنواع Pagination
 // ==============================================
 
@@ -43,9 +53,6 @@ export interface PaginatedResponse<T> {
 // دوال جلب البيانات (Read)
 // ==============================================
 
-/**
- * جلب جميع الطفيليات (بدون pagination - للتوافق)
- */
 const getParasites = async (): Promise<Parasite[]> => {
   const { data, error } = await supabase
     .from('parasites')
@@ -59,9 +66,6 @@ const getParasites = async (): Promise<Parasite[]> => {
   return transformArrayFromDB(data as ParasiteFromDB[]);
 };
 
-/**
- * جلب الطفيليات مع Pagination والفلاتر
- */
 const getParasitesPaginated = async (
   params: PaginationParams = {}
 ): Promise<PaginatedResponse<Parasite>> => {
@@ -77,34 +81,20 @@ const getParasitesPaginated = async (
   const from = (page - 1) * limit;
   const to = from + limit - 1;
 
-  // بناء الاستعلام
   let query = supabase
     .from('parasites')
     .select('*', { count: 'exact' });
 
-  // فلتر الحالة
-  if (status !== 'all') {
-    query = query.eq('status', status);
-  }
+  if (status !== 'all') query = query.eq('status', status);
+  if (type !== 'all') query = query.eq('type', type);
+  if (stage !== 'all') query = query.eq('stage', stage);
 
-  // فلتر النوع
-  if (type !== 'all') {
-    query = query.eq('type', type);
-  }
-
-  // فلتر المرحلة
-  if (stage !== 'all') {
-    query = query.eq('stage', stage);
-  }
-
-  // البحث
   if (search) {
     query = query.or(
       `name.ilike.%${search}%,scientificname.ilike.%${search}%,description.ilike.%${search}%`
     );
   }
 
-  // الترتيب والتقسيم
   query = query
     .order('created_at', { ascending: false })
     .range(from, to);
@@ -131,9 +121,6 @@ const getParasitesPaginated = async (
   };
 };
 
-/**
- * البحث في الطفيليات
- */
 const searchParasites = async (query: string): Promise<Parasite[]> => {
   const { data, error } = await supabase
     .from('parasites')
@@ -150,9 +137,6 @@ const searchParasites = async (query: string): Promise<Parasite[]> => {
   return transformArrayFromDB(data as ParasiteFromDB[]);
 };
 
-/**
- * جلب طفيلي بواسطة ID
- */
 const getParasiteById = async (id: string): Promise<Parasite | null> => {
   const { data, error } = await supabase
     .from('parasites')
@@ -161,18 +145,13 @@ const getParasiteById = async (id: string): Promise<Parasite | null> => {
     .single();
 
   if (error) {
-    if (error.code === 'PGRST116') {
-      return null;
-    }
+    if (error.code === 'PGRST116') return null;
     throw new Error(`فشل في جلب البيانات: ${error.message}`);
   }
 
   return transformFromDB(data as ParasiteFromDB);
 };
 
-/**
- * جلب الأنواع المتاحة للفلاتر
- */
 const getFilterOptions = async (): Promise<{
   types: string[];
   stages: string[];
@@ -193,34 +172,60 @@ const getFilterOptions = async (): Promise<{
 };
 
 // ==============================================
-// دوال الإنشاء والتحديث (Create/Update)
+// Create / Update
 // ==============================================
 
-/**
- * رفع صورة إلى Supabase Storage
- */
 const uploadImage = async (image: File): Promise<string> => {
   const fileExt = image.name.split('.').pop();
-  const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
+  const fileName = `${Date.now()}_${Math.random().toString(36).slice(2)}.${fileExt}`;
 
-  const { error: uploadError } = await supabase.storage
-    .from('parasites')
-    .upload(fileName, image);
+  // محاولة الرفع إلى الـ bucket المحدد
+  let lastError: Error | null = null;
+  
+  for (const bucketName of [STORAGE_BUCKET, ...POSSIBLE_BUCKETS.filter(b => b !== STORAGE_BUCKET)]) {
+    try {
+      const { error, data: uploadData } = await supabase.storage
+        .from(bucketName)
+        .upload(fileName, image, {
+          cacheControl: '3600',
+          upsert: false,
+        });
 
-  if (uploadError) {
-    throw new Error(`فشل في رفع الصورة: ${uploadError.message}`);
+      if (error) {
+        // إذا كان الخطأ "Bucket not found"، جرب الـ bucket التالي
+        if (error.message.includes('Bucket not found') || error.message.includes('not found')) {
+          lastError = new Error(`Bucket "${bucketName}" not found`);
+          continue;
+        }
+        // خطأ آخر، أرجعه مباشرة
+        throw new Error(`فشل في رفع الصورة إلى ${bucketName}: ${error.message}`);
+      }
+
+      // نجح الرفع، احصل على الرابط العام
+      const { data: urlData } = supabase.storage
+        .from(bucketName)
+        .getPublicUrl(fileName);
+
+      if (!urlData?.publicUrl) {
+        throw new Error(`فشل في الحصول على رابط الصورة من ${bucketName}`);
+      }
+
+      return urlData.publicUrl;
+    } catch (err) {
+      lastError = err instanceof Error ? err : new Error(String(err));
+      // إذا لم يكن خطأ "Bucket not found"، أرجعه مباشرة
+      if (!lastError.message.includes('not found') && !lastError.message.includes('Bucket')) {
+        throw lastError;
+      }
+    }
   }
 
-  const { data: { publicUrl } } = supabase.storage
-    .from('parasites')
-    .getPublicUrl(fileName);
-
-  return publicUrl;
+  // فشلت جميع المحاولات
+  const errorMessage = lastError?.message || 'فشل في رفع الصورة';
+  const suggestion = `تأكد من وجود bucket باسم "${STORAGE_BUCKET}" أو "${POSSIBLE_BUCKETS.join('" أو "')}" في Supabase Storage.`;
+  throw new Error(`${errorMessage}. ${suggestion}`);
 };
 
-/**
- * إنشاء طفيلي جديد
- */
 const createParasite = async (input: CreateParasiteInput): Promise<Parasite> => {
   const { image, ...parasiteData } = input;
   const dbData = transformToDB(parasiteData);
@@ -229,7 +234,6 @@ const createParasite = async (input: CreateParasiteInput): Promise<Parasite> => 
     dbData.imageurl = await uploadImage(image);
   }
 
-  // الحالة الافتراضية: قيد المراجعة
   dbData.status = 'pending';
 
   const { data, error } = await supabase
@@ -245,10 +249,10 @@ const createParasite = async (input: CreateParasiteInput): Promise<Parasite> => 
   return transformFromDB(data as ParasiteFromDB);
 };
 
-/**
- * تحديث طفيلي
- */
-const updateParasite = async (id: string, input: UpdateParasiteInput): Promise<Parasite> => {
+const updateParasite = async (
+  id: string,
+  input: UpdateParasiteInput
+): Promise<Parasite> => {
   const { image, ...parasiteData } = input;
   const dbData = transformToDB(parasiteData);
 
@@ -270,9 +274,6 @@ const updateParasite = async (id: string, input: UpdateParasiteInput): Promise<P
   return transformFromDB(data as ParasiteFromDB);
 };
 
-/**
- * حذف طفيلي
- */
 const deleteParasite = async (id: string): Promise<boolean> => {
   const { error } = await supabase
     .from('parasites')
@@ -291,7 +292,6 @@ const deleteParasite = async (id: string): Promise<boolean> => {
 // ==============================================
 
 export const parasitesApi = {
-  // Read
   getAll: getParasites,
   getParasites,
   getPaginated: getParasitesPaginated,
@@ -299,21 +299,9 @@ export const parasitesApi = {
   searchParasites,
   getById: getParasiteById,
   getFilterOptions,
-  // Create/Update/Delete
   create: createParasite,
   update: updateParasite,
   delete: deleteParasite,
 };
 
-export {
-  getParasites,
-  getParasitesPaginated,
-  searchParasites,
-  getParasiteById,
-  getFilterOptions,
-  createParasite,
-  updateParasite,
-  deleteParasite,
-};
-
-export type { Parasite, CreateParasiteInput, UpdateParasiteInput } from '../types/parasite';
+export type { Parasite, CreateParasiteInput, UpdateParasiteInput };
