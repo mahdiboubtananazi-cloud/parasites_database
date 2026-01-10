@@ -1,4 +1,4 @@
-﻿import React, { useMemo, useEffect } from 'react';
+﻿import React, { useEffect } from 'react';
 import { Box, CircularProgress } from '@mui/material';
 import { useParasites } from '../hooks/useParasites';
 import { useTranslation } from 'react-i18next';
@@ -11,7 +11,7 @@ import CtaSection from '../components/home/CtaSection';
 import Footer from '../components/home/Footer';
 
 const Home = () => {
-  const { parasites, loading } = useParasites();
+  const { loading } = useParasites(); // لم نعد نحتاج parasites هنا للإحصائيات
   const { t, i18n } = useTranslation();
 
   // ضبط عنوان الصفحة واتجاه النص
@@ -20,22 +20,6 @@ const Home = () => {
     document.documentElement.dir = i18n.language === 'ar' ? 'rtl' : 'ltr';
     document.documentElement.lang = i18n.language;
   }, [t, i18n.language]);
-
-  // حساب الإحصائيات
-  const stats = useMemo(() => {
-    if (!parasites || parasites.length === 0) return { total: 0, types: 0, recent: 0 };
-
-    const uniqueTypes = new Set(parasites.map((p) => p.type || 'Unknown'));
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-    const recentSamples = parasites.filter((p) => {
-      const createdDate = p.createdAt ? new Date(p.createdAt) : null;
-      return createdDate && createdDate >= thirtyDaysAgo;
-    }).length;
-
-    return { total: parasites.length, types: uniqueTypes.size, recent: recentSamples };
-  }, [parasites]);
 
   // عرض شاشة التحميل
   if (loading) {
@@ -60,8 +44,8 @@ const Home = () => {
       {/* 1. قسم الواجهة الرئيسية (Hero) */}
       <HeroSection />
 
-      {/* 2. قسم الأرقام والإحصائيات */}
-      <StatsSection stats={stats} />
+      {/* 2. قسم الأرقام والإحصائيات (لم نعد نمرر props) */}
+      <StatsSection />
 
       {/* 3. قسم الدعوة للمساهمة (CTA) */}
       <CtaSection />
