@@ -1,20 +1,18 @@
-// src/pages/Statistics/MonthlyTimelineChart.tsx
 import React from 'react';
 import { Paper, Typography, Box } from '@mui/material';
-import { BarChart3 } from 'lucide-react';
+import { TrendingUp } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import {
   ResponsiveContainer,
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
   CartesianGrid,
   XAxis,
   YAxis,
   Tooltip,
   Legend,
-  TooltipProps,
 } from 'recharts';
-import type { NameType, ValueType } from 'recharts/types/component/DefaultTooltipContent';
+import { colors } from '../../../theme/colors';
 
 interface MonthlyData {
   month: string;
@@ -28,107 +26,78 @@ interface MonthlyTimelineChartProps {
   isRtl: boolean;
 }
 
-const MonthlyTimelineChart: React.FC<MonthlyTimelineChartProps> = ({ data }) => {
+const MonthlyTimelineChart: React.FC<MonthlyTimelineChartProps> = ({ data, isRtl }) => {
   const { t } = useTranslation();
-
   const hasData = data.some((m) => m.parasites > 0);
-
-  const renderTooltip = ({
-    active,
-    payload,
-    label,
-  }: TooltipProps<ValueType, NameType> & {
-    payload?: Array<{
-      name?: string;
-      value?: number | string;
-      color?: string;
-    }>;
-    label?: string | number;
-  }) => {
-    if (!active || !payload || payload.length === 0) return null;
-
-    return (
-      <Box
-        sx={{
-          backgroundColor: '#f8f7f5',
-          border: '1px solid #3a5a4030',
-          borderRadius: '8px',
-          p: 1.5,
-        }}
-      >
-        <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5 }}>
-          {label}
-        </Typography>
-        {payload.map((item, idx) => (
-          <Typography
-            key={idx}
-            variant="caption"
-            sx={{ display: 'block', color: item.color || '#3a5a40' }}
-          >
-            {item.name}: {item.value}
-          </Typography>
-        ))}
-      </Box>
-    );
-  };
 
   return (
     <Paper
+      elevation={0}
       sx={{
         p: { xs: 2, md: 3 },
-        background: 'white',
-        borderRadius: { xs: 1.5, md: 2 },
-        border: '1px solid #3a5a4015',
+        bgcolor: '#fff',
+        borderRadius: 4,
+        border: '1px solid rgba(0,0,0,0.06)',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
         gridColumn: { xs: '1', md: '1 / -1' },
+        mt: 4,
       }}
     >
-      <Typography
-        variant="h6"
-        sx={{
-          fontWeight: 700,
-          mb: 2,
-          color: '#3a5a40',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 1,
-          fontSize: { xs: '0.95rem', md: '1.1rem' },
-        }}
-      >
-        <BarChart3 size={20} />
-        {t('chart_monthly_trends')}
-      </Typography>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3, borderBottom: '1px solid #f5f5f5', pb: 2 }}>
+        <Box sx={{ p: 1, borderRadius: 2, bgcolor: `${colors.primary.main}15`, color: colors.primary.main }}>
+          <TrendingUp size={20} />
+        </Box>
+        <Typography variant="h6" sx={{ fontSize: '1.1rem', fontWeight: 700, color: '#264653' }}>
+          {t('stats_monthly_trends', { defaultValue: 'النشاط الشهري (Monthly Trends)' })}
+        </Typography>
+      </Box>
 
       {hasData ? (
         <ResponsiveContainer width="100%" height={350}>
-          <LineChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#3a5a4020" />
-            <XAxis dataKey="month" tick={{ fontSize: 12, fill: '#748dc8' }} />
-            <YAxis tick={{ fontSize: 12, fill: '#748dc8' }} />
-            <Tooltip content={(props) => renderTooltip({ ...props, payload: props.payload ? [...props.payload] : [] })} />
-            <Legend wrapperStyle={{ paddingTop: '20px' }} iconType="line" />
-            <Line
+          <AreaChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+            <defs>
+              <linearGradient id="colorParasites" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={colors.primary.main} stopOpacity={0.2} />
+                <stop offset="95%" stopColor={colors.primary.main} stopOpacity={0} />
+              </linearGradient>
+              <linearGradient id="colorImages" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={colors.secondary.main} stopOpacity={0.2} />
+                <stop offset="95%" stopColor={colors.secondary.main} stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <XAxis dataKey="month" tick={{ fontSize: 12, fill: '#666' }} />
+            <YAxis tick={{ fontSize: 12, fill: '#666' }} />
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#eee" />
+            <Tooltip 
+              contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', textAlign: isRtl ? 'right' : 'left' }}
+            />
+            <Legend verticalAlign="top" align="right" height={36} iconType="circle" />
+            
+            <Area
               type="monotone"
               dataKey="parasites"
-              stroke="#3a5a40"
-              strokeWidth={3}
-              dot={{ fill: '#3a5a40', r: 5 }}
-              activeDot={{ r: 7 }}
-              name={t('parasites')}
+              name={t('stats_total_parasites', { defaultValue: 'الطفيليات' })}
+              stroke={colors.primary.main}
+              strokeWidth={2}
+              fillOpacity={1}
+              fill="url(#colorParasites)"
             />
-            <Line
+            <Area
               type="monotone"
               dataKey="images"
-              stroke="#32b8c6"
-              strokeWidth={3}
-              dot={{ fill: '#32b8c6', r: 5 }}
-              activeDot={{ r: 7 }}
-              name={t('images')}
+              name={t('stats_total_images', { defaultValue: 'الصور' })}
+              stroke={colors.secondary.main}
+              strokeWidth={2}
+              fillOpacity={1}
+              fill="url(#colorImages)"
             />
-          </LineChart>
+          </AreaChart>
         </ResponsiveContainer>
       ) : (
-        <Box sx={{ textAlign: 'center', py: 6 }}>
-          <Typography color="text.secondary">{t('no_monthly_data')}</Typography>
+        <Box sx={{ textAlign: 'center', py: 8, opacity: 0.5 }}>
+          <Typography color="text.secondary">
+            {t('no_data_available', { defaultValue: 'لا تتوفر بيانات' })}
+          </Typography>
         </Box>
       )}
     </Paper>

@@ -6,14 +6,17 @@ import {
   Cell,
   BarChart,
   Bar,
-  CartesianGrid,
   XAxis,
   YAxis,
   Tooltip,
   ResponsiveContainer,
+  Legend,
+  CartesianGrid,
 } from 'recharts';
-import { Activity, Beaker, TrendingUp, Database } from 'lucide-react';
+import { Activity, Beaker, TrendingUp, Database, PieChart as PieIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+
+const COLORS = ['#2A9D8F', '#264653', '#E9C46A', '#F4A261', '#E76F51', '#8AB17D'];
 
 interface DistributionChartsProps {
   distributions: {
@@ -26,37 +29,34 @@ interface DistributionChartsProps {
   isRtl: boolean;
 }
 
-const COLORS = ['#3a5a40', '#32b8c6', '#ff6b6b', '#ffa94d', '#748dc8'];
-
 const DistributionCharts: React.FC<DistributionChartsProps> = ({
   distributions,
   isMobile,
+  isRtl,
 }) => {
   const { t } = useTranslation();
 
   const charts = [
     {
-      title: t('chart_host_distribution'),
+      title: t('stats_host_distribution', { defaultValue: 'توزيع العوائل' }),
       data: distributions.hostDistribution,
       icon: Activity,
       type: 'pie' as const,
-      tooltipSuffix: t('parasite'),
     },
     {
-      title: t('chart_sample_type'),
+      title: t('stats_sample_distribution', { defaultValue: 'أنواع العينات' }),
       data: distributions.sampleTypeDistribution,
       icon: Beaker,
       type: 'pie' as const,
-      tooltipSuffix: t('sample'),
     },
     {
-      title: t('chart_development_stage'),
+      title: t('stats_stage_distribution', { defaultValue: 'مراحل التطور' }),
       data: distributions.stageDistribution,
       icon: TrendingUp,
       type: 'bar' as const,
     },
     {
-      title: t('chart_parasite_types'),
+      title: t('stats_type_classification', { defaultValue: 'تصنيف الطفيليات' }),
       data: distributions.parasiteTypes,
       icon: Database,
       type: 'bar' as const,
@@ -64,158 +64,124 @@ const DistributionCharts: React.FC<DistributionChartsProps> = ({
   ];
 
   return (
-    <Box
-      sx={{
-        display: 'grid',
-        gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' },
-        gap: { xs: 2, md: 3 },
-        mb: { xs: 3, md: 4 },
-      }}
-    >
+    <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }, gap: 3, mb: 4 }}>
       {charts.map((chart, index) => (
-        <DistributionChart
-          key={index}
-          chart={chart}
-          isMobile={isMobile}
-        />
+        <DistributionChart key={index} chart={chart} isMobile={isMobile} isRtl={isRtl} />
       ))}
     </Box>
   );
 };
 
-interface ChartConfig {
-  title: string;
-  data: { name: string; value: number }[];
-  icon: React.ElementType;
-  type: 'pie' | 'bar';
-  tooltipSuffix?: string;
-}
+// مكون المفتاح المخصص (Custom Legend)
+const CustomLegend = ({ payload }: any) => {
+  return (
+    <ul style={{ 
+      listStyle: 'none', padding: 0, marginTop: 20, 
+      display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 12 
+    }}>
+      {payload.map((entry: any, index: number) => (
+        <li key={`item-${index}`} style={{ display: 'flex', alignItems: 'center', fontSize: 11, color: '#555', fontWeight: 500 }}>
+          <span style={{ width: 10, height: 10, backgroundColor: entry.color, borderRadius: '50%', marginRight: 6, marginLeft: 6, display: 'inline-block' }}></span>
+          {entry.value}
+        </li>
+      ))}
+    </ul>
+  );
+};
 
-interface DistributionChartProps {
-  chart: ChartConfig;
-  isMobile: boolean;
-}
-
-const DistributionChart: React.FC<DistributionChartProps> = ({
+const DistributionChart: React.FC<{ chart: any; isMobile: boolean; isRtl: boolean }> = ({
   chart,
   isMobile,
+  isRtl,
 }) => {
   const { t } = useTranslation();
+  const hasData = chart.data && chart.data.some((d: any) => d.value > 0);
 
-  const hasData = chart.data && chart.data.some((d) => d.value > 0);
+  if (!hasData) {
+    return (
+      <Paper sx={{ p: 3, height: 400, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: '#fff', borderRadius: 4 }}>
+        <Typography color="text.secondary">{t('no_data_available', { defaultValue: 'لا تتوفر بيانات' })}</Typography>
+      </Paper>
+    );
+  }
 
   const renderContent = () => {
-    if (!hasData) {
-      return (
-        <Box sx={{ textAlign: 'center', py: 4 }}>
-          <Typography
-            variant="body2"
-            color="text.secondary"
-            sx={{ fontWeight: 500 }}
-          >
-            {t('no_data_available')}
-          </Typography>
-        </Box>
-      );
-    }
+    // إعداد بيانات الألوان لكل عنصر لضمان تطابق الألوان في الـ Legend
+    const coloredData = chart.data.map((item: any, index: number) => ({
+      ...item,
+      fill: COLORS[index % COLORS.length]
+    }));
 
     if (chart.type === 'pie') {
       return (
-        <ResponsiveContainer width="100%" height={260}>
+        <ResponsiveContainer width="100%" height={320}>
           <PieChart>
             <Pie
-              data={chart.data}
+              data={coloredData}
               cx="50%"
-              cy="50%"
-              labelLine={false}
-              outerRadius={isMobile ? 80 : 100}
-              fill="#8884d8"
+              cy="45%"
+              innerRadius={60}
+              outerRadius={80}
+              paddingAngle={5}
               dataKey="value"
-              label={({ name, value }) => `${name}: ${value}`}
+              stroke="none"
             >
-              {chart.data.map((entry, index) => (
-                <Cell
-                  key={`cell-${index}`}
-                  fill={COLORS[index % COLORS.length]}
-                />
+              {coloredData.map((entry: any, index: number) => (
+                <Cell key={`cell-${index}`} fill={entry.fill} />
               ))}
             </Pie>
-            <Tooltip
-              formatter={(value: any) =>
-                chart.tooltipSuffix
-                  ? `${value} ${chart.tooltipSuffix}`
-                  : value
-              }
-              contentStyle={{
-                backgroundColor: '#f8f7f5',
-                border: '1px solid #3a5a4030',
-                borderRadius: '8px',
-              }}
-            />
+            <Tooltip contentStyle={{ borderRadius: 12, border: 'none', boxShadow: '0 8px 24px rgba(0,0,0,0.1)' }} />
+            <Legend content={<CustomLegend />} verticalAlign="bottom" />
           </PieChart>
         </ResponsiveContainer>
       );
     }
 
+    // ✅ الحل لمشكلة BarChart Legend
+    // نقوم برسم الـ Legend يدوياً خارج الـ BarChart باستخدام البيانات الملونة
     return (
-      <ResponsiveContainer width="100%" height={260}>
-        <BarChart data={chart.data}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#3a5a4020" />
-          <XAxis
-            dataKey="name"
-            tick={{ fontSize: 11, fill: '#748dc8' }}
-            interval={0}
-          />
-          <YAxis tick={{ fontSize: 11, fill: '#748dc8' }} />
-          <Tooltip
-            contentStyle={{
-              backgroundColor: '#f8f7f5',
-              border: '1px solid #3a5a4030',
-              borderRadius: '8px',
-            }}
-          />
-          <Bar
-            dataKey="value"
-            fill="#32b8c6"
-            radius={[8, 8, 0, 0]}
-            barSize={isMobile ? 24 : 32}
-          />
-        </BarChart>
-      </ResponsiveContainer>
+      <Box sx={{ height: 320, display: 'flex', flexDirection: 'column' }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart
+            data={coloredData}
+            margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+            barCategoryGap={20}
+          >
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+            <XAxis dataKey="name" tick={false} axisLine={false} height={0} />
+            <YAxis tick={{ fontSize: 12, fill: '#888' }} axisLine={false} tickLine={false} />
+            <Tooltip 
+              cursor={{ fill: 'transparent' }}
+              contentStyle={{ borderRadius: 12, border: 'none', boxShadow: '0 8px 24px rgba(0,0,0,0.1)', textAlign: isRtl ? 'right' : 'left' }}
+            />
+            <Bar dataKey="value" radius={[8, 8, 0, 0]} name="القيمة">
+              {coloredData.map((entry: any, index: number) => (
+                <Cell key={`cell-${index}`} fill={entry.fill} />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+        
+        {/* ✅ رسم الـ Legend يدوياً هنا */}
+        <CustomLegend 
+          payload={coloredData.map((item: any) => ({
+            value: item.name,
+            type: 'circle',
+            id: item.name,
+            color: item.fill
+          }))}
+        />
+      </Box>
     );
   };
 
   const Icon = chart.icon;
 
   return (
-    <Paper
-      sx={{
-        p: { xs: 2, md: 3 },
-        background: 'white',
-        borderRadius: { xs: 1.5, md: 2 },
-        border: '1px solid #3a5a4015',
-        height: '100%',
-      }}
-    >
-      <Box
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 1,
-          mb: 2,
-        }}
-      >
-        <Icon size={20} />
-        <Typography
-          variant="h6"
-          sx={{
-            fontWeight: 700,
-            color: '#3a5a40',
-            fontSize: { xs: '0.95rem', md: '1.1rem' },
-          }}
-        >
-          {chart.title}
-        </Typography>
+    <Paper elevation={0} sx={{ p: 3, bgcolor: '#fff', borderRadius: 4, border: '1px solid rgba(0,0,0,0.06)', height: '100%', boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3, borderBottom: '1px solid #f5f5f5', pb: 2 }}>
+        <Box sx={{ p: 1, borderRadius: 2, bgcolor: 'rgba(42, 157, 143, 0.1)', color: '#2A9D8F' }}><Icon size={20} /></Box>
+        <Typography variant="h6" sx={{ fontSize: '1rem', fontWeight: 700, color: '#264653' }}>{chart.title}</Typography>
       </Box>
       {renderContent()}
     </Paper>

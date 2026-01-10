@@ -1,14 +1,5 @@
-﻿import React from 'react';
-import {
-  Box,
-  Container,
-  Typography,
-  Paper,
-  CircularProgress,
-  Stack,
-  useTheme,
-  useMediaQuery,
-} from '@mui/material';
+﻿import React, { useMemo } from 'react';
+import { Box, Container, Paper, CircularProgress, Stack, useTheme, useMediaQuery, Typography } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { useParasites } from '../../hooks/useParasites';
 import { Parasite } from '../../types/parasite';
@@ -26,246 +17,107 @@ const Statistics: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isRtl = i18n.language === 'ar';
-
   const { parasites, loading, error } = useParasites();
 
-  // حساب الإحصائيات
-  const stats = React.useMemo(() => {
-    if (!parasites || parasites.length === 0) {
-      return null;
-    }
+  const stats = useMemo(() => {
+    if (!parasites?.length) return null;
 
-    const approved = parasites.filter((p) => p.status === 'approved');
+    const approved = parasites.filter(p => p.status === 'approved');
+    if (!approved.length) return null;
 
-    // عدد الطلاب المختلفين
-    const uniqueStudents = new Set(
-      approved.map((p) => p.studentName).filter(Boolean)
-    );
-
-    // عدد المشرفين المختلفين
-    const uniqueSupervisors = new Set(
-      approved.map((p) => p.supervisorName).filter(Boolean)
-    );
-
-    // عدد العوائل المختلفة
-    const uniqueHosts = new Set(
-      approved.map((p) => p.host).filter(Boolean)
-    );
-
-    // عدد الأنواع المختلفة
-    const uniqueTypes = new Set(
-      approved.map((p) => p.type).filter(Boolean)
-    );
-
-    // حساب المعدل
-    const avgPerStudent = uniqueStudents.size > 0
-      ? (approved.length / uniqueStudents.size).toFixed(1)
-      : '0';
-
-    // توزيع حسب العائل
-    const hostDistribution = Object.entries(
-      approved.reduce((acc, p) => {
-        const host = p.host || t('not_specified', { defaultValue: 'غير محدد' });
-        acc[host] = (acc[host] || 0) + 1;
+    // Helper: حساب التكرار لأي حقل
+    const getDistribution = (field: keyof Parasite) => {
+      const counts = approved.reduce((acc, p) => {
+        const val = (p[field] as string) || t('not_specified', { defaultValue: 'غير محدد' });
+        acc[val] = (acc[val] || 0) + 1;
         return acc;
-      }, {} as Record<string, number>)
-    ).map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value)
-      .slice(0, 6);
+      }, {} as Record<string, number>);
+      
+      return Object.entries(counts)
+        .map(([name, value]) => ({ name, value }))
+        .sort((a, b) => b.value - a.value);
+    };
 
-    // توزيع حسب نوع العينة
-    const sampleTypeDistribution = Object.entries(
-      approved.reduce((acc, p) => {
-        const sampleType = p.sampleType || t('not_specified', { defaultValue: 'غير محدد' });
-        acc[sampleType] = (acc[sampleType] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>)
-    ).map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value)
-      .slice(0, 6);
+    // Helper: حساب القيم الفريدة
+    const countUnique = (field: keyof Parasite) => new Set(approved.map(p => p[field]).filter(Boolean)).size;
 
-    // توزيع حسب النوع
-    const parasiteTypes = Object.entries(
-      approved.reduce((acc, p) => {
-        const type = p.type || t('not_specified', { defaultValue: 'غير محدد' });
-        acc[type] = (acc[type] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>)
-    ).map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value);
+    const uniqueStudents = countUnique('studentName');
+    
+    // البيانات الشهرية
+    const monthlyData = (() => {
+      const months = isRtl 
+        ? ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر']
+        : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      
+      const stats: Record<string, { parasites: number; images: number }> = {};
+      const now = new Date();
 
-    // توزيع حسب المرحلة
-    const stageDistribution = Object.entries(
-      approved.reduce((acc, p) => {
-        const stage = p.stage || t('not_specified', { defaultValue: 'غير محدد' });
-        acc[stage] = (acc[stage] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>)
-    ).map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value);
+      // تهيئة آخر 12 شهر
+      for (let i = 11; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        stats[key] = { parasites: 0, images: 0 };
+      }
 
-    // أكثر الباحثين مساهمة
-    const researcherStats = Object.entries(
-      approved.reduce((acc, p) => {
-        const name = p.studentName || t('unknown', { defaultValue: 'غير معروف' });
-        acc[name] = (acc[name] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>)
-    )
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 10)
-      .map(([name, value]) => ({ name, value }));
+      approved.forEach(p => {
+        if (p.createdAt) {
+          const d = new Date(p.createdAt);
+          const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+          if (stats[key]) {
+            stats[key].parasites++;
+            if (p.imageUrl) stats[key].images++;
+          }
+        }
+      });
 
-    // إحصائيات شهرية
-    const monthlyData = getMonthlyData(approved, i18n.language);
+      return Object.entries(stats).map(([key, val]) => {
+        const [_, m] = key.split('-');
+        return { month: `${months[parseInt(m) - 1]}`, ...val };
+      });
+    })();
 
     return {
       totalParasites: approved.length,
-      totalImages: approved.filter((p) => p.imageUrl).length,
-      totalStudents: uniqueStudents.size,
-      totalSupervisors: uniqueSupervisors.size,
-      uniqueHosts: uniqueHosts.size,
-      uniqueTypes: uniqueTypes.size,
-      averageParasitesPerStudent: avgPerStudent,
+      totalImages: approved.filter(p => p.imageUrl).length,
+      totalStudents: uniqueStudents,
+      totalSupervisors: countUnique('supervisorName'),
+      uniqueHosts: countUnique('host'),
+      uniqueTypes: countUnique('type'),
+      averageParasitesPerStudent: uniqueStudents ? (approved.length / uniqueStudents).toFixed(1) : '0',
       distributions: {
-        hostDistribution,
-        sampleTypeDistribution,
-        parasiteTypes,
-        stageDistribution,
+        hostDistribution: getDistribution('host').slice(0, 6),
+        sampleTypeDistribution: getDistribution('sampleType').slice(0, 6),
+        parasiteTypes: getDistribution('type'),
+        stageDistribution: getDistribution('stage'),
       },
-      topResearchers: researcherStats,
+      topResearchers: getDistribution('studentName').slice(0, 10),
       monthlyData,
     };
-  }, [parasites, t, i18n.language]);
+  }, [parasites, t, isRtl]);
 
-  if (loading) {
-    return (
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          minHeight: '100vh',
-          bgcolor: '#f8f7f5',
-        }}
-      >
-        <Stack alignItems="center" spacing={2}>
-          <CircularProgress sx={{ color: '#3a5a40' }} />
-          <Typography color="text.secondary">
-            {t('loading', { defaultValue: 'جاري التحميل...' })}
-          </Typography>
-        </Stack>
-      </Box>
-    );
-  }
+  if (loading) return (
+    <Box sx={{ display: 'flex', justifyContent: 'center', height: '100vh', alignItems: 'center', bgcolor: '#f8f7f5' }}>
+      <CircularProgress sx={{ color: '#3a5a40' }} />
+    </Box>
+  );
 
-  if (error) {
-    return (
-      <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Paper sx={{ p: 4, textAlign: 'center' }}>
-          <Typography color="error">{error}</Typography>
-        </Paper>
-      </Container>
-    );
-  }
+  if (error) return (
+    <Container sx={{ py: 4 }}><Paper sx={{ p: 4, textAlign: 'center', color: 'error.main' }}>{error}</Paper></Container>
+  );
 
-  if (!stats) {
-    return <EmptyState />;
-  }
+  if (!stats) return <EmptyState />;
 
   return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        py: { xs: 3, md: 5 },
-        bgcolor: '#f8f7f5',
-      }}
-    >
+    <Box sx={{ minHeight: '100vh', py: { xs: 3, md: 5 }, bgcolor: '#f8f7f5' }}>
       <Container maxWidth="lg">
-        {/* Header */}
         <StatsHeader />
-
-        {/* Stat Cards */}
-        <StatCardGrid
-          stats={{
-            totalParasites: stats.totalParasites,
-            totalImages: stats.totalImages,
-            totalStudents: stats.totalStudents,
-            totalSupervisors: stats.totalSupervisors,
-            uniqueHosts: stats.uniqueHosts,
-            uniqueTypes: stats.uniqueTypes,
-            averageParasitesPerStudent: stats.averageParasitesPerStudent,
-          }}
-          isMobile={isMobile}
-        />
-
-        {/* Distribution Charts */}
-        <DistributionCharts
-          distributions={stats.distributions}
-          isMobile={isMobile}
-          isRtl={isRtl}
-        />
-
-        {/* Monthly Timeline */}
-        <MonthlyTimelineChart
-          data={stats.monthlyData}
-          isMobile={isMobile}
-          isRtl={isRtl}
-        />
-
-        {/* Top Researchers */}
-        <TopResearchersTable
-          data={stats.topResearchers}
-          totalParasites={stats.totalParasites}
-          isMobile={isMobile}
-          isRtl={isRtl}
-        />
+        <StatCardGrid stats={stats} isMobile={isMobile} />
+        <DistributionCharts distributions={stats.distributions} isMobile={isMobile} isRtl={isRtl} />
+        <MonthlyTimelineChart data={stats.monthlyData} isMobile={isMobile} isRtl={isRtl} />
+        <TopResearchersTable data={stats.topResearchers} totalParasites={stats.totalParasites} isMobile={isMobile} isRtl={isRtl} />
       </Container>
     </Box>
   );
 };
-
-// دالة مساعدة لحساب البيانات الشهرية
-function getMonthlyData(parasites: Parasite[], language: string) {
-  const monthNames = language === 'ar'
-    ? ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر']
-    : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-  const monthlyStats: Record<string, { parasites: number; images: number }> = {};
-
-  // تهيئة آخر 12 شهر
-  const now = new Date();
-  for (let i = 11; i >= 0; i--) {
-    const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-    const monthLabel = monthNames[date.getMonth()];
-    monthlyStats[key] = { parasites: 0, images: 0 };
-  }
-
-  // حساب الإحصائيات
-  parasites.forEach((p) => {
-    if (p.createdAt) {
-      const date = new Date(p.createdAt);
-      const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-      if (monthlyStats[key]) {
-        monthlyStats[key].parasites += 1;
-        if (p.imageUrl) {
-          monthlyStats[key].images += 1;
-        }
-      }
-    }
-  });
-
-  // تحويل إلى مصفوفة
-  return Object.entries(monthlyStats).map(([key, data]) => {
-    const [year, month] = key.split('-');
-    const monthIndex = parseInt(month) - 1;
-    return {
-      month: `${monthNames[monthIndex]} ${year}`,
-      parasites: data.parasites,
-      images: data.images,
-    };
-  });
-}
 
 export default Statistics;

@@ -1,6 +1,8 @@
 import React from 'react';
 import { Paper, Typography, Box, Stack, Divider } from '@mui/material';
 import { useTranslation } from 'react-i18next';
+import { FileText, Info } from 'lucide-react';
+import { colors } from '../../../theme/colors';
 
 export interface Stats {
   totalParasites: number;
@@ -16,17 +18,6 @@ interface SummaryPanelsProps {
   stats: Stats;
 }
 
-interface SummaryItem {
-  label: string;
-  value: string | number;
-  color: string;
-}
-
-interface SummaryPanelProps {
-  title: string;
-  items: SummaryItem[];
-}
-
 const SummaryPanels: React.FC<SummaryPanelsProps> = ({ stats }) => {
   const { t } = useTranslation();
 
@@ -35,22 +26,18 @@ const SummaryPanels: React.FC<SummaryPanelsProps> = ({ stats }) => {
       ? ((stats.totalImages / stats.totalParasites) * 100).toFixed(1)
       : '0';
 
-  const leftItems: SummaryItem[] = [
-    { label: t('total_parasites'), value: stats.totalParasites, color: '#3a5a40' },
-    { label: t('uploaded_images'), value: stats.totalImages, color: '#32b8c6' },
-    { label: t('image_ratio'), value: `${imageRatio}%`, color: '#32b8c6' },
-    {
-      label: t('average_samples_per_researcher'),
-      value: stats.averageParasitesPerStudent,
-      color: '#ff6b6b',
-    },
+  const leftItems = [
+    { label: t('stats_total_parasites', { defaultValue: 'إجمالي الطفيليات' }), value: stats.totalParasites, color: colors.primary.main },
+    { label: t('stats_uploaded_images', { defaultValue: 'الصور المرفوعة' }), value: stats.totalImages, color: colors.secondary.main },
+    { label: t('stats_image_ratio', { defaultValue: 'نسبة التوثيق الصوري' }), value: `${imageRatio}%`, color: colors.secondary.main },
+    { label: t('stats_avg_per_student', { defaultValue: 'متوسط المساهمات/باحث' }), value: stats.averageParasitesPerStudent, color: '#FF6B6B' },
   ];
 
-  const rightItems: SummaryItem[] = [
-    { label: t('researchers_count'), value: stats.totalStudents, color: '#748dc8' },
-    { label: t('supervisors_count'), value: stats.totalSupervisors, color: '#ffa94d' },
-    { label: t('host_types'), value: stats.uniqueHosts, color: '#ff6b6b' },
-    { label: t('parasite_classifications'), value: stats.uniqueTypes, color: '#52c41a' },
+  const rightItems = [
+    { label: t('stats_total_researchers', { defaultValue: 'عدد الباحثين' }), value: stats.totalStudents, color: '#748DC8' },
+    { label: t('stats_total_supervisors', { defaultValue: 'عدد المشرفين' }), value: stats.totalSupervisors, color: '#FFA94D' },
+    { label: t('stats_host_types', { defaultValue: 'أنواع العوائل' }), value: stats.uniqueHosts, color: '#FF6B6B' },
+    { label: t('stats_parasite_classifications', { defaultValue: 'التصنيفات المسجلة' }), value: stats.uniqueTypes, color: '#52C41A' },
   ];
 
   return (
@@ -58,50 +45,72 @@ const SummaryPanels: React.FC<SummaryPanelsProps> = ({ stats }) => {
       sx={{
         display: 'grid',
         gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' },
-        gap: { xs: 2, md: 3 },
+        gap: 3,
+        mt: 4,
       }}
     >
-      <SummaryPanel title={t('summary_data_statistics')} items={leftItems} />
-      <SummaryPanel title={t('project_information')} items={rightItems} />
+      <SummaryPanel 
+        title={t('stats_summary', { defaultValue: 'ملخص البيانات' })} 
+        items={leftItems} 
+        icon={FileText} 
+        iconColor={colors.primary.main} 
+      />
+      <SummaryPanel 
+        title={t('stats_project_info', { defaultValue: 'معلومات المشروع' })} 
+        items={rightItems} 
+        icon={Info} 
+        iconColor={colors.secondary.main} 
+      />
     </Box>
   );
 };
 
-const SummaryPanel: React.FC<SummaryPanelProps> = ({ title, items }) => (
+const SummaryPanel: React.FC<{ title: string; items: any[]; icon: any; iconColor: string }> = ({ 
+  title, items, icon: Icon, iconColor 
+}) => (
   <Paper
+    elevation={0}
     sx={{
-      p: { xs: 2, md: 3 },
-      background: 'white',
-      borderRadius: { xs: 1.5, md: 2 },
-      border: '1px solid #3a5a4015',
+      p: 3,
+      bgcolor: '#fff',
+      borderRadius: 4,
+      border: '1px solid rgba(0,0,0,0.06)',
+      boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
+      transition: 'transform 0.2s',
+      '&:hover': { transform: 'translateY(-2px)' }
     }}
   >
-    <Typography
-      variant="h6"
-      sx={{
-        fontWeight: 700,
-        mb: 2,
-        color: '#3a5a40',
-        fontSize: { xs: '0.95rem', md: '1.1rem' },
-      }}
-    >
-      {title}
-    </Typography>
-    <Stack spacing={2}>
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3, borderBottom: '1px solid #f5f5f5', pb: 2 }}>
+      <Box sx={{ p: 1, borderRadius: 2, bgcolor: `${iconColor}15`, color: iconColor }}>
+        <Icon size={20} />
+      </Box>
+      <Typography variant="h6" sx={{ fontSize: '1.1rem', fontWeight: 700, color: '#264653' }}>
+        {title}
+      </Typography>
+    </Box>
+
+    <Stack spacing={2.5}>
       {items.map((item, index) => (
         <React.Fragment key={index}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-            <Typography
-              color="text.secondary"
-              sx={{ fontSize: { xs: '0.85rem', md: '1rem' } }}
-            >
-              {item.label}:
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Typography color="text.secondary" sx={{ fontSize: '0.95rem', fontWeight: 500 }}>
+              {item.label}
             </Typography>
-            <Typography sx={{ fontWeight: 700, color: item.color }}>
+            <Typography 
+              sx={{ 
+                fontWeight: 800, 
+                color: item.color, 
+                fontSize: '1.1rem',
+                bgcolor: `${item.color}10`,
+                px: 1.5,
+                py: 0.5,
+                borderRadius: 1.5,
+              }}
+            >
               {item.value}
             </Typography>
           </Box>
-          {index < items.length - 1 && <Divider />}
+          {index < items.length - 1 && <Divider sx={{ borderStyle: 'dashed' }} />}
         </React.Fragment>
       ))}
     </Stack>

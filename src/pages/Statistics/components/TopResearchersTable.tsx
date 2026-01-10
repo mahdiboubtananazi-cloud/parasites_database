@@ -1,10 +1,11 @@
 import React from 'react';
 import {
   Paper, Table, TableBody, TableCell, TableContainer,
-  TableHead, TableRow, Chip, Box, Typography
+  TableHead, TableRow, Box, Typography, Avatar, Stack
 } from '@mui/material';
-import { Users } from 'lucide-react';
+import { Users, Award } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { colors } from '../../../theme/colors';
 
 interface ResearcherData {
   name: string;
@@ -23,53 +24,105 @@ const TopResearchersTable = ({ data, totalParasites, isMobile, isRtl }: TopResea
 
   if (!data.length) return null;
 
+  const getRankIcon = (index: number) => {
+    switch (index) {
+      case 0: return <span style={{ fontSize: 24 }}>🥇</span>;
+      case 1: return <span style={{ fontSize: 24 }}>🥈</span>;
+      case 2: return <span style={{ fontSize: 24 }}>🥉</span>;
+      default: return <span style={{ fontWeight: 'bold', color: '#888' }}>#{index + 1}</span>;
+    }
+  };
+
   return (
-    <Paper sx={{ mb: { xs: 3, md: 4 }, background: 'white', borderRadius: { xs: 1.5, md: 2 }, border: '1px solid #3a5a4015', overflow: 'hidden' }}>
-      <Box sx={{ p: { xs: 2, md: 3 }, borderBottom: '1px solid #3a5a4015' }}>
-        <Typography
-          variant="h6"
-          sx={{
-            fontWeight: 700, color: '#3a5a40',
-            display: 'flex', alignItems: 'center', gap: 1,
-            fontSize: { xs: '0.95rem', md: '1.1rem' },
-          }}
-        >
+    <Paper
+      elevation={0}
+      sx={{
+        mt: 4,
+        mb: 4,
+        bgcolor: '#fff',
+        borderRadius: 4,
+        border: '1px solid rgba(0,0,0,0.06)',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
+        overflow: 'hidden',
+      }}
+    >
+      <Box sx={{ p: 3, borderBottom: '1px solid #f5f5f5', display: 'flex', alignItems: 'center', gap: 1.5 }}>
+        <Box sx={{ p: 1, borderRadius: 2, bgcolor: `${colors.primary.main}15`, color: colors.primary.main }}>
           <Users size={20} />
-          {t('table_top_researchers')}
+        </Box>
+        <Typography variant="h6" sx={{ fontSize: '1.1rem', fontWeight: 700, color: '#264653' }}>
+          {t('stats_top_researchers', { defaultValue: 'أكثر الباحثين مساهمة' })}
         </Typography>
       </Box>
-      <TableContainer sx={{ overflowX: 'auto' }}>
-        <Table size={isMobile ? 'small' : 'medium'}>
+
+      <TableContainer>
+        <Table>
           <TableHead>
-            <TableRow sx={{ backgroundColor: '#3a5a4010' }}>
-              <TableCell sx={{ fontWeight: 700, color: '#3a5a40', textAlign: isRtl ? 'right' : 'left' }}>{t('rank')}</TableCell>
-              <TableCell sx={{ fontWeight: 700, color: '#3a5a40', textAlign: isRtl ? 'right' : 'left' }}>{t('researcher_name')}</TableCell>
-              <TableCell sx={{ fontWeight: 700, color: '#3a5a40', textAlign: 'center' }}>{t('samples_count')}</TableCell>
-              <TableCell sx={{ fontWeight: 700, color: '#3a5a40', textAlign: 'center' }}>{t('percentage')}</TableCell>
+            <TableRow sx={{ bgcolor: '#fafafa' }}>
+              <TableCell align="center" sx={{ fontWeight: 700, color: '#555' }}>{t('rank', { defaultValue: 'الترتيب' })}</TableCell>
+              <TableCell align={isRtl ? 'right' : 'left'} sx={{ fontWeight: 700, color: '#555' }}>{t('researcher_name', { defaultValue: 'اسم الباحث' })}</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 700, color: '#555' }}>{t('samples_count', { defaultValue: 'عدد العينات' })}</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 700, color: '#555' }}>{t('percentage', { defaultValue: 'النسبة' })}</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {data.map((student, index) => {
               const percentage = ((student.value / totalParasites) * 100).toFixed(1);
               return (
-                <TableRow key={student.name} sx={{ '&:hover': { backgroundColor: '#3a5a4008' }, borderBottom: '1px solid #3a5a4015' }}>
-                  <TableCell sx={{ fontWeight: 700, color: '#3a5a40', textAlign: isRtl ? 'right' : 'left' }}># {index + 1}</TableCell>
-                  <TableCell sx={{ textAlign: isRtl ? 'right' : 'left', fontWeight: 500, fontSize: { xs: '0.85rem', md: '1rem' } }}>
-                    {student.name}
-                  </TableCell>
+                <TableRow key={student.name} hover sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
                   <TableCell align="center">
-                    <Chip
-                      label={student.value}
-                      color="primary" variant="outlined" size={isMobile ? 'small' : 'medium'}
-                      sx={{ fontWeight: 700, borderColor: '#32b8c6', color: '#32b8c6' }}
-                    />
+                    {getRankIcon(index)}
                   </TableCell>
+                  
+                  <TableCell align={isRtl ? 'right' : 'left'}>
+                    <Stack direction="row" alignItems="center" spacing={2}>
+                      <Avatar 
+                        sx={{ 
+                          width: 32, 
+                          height: 32, 
+                          bgcolor: index < 3 ? colors.primary.main : '#e0e0e0',
+                          fontSize: 14,
+                          fontWeight: 'bold'
+                        }}
+                      >
+                        {student.name.charAt(0).toUpperCase()}
+                      </Avatar>
+                      <Typography variant="body2" fontWeight={600} color="#333">
+                        {student.name}
+                      </Typography>
+                    </Stack>
+                  </TableCell>
+
                   <TableCell align="center">
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, flexDirection: isMobile ? 'column' : 'row' }}>
-                      <Box sx={{ width: isMobile ? '100%' : '100px', height: '8px', backgroundColor: '#3a5a4015', borderRadius: '4px', overflow: 'hidden' }}>
-                        <Box sx={{ width: `${percentage}%`, height: '100%', backgroundColor: '#32b8c6', transition: 'width 0.3s ease' }} />
+                    <Box
+                      sx={{
+                        display: 'inline-block',
+                        px: 1.5,
+                        py: 0.5,
+                        bgcolor: `${colors.secondary.main}15`,
+                        color: colors.secondary.main,
+                        borderRadius: 2,
+                        fontWeight: 700,
+                        fontSize: '0.85rem',
+                      }}
+                    >
+                      {student.value}
+                    </Box>
+                  </TableCell>
+
+                  <TableCell align="center">
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+                      <Box sx={{ width: 60, height: 6, bgcolor: '#eee', borderRadius: 3, overflow: 'hidden' }}>
+                        <Box 
+                          sx={{ 
+                            width: `${percentage}%`, 
+                            height: '100%', 
+                            bgcolor: index < 3 ? colors.primary.main : '#bbb',
+                            borderRadius: 3 
+                          }} 
+                        />
                       </Box>
-                      <Typography variant="caption" sx={{ fontWeight: 700, color: '#3a5a40', minWidth: '40px', fontSize: { xs: '0.75rem', md: '0.85rem' } }}>
+                      <Typography variant="caption" fontWeight={600} color="text.secondary">
                         {percentage}%
                       </Typography>
                     </Box>
