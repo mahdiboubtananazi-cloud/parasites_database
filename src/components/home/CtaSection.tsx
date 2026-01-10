@@ -1,156 +1,177 @@
 ﻿import React from 'react';
 import { Box, Container, Typography, Button, Paper, Stack } from '@mui/material';
-import { ArrowRight, ArrowLeft, Microscope, FolderOpen } from 'lucide-react';
+import { UserPlus, LogIn, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { colors } from '../../theme/colors';
+import { useAuth } from '../../hooks/useAuth';
 
 const CtaSection = () => {
   const navigate = useNavigate();
-  const { t, i18n } = useTranslation();
-  const isRtl = i18n.language === 'ar';
-  const ArrowIcon = isRtl ? ArrowLeft : ArrowRight;
+  const { t } = useTranslation();
+  const { user } = useAuth();
 
+  // إذا كان المستخدم مسجلاً بالفعل، لا داعي لعرض زر التسجيل
+  // يمكننا عرض زر "لوحة التحكم" بدلاً منه
+  if (user) {
+    return (
+      <Box sx={{ py: 8, bgcolor: colors.background.default }}>
+        <Container maxWidth="md">
+          <Paper
+            elevation={0}
+            sx={{
+              p: { xs: 4, md: 6 },
+              borderRadius: 4,
+              background: `linear-gradient(135deg, ${colors.primary.main} 0%, ${colors.primary.dark} 100%)`,
+              textAlign: 'center',
+              color: '#fff',
+              position: 'relative',
+              overflow: 'hidden',
+            }}
+          >
+            {/* زخرفة خلفية */}
+            <Users size={300} style={{ position: 'absolute', right: -50, top: -50, opacity: 0.1 }} />
+            
+            <Stack spacing={2} alignItems="center" position="relative" zIndex={1}>
+              <Typography variant="h4" fontWeight={800}>
+                {t('welcome_back', { defaultValue: 'مرحباً بعودتك،' })} {user.name}
+              </Typography>
+              <Typography variant="body1" sx={{ opacity: 0.9, maxWidth: 500 }}>
+                {t('dashboard_prompt', { defaultValue: 'تابع مساهماتك وشارك في تطوير المحتوى العلمي.' })}
+              </Typography>
+              <Button
+                onClick={() => navigate('/review')}
+                variant="contained"
+                sx={{
+                  bgcolor: '#fff',
+                  color: colors.primary.main,
+                  fontWeight: 'bold',
+                  px: 4,
+                  py: 1.2,
+                  borderRadius: 50,
+                  mt: 2,
+                  '&:hover': { bgcolor: '#f5f5f5' }
+                }}
+              >
+                {t('go_to_dashboard', { defaultValue: 'الذهاب إلى لوحة التحكم' })}
+              </Button>
+            </Stack>
+          </Paper>
+        </Container>
+      </Box>
+    );
+  }
+
+  // للزوار غير المسجلين
   return (
     <Box
       sx={{
-        py: { xs: 5, md: 10 },
+        py: { xs: 6, md: 10 },
         bgcolor: colors.background.default,
         position: 'relative',
         overflow: 'hidden',
       }}
     >
-      {/* خلفية */}
-      <Box
-        sx={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: `
-            radial-gradient(circle at 20% 50%, ${colors.primary.light}06 0%, transparent 50%),
-            radial-gradient(circle at 80% 50%, ${colors.secondary.light}06 0%, transparent 50%)
-          `,
-          zIndex: 0,
-        }}
-      />
-
       <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
         <Paper
           elevation={0}
           sx={{
-            p: { xs: 3, sm: 4, md: 6 },
-            borderRadius: { xs: 4, md: 6 },
-            background: `linear-gradient(135deg, ${colors.primary.main}06 0%, ${colors.secondary.light}10 100%)`,
-            border: `1px solid ${colors.primary.light}20`,
+            p: { xs: 4, md: 8 },
+            borderRadius: 6,
+            background: '#1a2e25', // لون غامق مميز (Dark Green)
+            color: '#fff',
             textAlign: 'center',
             position: 'relative',
             overflow: 'hidden',
+            boxShadow: '0 20px 40px rgba(26, 46, 37, 0.15)',
           }}
         >
-          {/* أيقونة خلفية */}
+          {/* زخرفة خلفية */}
           <Box
             sx={{
               position: 'absolute',
-              top: -30,
-              right: isRtl ? 'auto' : -30,
-              left: isRtl ? -30 : 'auto',
-              opacity: 0.04,
-              color: colors.primary.main,
-              transform: 'rotate(-15deg)',
-              display: { xs: 'none', md: 'block' },
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              background: 'radial-gradient(circle at 10% 10%, rgba(255,255,255,0.05) 0%, transparent 20%), radial-gradient(circle at 90% 90%, rgba(255,255,255,0.05) 0%, transparent 20%)',
             }}
-          >
-            <Microscope size={220} strokeWidth={1} />
-          </Box>
+          />
 
           <Stack spacing={3} alignItems="center" sx={{ position: 'relative', zIndex: 2 }}>
+            <Box sx={{ p: 2, bgcolor: 'rgba(255,255,255,0.1)', borderRadius: '50%', mb: 1 }}>
+              <Users size={40} color="#FFD700" />
+            </Box>
+
             <Typography
               variant="h3"
               sx={{
-                color: colors.primary.dark,
                 fontWeight: 900,
-                fontSize: { xs: '1.5rem', sm: '1.8rem', md: '2.5rem' },
-                letterSpacing: -0.5,
-                lineHeight: 1.3,
+                fontSize: { xs: '1.8rem', md: '2.8rem' },
+                lineHeight: 1.2,
               }}
             >
-              {t('cta_title', { defaultValue: 'ساهم في إثراء قاعدة البيانات' })}
+              {t('join_community_title', { defaultValue: 'انضم إلى مجتمعنا الأكاديمي' })}
             </Typography>
 
             <Typography
               variant="body1"
               sx={{
-                color: colors.text.secondary,
-                fontSize: { xs: '0.9rem', md: '1.1rem' },
-                maxWidth: '550px',
-                lineHeight: 1.7,
+                color: 'rgba(255,255,255,0.8)',
+                fontSize: { xs: '1rem', md: '1.2rem' },
+                maxWidth: '650px',
+                lineHeight: 1.6,
               }}
             >
-              {t('cta_description', { defaultValue: 'شارك في بناء أكبر مكتبة رقمية للطفيليات في الجزائر' })}
+              {t('join_community_desc', { defaultValue: 'كن جزءاً من المشروع العلمي الرائد. سجل حسابك الآن للمساهمة في توثيق العينات ومشاركة المعرفة مع زملائك.' })}
             </Typography>
 
             {/* الأزرار */}
             <Stack
               direction={{ xs: 'column', sm: 'row' }}
               spacing={2}
-              sx={{ mt: 1 }}
+              sx={{ mt: 3 }}
             >
-              {/* زر إضافة عينة */}
               <Button
-                onClick={() => navigate('/add')}
+                onClick={() => navigate('/register')}
+                startIcon={<UserPlus size={20} />}
                 sx={{
-                  fontSize: { xs: '0.9rem', md: '1rem' },
+                  fontSize: '1.05rem',
                   fontWeight: 700,
-                  color: '#fff',
-                  bgcolor: colors.primary.main,
-                  px: { xs: 3, md: 4 },
-                  py: 1.4,
+                  color: '#1a2e25',
+                  bgcolor: '#FFD700', // لون ذهبي مميز للـ CTA
+                  px: { xs: 4, md: 6 },
+                  py: 1.5,
                   borderRadius: '50px',
                   textTransform: 'none',
-                  boxShadow: `0 8px 25px ${colors.primary.main}25`,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 1.5,
-                  transition: 'all 0.3s ease',
+                  boxShadow: '0 4px 15px rgba(255, 215, 0, 0.3)',
                   '&:hover': {
-                    bgcolor: colors.primary.dark,
+                    bgcolor: '#ffca28',
                     transform: 'translateY(-2px)',
-                    boxShadow: `0 12px 30px ${colors.primary.main}35`,
                   },
                 }}
               >
-                <span>{t('btn_add_sample')}</span>
-                <ArrowIcon size={18} />
+                {t('create_account', { defaultValue: 'إنشاء حساب باحث' })}
               </Button>
 
-              {/* زر تصفح الأرشيف */}
               <Button
-                onClick={() => navigate('/archive')}
+                onClick={() => navigate('/login')}
+                startIcon={<LogIn size={20} />}
                 sx={{
-                  fontSize: { xs: '0.9rem', md: '1rem' },
-                  fontWeight: 700,
-                  color: colors.primary.main,
-                  bgcolor: 'transparent',
-                  border: `2px solid ${colors.primary.main}`,
-                  px: { xs: 3, md: 4 },
-                  py: 1.3,
+                  fontSize: '1.05rem',
+                  fontWeight: 600,
+                  color: '#fff',
+                  bgcolor: 'rgba(255,255,255,0.1)',
+                  px: { xs: 4, md: 5 },
+                  py: 1.5,
                   borderRadius: '50px',
                   textTransform: 'none',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 1.5,
-                  transition: 'all 0.3s ease',
                   '&:hover': {
-                    bgcolor: colors.primary.main,
-                    color: '#fff',
-                    transform: 'translateY(-2px)',
+                    bgcolor: 'rgba(255,255,255,0.2)',
                   },
                 }}
               >
-                <FolderOpen size={18} />
-                <span>{t('nav_archive')}</span>
+                {t('login', { defaultValue: 'تسجيل الدخول' })}
               </Button>
             </Stack>
           </Stack>
