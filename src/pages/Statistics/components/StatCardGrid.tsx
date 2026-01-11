@@ -1,6 +1,13 @@
 ﻿import React from 'react';
-import { Box, Card, CardContent, Typography, Stack, useTheme } from '@mui/material';
-import { Microscope, Image as ImageIcon, Users, Award, Activity, Beaker } from 'lucide-react';
+import { Box, Card, CardContent, Typography, Stack } from '@mui/material';
+import {
+  Microscope,
+  Image as ImageIcon,
+  Users,
+  Award,
+  Activity,
+  Beaker,
+} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { colors } from '../../../theme/colors';
 
@@ -28,7 +35,6 @@ interface StatCardGridProps {
 
 const StatCardGrid: React.FC<StatCardGridProps> = ({ stats, isMobile }) => {
   const { t } = useTranslation();
-  const theme = useTheme();
 
   const cards: StatCard[] = [
     {
@@ -45,7 +51,9 @@ const StatCardGrid: React.FC<StatCardGridProps> = ({ stats, isMobile }) => {
       icon: <ImageIcon size={28} />,
       color: colors.secondary.main,
       bgColor: `${colors.secondary.main}15`,
-      subtitle: t('stats_microscopic_image', { defaultValue: 'صورة مجهرية' }),
+      subtitle: t('stats_microscopic_image', {
+        defaultValue: 'صورة مجهرية',
+      }),
     },
     {
       title: t('stats_researchers', { defaultValue: 'الباحثين' }),
@@ -53,7 +61,9 @@ const StatCardGrid: React.FC<StatCardGridProps> = ({ stats, isMobile }) => {
       icon: <Users size={28} />,
       color: '#32b8c6',
       bgColor: '#32b8c615',
-      subtitle: t('stats_student_researcher', { defaultValue: 'باحث نشط' }),
+      subtitle: t('stats_student_researcher', {
+        defaultValue: 'باحث نشط',
+      }),
     },
     {
       title: t('stats_supervisors', { defaultValue: 'المشرفين' }),
@@ -69,7 +79,9 @@ const StatCardGrid: React.FC<StatCardGridProps> = ({ stats, isMobile }) => {
       icon: <Activity size={28} />,
       color: '#ff6b6b',
       bgColor: '#ff6b6b15',
-      subtitle: t('stats_different_host', { defaultValue: 'عائل مختلف' }),
+      subtitle: t('stats_different_host', {
+        defaultValue: 'عائل مختلف',
+      }),
     },
     {
       title: t('stats_classifications', { defaultValue: 'التصنيفات' }),
@@ -114,7 +126,11 @@ const StatCardGrid: React.FC<StatCardGridProps> = ({ stats, isMobile }) => {
           }}
         >
           <CardContent sx={{ p: 3, '&:last-child': { pb: 3 } }}>
-            <Stack direction="row" alignItems="flex-start" justifyContent="space-between">
+            <Stack
+              direction="row"
+              alignItems="flex-start"
+              justifyContent="space-between"
+            >
               <Box>
                 <Typography
                   variant="subtitle2"
@@ -159,12 +175,12 @@ const StatCardGrid: React.FC<StatCardGridProps> = ({ stats, isMobile }) => {
                   </Typography>
                 )}
               </Box>
-              
+
               <Box
                 sx={{
                   width: 50,
                   height: 50,
-                  borderRadius: '50%', // دائري بالكامل
+                  borderRadius: '50%',
                   backgroundColor: card.bgColor,
                   display: 'flex',
                   alignItems: 'center',

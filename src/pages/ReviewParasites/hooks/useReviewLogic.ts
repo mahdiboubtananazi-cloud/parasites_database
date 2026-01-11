@@ -12,31 +12,35 @@ export const useReviewLogic = () => {
   // 🔍 تشخيص المشكلة في الكونسول
   useEffect(() => {
     if (!loading) {
-      console.log("🔍 [Debug] User ID:", user?.id);
-      console.log("🔍 [Debug] Total Parasites:", allParasites?.length);
+      console.log('🔍 [Debug] User ID:', user?.id);
+      console.log('🔍 [Debug] Total Parasites:', allParasites?.length);
       if (allParasites?.length > 0) {
-        console.log("🔍 [Debug] Sample 1 UploadedBy:", allParasites[0].uploadedBy);
-        console.log("🔍 [Debug] Status:", allParasites[0].status);
+        console.log('🔍 [Debug] Sample 1 UploadedBy:', allParasites[0].uploadedBy);
+        console.log('🔍 [Debug] Status:', allParasites[0].status);
       }
     }
   }, [loading, user, allParasites]);
 
   const [isVerified, setIsVerified] = useState(false);
   const [secretCode, setSecretCode] = useState('');
-  
-  // الفلتر الافتراضي 'all' لنرى كل شيء
-  const [statusFilter, setStatusFilter] = useState<'pending' | 'approved' | 'rejected' | 'all'>('pending'); // ✅
+
+  // الفلتر الافتراضي
+  const [statusFilter, setStatusFilter] = useState<
+    'pending' | 'approved' | 'rejected' | 'all'
+  >('pending');
   const [searchQuery, setSearchQuery] = useState('');
-  
+
   // Dialog State
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedParasite, setSelectedParasite] = useState<Parasite | null>(null);
-  const [actionType, setActionType] = useState<'approve' | 'reject' | 'edit' | 'delete' | 'view'>('view');
+  const [actionType, setActionType] = useState<
+    'approve' | 'reject' | 'edit' | 'delete' | 'view'
+  >('view');
   const [reviewNotes, setReviewNotes] = useState('');
   const [editData, setEditData] = useState<Partial<Parasite>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const isSupervisor = true; 
+  const isSupervisor = true; // TODO: اربطه بدور المستخدم لاحقًا
 
   // Verify Supervisor
   useEffect(() => {
@@ -53,28 +57,30 @@ export const useReviewLogic = () => {
     return false;
   };
 
-  // ✅ منطق الفلترة (بدون قيود المستخدم مؤقتاً)
+  // منطق الفلترة
   const filteredParasites = useMemo(() => {
     if (!allParasites || allParasites.length === 0) return [];
-    
+
     let list = [...allParasites];
 
-    // 1. تصفية حسب الحالة (إلا إذا اخترنا الكل)
+    // 1. تصفية حسب الحالة
     if (statusFilter !== 'all') {
-      list = list.filter(p => p.status === statusFilter);
+      list = list.filter((p) => p.status === statusFilter);
     }
 
-    // ❌ تم إيقاف فلتر المستخدم مؤقتاً للتجربة
+    // فلترة حسب المستخدم (معلّقة الآن):
     // if (!isSupervisor && user) {
-    //   list = list.filter(p => p.uploadedBy === user.id);
+    //   list = list.filter((p) => p.uploadedBy === user.id);
     // }
 
     // 2. البحث
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
-      list = list.filter(p => 
-        (p.name && p.name.toLowerCase().includes(q)) || 
-        (p.scientificName && p.scientificName.toLowerCase().includes(q))
+      list = list.filter(
+        (p) =>
+          (p.name && p.name.toLowerCase().includes(q)) ||
+          (p.scientificName &&
+            p.scientificName.toLowerCase().includes(q))
       );
     }
 
@@ -84,7 +90,7 @@ export const useReviewLogic = () => {
       const dateB = new Date(b.createdAt || 0).getTime();
       return dateB - dateA;
     });
-  }, [allParasites, statusFilter, user, isSupervisor, searchQuery]);
+  }, [allParasites, statusFilter, searchQuery]);
 
   // Actions
   const openDialog = (parasite: Parasite, type: typeof actionType) => {
@@ -150,7 +156,7 @@ export const useReviewLogic = () => {
       notes: reviewNotes,
       setNotes: setReviewNotes,
       editData,
-      setEditData
-    }
+      setEditData,
+    },
   };
 };

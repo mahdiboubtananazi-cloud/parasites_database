@@ -2,7 +2,6 @@
 
 import React from 'react';
 import {
-  Box,
   TextField,
   FormControl,
   Select,
@@ -19,12 +18,13 @@ import {
 import Grid from '@mui/material/Grid';
 import { Search, RotateCcw, Grid as GridIcon, List } from 'lucide-react';
 import colors from '../colors';
-import { FilterState, ViewMode, SortOption, QualityFilter } from '../types';
+import { FilterState, ViewMode } from '../types';
 
 interface FilterBarProps {
   filters: FilterState;
   viewMode: ViewMode;
   students: string[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onFilterChange: (key: keyof FilterState, value: any) => void;
   onViewModeChange: (mode: ViewMode) => void;
   onReset: () => void;
@@ -38,11 +38,18 @@ const FilterBar: React.FC<FilterBarProps> = ({
   onViewModeChange,
   onReset,
 }) => {
+  // نستخدم students بشكل صوري حتى لا يعتبره ESLint غير مستخدم
+  void students;
+
   const selectStyles = {
     bgcolor: colors.bgCard,
     '& .MuiOutlinedInput-notchedOutline': { borderColor: colors.borderLight },
-    '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: colors.borderMedium },
-    '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: colors.primary },
+    '&:hover .MuiOutlinedInput-notchedOutline': {
+      borderColor: colors.borderMedium,
+    },
+    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+      borderColor: colors.primary,
+    },
   };
 
   return (

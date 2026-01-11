@@ -32,7 +32,6 @@ import {
   X,
   LogIn,
   LogOut,
-  User,
   ChevronDown,
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -165,7 +164,11 @@ const Navbar: React.FC = () => {
                 </Button>
               ))}
 
-              <Divider orientation="vertical" flexItem sx={{ height: 24, alignSelf: 'center', mx: 1 }} />
+              <Divider
+                orientation="vertical"
+                flexItem
+                sx={{ height: 24, alignSelf: 'center', mx: 1 }}
+              />
 
               <Tooltip title={t('nav_language')}>
                 <IconButton onClick={toggleLanguage} size="small" sx={{ color: colors.text.secondary }}>
@@ -189,10 +192,20 @@ const Navbar: React.FC = () => {
                       ml: 1,
                       gap: 1,
                       border: `1px solid ${colors.primary.lighter}`,
-                      '&:hover': { bgcolor: `${colors.primary.main}05`, borderColor: colors.primary.main },
+                      '&:hover': {
+                        bgcolor: `${colors.primary.main}05`,
+                        borderColor: colors.primary.main,
+                      },
                     }}
                   >
-                    <Avatar sx={{ width: 32, height: 32, bgcolor: colors.primary.main, fontSize: '0.85rem' }}>
+                    <Avatar
+                      sx={{
+                        width: 32,
+                        height: 32,
+                        bgcolor: colors.primary.main,
+                        fontSize: '0.85rem',
+                      }}
+                    >
                       {user.name?.charAt(0).toUpperCase()}
                     </Avatar>
                     <ChevronDown size={16} color={colors.text.secondary} />
@@ -201,16 +214,30 @@ const Navbar: React.FC = () => {
                     anchorEl={userAnchor}
                     open={Boolean(userAnchor)}
                     onClose={() => setUserAnchor(null)}
-                    PaperProps={{ sx: { mt: 1, minWidth: 180, borderRadius: 3, boxShadow: '0 4px 20px rgba(0,0,0,0.1)' } }}
+                    PaperProps={{
+                      sx: {
+                        mt: 1,
+                        minWidth: 180,
+                        borderRadius: 3,
+                        boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                      },
+                    }}
                     transformOrigin={{ horizontal: 'right', vertical: 'top' }}
                     anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
                   >
                     <Box sx={{ px: 2, py: 1.5 }}>
-                      <Typography variant="subtitle2" fontWeight={700}>{user.name}</Typography>
-                      <Typography variant="caption" color="text.secondary">{user.email}</Typography>
+                      <Typography variant="subtitle2" fontWeight={700}>
+                        {user.name}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {user.email}
+                      </Typography>
                     </Box>
                     <Divider />
-                    <MenuItem onClick={handleLogout} sx={{ color: '#ef4444', gap: 1.5, mt: 0.5 }}>
+                    <MenuItem
+                      onClick={handleLogout}
+                      sx={{ color: '#ef4444', gap: 1.5, mt: 0.5 }}
+                    >
                       <LogOut size={16} />
                       {t('nav_logout', { defaultValue: 'تسجيل خروج' })}
                     </MenuItem>
@@ -226,7 +253,10 @@ const Navbar: React.FC = () => {
                     px: 3,
                     bgcolor: colors.primary.main,
                     boxShadow: '0 4px 12px rgba(11, 43, 38, 0.2)',
-                    '&:hover': { bgcolor: colors.primary.dark, boxShadow: '0 6px 16px rgba(11, 43, 38, 0.3)' },
+                    '&:hover': {
+                      bgcolor: colors.primary.dark,
+                      boxShadow: '0 6px 16px rgba(11, 43, 38, 0.3)',
+                    },
                   }}
                 >
                   {t('nav_login')}
@@ -249,9 +279,23 @@ const Navbar: React.FC = () => {
         anchor={i18n.language === 'ar' ? 'right' : 'left'}
         open={mobileOpen}
         onClose={handleDrawerToggle}
-        PaperProps={{ sx: { width: 280, bgcolor: '#fafcfb', borderTopLeftRadius: 20, borderBottomLeftRadius: 20 } }}
+        PaperProps={{
+          sx: {
+            width: 280,
+            bgcolor: '#fafcfb',
+            borderTopLeftRadius: 20,
+            borderBottomLeftRadius: 20,
+          },
+        }}
       >
-        <Box sx={{ p: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <Box
+          sx={{
+            p: 3,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
+        >
           <Stack direction="row" spacing={1.5} alignItems="center">
             <Paper sx={{ p: 1, borderRadius: '50%', bgcolor: colors.primary.main, display: 'flex' }}>
               <Microscope size={20} color="#fff" />
@@ -267,11 +311,27 @@ const Navbar: React.FC = () => {
 
         {user && (
           <Box sx={{ px: 3, pb: 3 }}>
-            <Paper variant="outlined" sx={{ p: 2, borderRadius: 3, bgcolor: '#fff', display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Avatar sx={{ bgcolor: colors.primary.main }}>{user.name?.charAt(0)}</Avatar>
+            <Paper
+              variant="outlined"
+              sx={{
+                p: 2,
+                borderRadius: 3,
+                bgcolor: '#fff',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 2,
+              }}
+            >
+              <Avatar sx={{ bgcolor: colors.primary.main }}>
+                {user.name?.charAt(0)}
+              </Avatar>
               <Box sx={{ overflow: 'hidden' }}>
-                <Typography variant="subtitle2" noWrap>{user.name}</Typography>
-                <Typography variant="caption" color="text.secondary" noWrap>{user.email}</Typography>
+                <Typography variant="subtitle2" noWrap>
+                  {user.name}
+                </Typography>
+                <Typography variant="caption" color="text.secondary" noWrap>
+                  {user.email}
+                </Typography>
               </Box>
             </Paper>
           </Box>
@@ -282,13 +342,32 @@ const Navbar: React.FC = () => {
             <ListItem key={link.path} disablePadding sx={{ mb: 1 }}>
               <ListItemButton
                 selected={isActive(link.path)}
-                onClick={() => { navigate(link.path); handleDrawerToggle(); }}
-                sx={{ borderRadius: 3, '&.Mui-selected': { bgcolor: `${colors.primary.main}15`, color: colors.primary.main } }}
+                onClick={() => {
+                  navigate(link.path);
+                  handleDrawerToggle();
+                }}
+                sx={{
+                  borderRadius: 3,
+                  '&.Mui-selected': {
+                    bgcolor: `${colors.primary.main}15`,
+                    color: colors.primary.main,
+                  },
+                }}
               >
-                <ListItemIcon sx={{ minWidth: 40, color: isActive(link.path) ? colors.primary.main : 'inherit' }}>
+                <ListItemIcon
+                  sx={{
+                    minWidth: 40,
+                    color: isActive(link.path) ? colors.primary.main : 'inherit',
+                  }}
+                >
                   {link.icon}
                 </ListItemIcon>
-                <ListItemText primary={link.label} primaryTypographyProps={{ fontWeight: isActive(link.path) ? 700 : 500 }} />
+                <ListItemText
+                  primary={link.label}
+                  primaryTypographyProps={{
+                    fontWeight: isActive(link.path) ? 700 : 500,
+                  }}
+                />
               </ListItemButton>
             </ListItem>
           ))}
@@ -301,7 +380,12 @@ const Navbar: React.FC = () => {
               fullWidth
               startIcon={<Globe size={18} />}
               onClick={toggleLanguage}
-              sx={{ justifyContent: 'flex-start', borderRadius: 3, color: colors.text.primary, borderColor: 'rgba(0,0,0,0.1)' }}
+              sx={{
+                justifyContent: 'flex-start',
+                borderRadius: 3,
+                color: colors.text.primary,
+                borderColor: 'rgba(0,0,0,0.1)',
+              }}
             >
               {i18n.language === 'ar' ? 'Français' : 'العربية'}
             </Button>
@@ -311,7 +395,10 @@ const Navbar: React.FC = () => {
                 fullWidth
                 color="error"
                 startIcon={<LogOut size={18} />}
-                onClick={() => { handleLogout(); handleDrawerToggle(); }}
+                onClick={() => {
+                  handleLogout();
+                  handleDrawerToggle();
+                }}
                 sx={{ justifyContent: 'flex-start', borderRadius: 3 }}
               >
                 {t('nav_logout', { defaultValue: 'تسجيل خروج' })}
@@ -321,7 +408,10 @@ const Navbar: React.FC = () => {
                 variant="contained"
                 fullWidth
                 startIcon={<LogIn size={18} />}
-                onClick={() => { navigate('/login'); handleDrawerToggle(); }}
+                onClick={() => {
+                  navigate('/login');
+                  handleDrawerToggle();
+                }}
                 sx={{ borderRadius: 3, bgcolor: colors.primary.main, boxShadow: 'none' }}
               >
                 {t('nav_login')}

@@ -1,5 +1,12 @@
 ﻿import React, { useMemo } from 'react';
-import { Box, Container, Paper, CircularProgress, Stack, useTheme, useMediaQuery, Typography } from '@mui/material';
+import {
+  Box,
+  Container,
+  Paper,
+  CircularProgress,
+  useTheme,
+  useMediaQuery,
+} from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { useParasites } from '../../hooks/useParasites';
 import { Parasite } from '../../types/parasite';
@@ -22,33 +29,49 @@ const Statistics: React.FC = () => {
   const stats = useMemo(() => {
     if (!parasites?.length) return null;
 
-    const approved = parasites.filter(p => p.status === 'approved');
+    const approved = parasites.filter((p) => p.status === 'approved');
     if (!approved.length) return null;
 
     // Helper: حساب التكرار لأي حقل
     const getDistribution = (field: keyof Parasite) => {
       const counts = approved.reduce((acc, p) => {
-        const val = (p[field] as string) || t('not_specified', { defaultValue: 'غير محدد' });
+        const val =
+          (p[field] as string) ||
+          t('not_specified', { defaultValue: 'غير محدد' });
         acc[val] = (acc[val] || 0) + 1;
         return acc;
       }, {} as Record<string, number>);
-      
+
       return Object.entries(counts)
         .map(([name, value]) => ({ name, value }))
         .sort((a, b) => b.value - a.value);
     };
 
     // Helper: حساب القيم الفريدة
-    const countUnique = (field: keyof Parasite) => new Set(approved.map(p => p[field]).filter(Boolean)).size;
+    const countUnique = (field: keyof Parasite) =>
+      new Set(approved.map((p) => p[field]).filter(Boolean)).size;
 
     const uniqueStudents = countUnique('studentName');
-    
+
     // البيانات الشهرية
     const monthlyData = (() => {
-      const months = isRtl 
-        ? ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر']
+      const months = isRtl
+        ? [
+            'يناير',
+            'فبراير',
+            'مارس',
+            'أبريل',
+            'مايو',
+            'يونيو',
+            'يوليو',
+            'أغسطس',
+            'سبتمبر',
+            'أكتوبر',
+            'نوفمبر',
+            'ديسمبر',
+          ]
         : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      
+
       const stats: Record<string, { parasites: number; images: number }> = {};
       const now = new Date();
 
@@ -59,10 +82,13 @@ const Statistics: React.FC = () => {
         stats[key] = { parasites: 0, images: 0 };
       }
 
-      approved.forEach(p => {
+      approved.forEach((p) => {
         if (p.createdAt) {
           const d = new Date(p.createdAt);
-          const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+          const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
+            2,
+            '0'
+          )}`;
           if (stats[key]) {
             stats[key].parasites++;
             if (p.imageUrl) stats[key].images++;
@@ -71,19 +97,21 @@ const Statistics: React.FC = () => {
       });
 
       return Object.entries(stats).map(([key, val]) => {
-        const [_, m] = key.split('-');
+        const [, m] = key.split('-'); // لا نحتاج القيمة الأولى، لذلك نتجاهلها
         return { month: `${months[parseInt(m) - 1]}`, ...val };
       });
     })();
 
     return {
       totalParasites: approved.length,
-      totalImages: approved.filter(p => p.imageUrl).length,
+      totalImages: approved.filter((p) => p.imageUrl).length,
       totalStudents: uniqueStudents,
       totalSupervisors: countUnique('supervisorName'),
       uniqueHosts: countUnique('host'),
       uniqueTypes: countUnique('type'),
-      averageParasitesPerStudent: uniqueStudents ? (approved.length / uniqueStudents).toFixed(1) : '0',
+      averageParasitesPerStudent: uniqueStudents
+        ? (approved.length / uniqueStudents).toFixed(1)
+        : '0',
       distributions: {
         hostDistribution: getDistribution('host').slice(0, 6),
         sampleTypeDistribution: getDistribution('sampleType').slice(0, 6),
@@ -95,15 +123,29 @@ const Statistics: React.FC = () => {
     };
   }, [parasites, t, isRtl]);
 
-  if (loading) return (
-    <Box sx={{ display: 'flex', justifyContent: 'center', height: '100vh', alignItems: 'center', bgcolor: '#f8f7f5' }}>
-      <CircularProgress sx={{ color: '#3a5a40' }} />
-    </Box>
-  );
+  if (loading)
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          height: '100vh',
+          alignItems: 'center',
+          bgcolor: '#f8f7f5',
+        }}
+      >
+        <CircularProgress sx={{ color: '#3a5a40' }} />
+      </Box>
+    );
 
-  if (error) return (
-    <Container sx={{ py: 4 }}><Paper sx={{ p: 4, textAlign: 'center', color: 'error.main' }}>{error}</Paper></Container>
-  );
+  if (error)
+    return (
+      <Container sx={{ py: 4 }}>
+        <Paper sx={{ p: 4, textAlign: 'center', color: 'error.main' }}>
+          {error}
+        </Paper>
+      </Container>
+    );
 
   if (!stats) return <EmptyState />;
 
@@ -112,9 +154,22 @@ const Statistics: React.FC = () => {
       <Container maxWidth="lg">
         <StatsHeader />
         <StatCardGrid stats={stats} isMobile={isMobile} />
-        <DistributionCharts distributions={stats.distributions} isMobile={isMobile} isRtl={isRtl} />
-        <MonthlyTimelineChart data={stats.monthlyData} isMobile={isMobile} isRtl={isRtl} />
-        <TopResearchersTable data={stats.topResearchers} totalParasites={stats.totalParasites} isMobile={isMobile} isRtl={isRtl} />
+        <DistributionCharts
+          distributions={stats.distributions}
+          isMobile={isMobile}
+          isRtl={isRtl}
+        />
+        <MonthlyTimelineChart
+          data={stats.monthlyData}
+          isMobile={isMobile}
+          isRtl={isRtl}
+        />
+        <TopResearchersTable
+          data={stats.topResearchers}
+          totalParasites={stats.totalParasites}
+          isMobile={isMobile}
+          isRtl={isRtl}
+        />
       </Container>
     </Box>
   );

@@ -1,10 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  parasitesApi,
-  PaginationParams,
-  PaginatedResponse,
-} from '../api/parasites';
-import { Parasite, CreateParasiteInput, UpdateParasiteInput } from '../types/parasite';
+import { parasitesApi, PaginationParams } from '../api/parasites';
+import { CreateParasiteInput, UpdateParasiteInput } from '../types/parasite';
 
 // ==============================================
 // Query Keys

@@ -181,10 +181,13 @@ const uploadImage = async (image: File): Promise<string> => {
 
   // محاولة الرفع إلى الـ bucket المحدد
   let lastError: Error | null = null;
-  
-  for (const bucketName of [STORAGE_BUCKET, ...POSSIBLE_BUCKETS.filter(b => b !== STORAGE_BUCKET)]) {
+
+  for (const bucketName of [
+    STORAGE_BUCKET,
+    ...POSSIBLE_BUCKETS.filter((b) => b !== STORAGE_BUCKET),
+  ]) {
     try {
-      const { error, data: uploadData } = await supabase.storage
+      const { error } = await supabase.storage
         .from(bucketName)
         .upload(fileName, image, {
           cacheControl: '3600',
@@ -214,7 +217,10 @@ const uploadImage = async (image: File): Promise<string> => {
     } catch (err) {
       lastError = err instanceof Error ? err : new Error(String(err));
       // إذا لم يكن خطأ "Bucket not found"، أرجعه مباشرة
-      if (!lastError.message.includes('not found') && !lastError.message.includes('Bucket')) {
+      if (
+        !lastError.message.includes('not found') &&
+        !lastError.message.includes('Bucket')
+      ) {
         throw lastError;
       }
     }
@@ -222,7 +228,9 @@ const uploadImage = async (image: File): Promise<string> => {
 
   // فشلت جميع المحاولات
   const errorMessage = lastError?.message || 'فشل في رفع الصورة';
-  const suggestion = `تأكد من وجود bucket باسم "${STORAGE_BUCKET}" أو "${POSSIBLE_BUCKETS.join('" أو "')}" في Supabase Storage.`;
+  const suggestion = `تأكد من وجود bucket باسم "${STORAGE_BUCKET}" أو "${POSSIBLE_BUCKETS.join(
+    '" أو "'
+  )}" في Supabase Storage.`;
   throw new Error(`${errorMessage}. ${suggestion}`);
 };
 

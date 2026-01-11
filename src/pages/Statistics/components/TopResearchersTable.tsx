@@ -1,9 +1,18 @@
 import React from 'react';
 import {
-  Paper, Table, TableBody, TableCell, TableContainer,
-  TableHead, TableRow, Box, Typography, Avatar, Stack
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Box,
+  Typography,
+  Avatar,
+  Stack,
 } from '@mui/material';
-import { Users, Award } from 'lucide-react';
+import { Users } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { colors } from '../../../theme/colors';
 
@@ -19,17 +28,33 @@ interface TopResearchersTableProps {
   isRtl: boolean;
 }
 
-const TopResearchersTable = ({ data, totalParasites, isMobile, isRtl }: TopResearchersTableProps) => {
+const TopResearchersTable: React.FC<TopResearchersTableProps> = ({
+  data,
+  totalParasites,
+  isMobile,
+  isRtl,
+}) => {
   const { t } = useTranslation();
+
+  // isMobile غير مستخدم حاليًا لكن نبقيه في التوقيع للتوافق
+  void isMobile;
 
   if (!data.length) return null;
 
   const getRankIcon = (index: number) => {
     switch (index) {
-      case 0: return <span style={{ fontSize: 24 }}>🥇</span>;
-      case 1: return <span style={{ fontSize: 24 }}>🥈</span>;
-      case 2: return <span style={{ fontSize: 24 }}>🥉</span>;
-      default: return <span style={{ fontWeight: 'bold', color: '#888' }}>#{index + 1}</span>;
+      case 0:
+        return <span style={{ fontSize: 24 }}>🥇</span>;
+      case 1:
+        return <span style={{ fontSize: 24 }}>🥈</span>;
+      case 2:
+        return <span style={{ fontSize: 24 }}>🥉</span>;
+      default:
+        return (
+          <span style={{ fontWeight: 'bold', color: '#888' }}>
+            #{index + 1}
+          </span>
+        );
     }
   };
 
@@ -46,12 +71,32 @@ const TopResearchersTable = ({ data, totalParasites, isMobile, isRtl }: TopResea
         overflow: 'hidden',
       }}
     >
-      <Box sx={{ p: 3, borderBottom: '1px solid #f5f5f5', display: 'flex', alignItems: 'center', gap: 1.5 }}>
-        <Box sx={{ p: 1, borderRadius: 2, bgcolor: `${colors.primary.main}15`, color: colors.primary.main }}>
+      <Box
+        sx={{
+          p: 3,
+          borderBottom: '1px solid #f5f5f5',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1.5,
+        }}
+      >
+        <Box
+          sx={{
+            p: 1,
+            borderRadius: 2,
+            bgcolor: `${colors.primary.main}15`,
+            color: colors.primary.main,
+          }}
+        >
           <Users size={20} />
         </Box>
-        <Typography variant="h6" sx={{ fontSize: '1.1rem', fontWeight: 700, color: '#264653' }}>
-          {t('stats_top_researchers', { defaultValue: 'أكثر الباحثين مساهمة' })}
+        <Typography
+          variant="h6"
+          sx={{ fontSize: '1.1rem', fontWeight: 700, color: '#264653' }}
+        >
+          {t('stats_top_researchers', {
+            defaultValue: 'أكثر الباحثين مساهمة',
+          })}
         </Typography>
       </Box>
 
@@ -59,35 +104,67 @@ const TopResearchersTable = ({ data, totalParasites, isMobile, isRtl }: TopResea
         <Table>
           <TableHead>
             <TableRow sx={{ bgcolor: '#fafafa' }}>
-              <TableCell align="center" sx={{ fontWeight: 700, color: '#555' }}>{t('rank', { defaultValue: 'الترتيب' })}</TableCell>
-              <TableCell align={isRtl ? 'right' : 'left'} sx={{ fontWeight: 700, color: '#555' }}>{t('researcher_name', { defaultValue: 'اسم الباحث' })}</TableCell>
-              <TableCell align="center" sx={{ fontWeight: 700, color: '#555' }}>{t('samples_count', { defaultValue: 'عدد العينات' })}</TableCell>
-              <TableCell align="center" sx={{ fontWeight: 700, color: '#555' }}>{t('percentage', { defaultValue: 'النسبة' })}</TableCell>
+              <TableCell
+                align="center"
+                sx={{ fontWeight: 700, color: '#555' }}
+              >
+                {t('rank', { defaultValue: 'الترتيب' })}
+              </TableCell>
+              <TableCell
+                align={isRtl ? 'right' : 'left'}
+                sx={{ fontWeight: 700, color: '#555' }}
+              >
+                {t('researcher_name', { defaultValue: 'اسم الباحث' })}
+              </TableCell>
+              <TableCell
+                align="center"
+                sx={{ fontWeight: 700, color: '#555' }}
+              >
+                {t('samples_count', { defaultValue: 'عدد العينات' })}
+              </TableCell>
+              <TableCell
+                align="center"
+                sx={{ fontWeight: 700, color: '#555' }}
+              >
+                {t('percentage', { defaultValue: 'النسبة' })}
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {data.map((student, index) => {
-              const percentage = ((student.value / totalParasites) * 100).toFixed(1);
+              const percentage = (
+                (student.value / totalParasites) *
+                100
+              ).toFixed(1);
               return (
-                <TableRow key={student.name} hover sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-                  <TableCell align="center">
-                    {getRankIcon(index)}
-                  </TableCell>
-                  
+                <TableRow
+                  key={student.name}
+                  hover
+                  sx={{
+                    '&:last-child td, &:last-child th': { border: 0 },
+                  }}
+                >
+                  <TableCell align="center">{getRankIcon(index)}</TableCell>
+
                   <TableCell align={isRtl ? 'right' : 'left'}>
                     <Stack direction="row" alignItems="center" spacing={2}>
-                      <Avatar 
-                        sx={{ 
-                          width: 32, 
-                          height: 32, 
-                          bgcolor: index < 3 ? colors.primary.main : '#e0e0e0',
+                      <Avatar
+                        sx={{
+                          width: 32,
+                          height: 32,
+                          bgcolor:
+                            index < 3 ? colors.primary.main : '#e0e0e0',
                           fontSize: 14,
-                          fontWeight: 'bold'
+                          fontWeight: 'bold',
                         }}
                       >
                         {student.name.charAt(0).toUpperCase()}
                       </Avatar>
-                      <Typography variant="body2" fontWeight={600} color="#333">
+                      <Typography
+                        variant="body2"
+                        fontWeight={600}
+                        color="#333"
+                      >
                         {student.name}
                       </Typography>
                     </Stack>
@@ -111,18 +188,38 @@ const TopResearchersTable = ({ data, totalParasites, isMobile, isRtl }: TopResea
                   </TableCell>
 
                   <TableCell align="center">
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
-                      <Box sx={{ width: 60, height: 6, bgcolor: '#eee', borderRadius: 3, overflow: 'hidden' }}>
-                        <Box 
-                          sx={{ 
-                            width: `${percentage}%`, 
-                            height: '100%', 
-                            bgcolor: index < 3 ? colors.primary.main : '#bbb',
-                            borderRadius: 3 
-                          }} 
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 1,
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          width: 60,
+                          height: 6,
+                          bgcolor: '#eee',
+                          borderRadius: 3,
+                          overflow: 'hidden',
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            width: `${percentage}%`,
+                            height: '100%',
+                            bgcolor:
+                              index < 3 ? colors.primary.main : '#bbb',
+                            borderRadius: 3,
+                          }}
                         />
                       </Box>
-                      <Typography variant="caption" fontWeight={600} color="text.secondary">
+                      <Typography
+                        variant="caption"
+                        fontWeight={600}
+                        color="text.secondary"
+                      >
                         {percentage}%
                       </Typography>
                     </Box>

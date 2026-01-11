@@ -6,16 +6,14 @@ import {
   CircularProgress,
   Alert,
   TextField,
-  InputAdornment,
   Tabs,
   Tab,
   Stack,
   Paper,
-  Button
+  Button,
 } from '@mui/material';
-// ✅ الحل هنا: استخدام Grid
 import Grid from '@mui/material/Grid';
-import { Search, Shield, Lock } from 'lucide-react';
+import { Search, Shield } from 'lucide-react';
 import { useReviewLogic } from './hooks/useReviewLogic';
 import { ParasiteCard } from './components/ParasiteCard';
 import { ReviewDialog } from './components/Dialogs';
@@ -24,31 +22,65 @@ import { useAuth } from '../../contexts/AuthContext';
 
 const ReviewParasitesPage = () => {
   const { user } = useAuth();
-  const { 
-    parasites, loading, isSupervisor, 
-    isVerified, secretCode, setSecretCode, verifyCode,
-    filters, dialog 
+  const {
+    parasites,
+    loading,
+    isSupervisor,
+    isVerified,
+    secretCode,
+    setSecretCode,
+    verifyCode,
+    filters,
+    dialog,
   } = useReviewLogic();
 
-  if (loading) return <Box sx={{ display: 'flex', justifyContent: 'center', height: '50vh', alignItems: 'center' }}><CircularProgress /></Box>;
+  if (loading)
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          height: '50vh',
+          alignItems: 'center',
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
 
-  if (!user) return <Container sx={{ mt: 5 }}><Alert severity="warning">يجب تسجيل الدخول</Alert></Container>;
+  if (!user)
+    return (
+      <Container sx={{ mt: 5 }}>
+        <Alert severity="warning">يجب تسجيل الدخول</Alert>
+      </Container>
+    );
 
   // شاشة القفل للمشرفين
   if (isSupervisor && !isVerified) {
     return (
       <Container maxWidth="sm" sx={{ mt: 10 }}>
         <Paper sx={{ p: 4, textAlign: 'center' }}>
-          <Shield size={64} style={{ margin: '0 auto 20px', color: '#1976d2' }} />
-          <Typography variant="h5" gutterBottom>منطقة المشرفين</Typography>
+          <Shield
+            size={64}
+            style={{ margin: '0 auto 20px', color: '#1976d2' }}
+          />
+          <Typography variant="h5" gutterBottom>
+            منطقة المشرفين
+          </Typography>
           <TextField
-            fullWidth type="password" placeholder="أدخل الكود السري"
-            value={secretCode} onChange={(e) => setSecretCode(e.target.value)}
+            fullWidth
+            type="password"
+            placeholder="أدخل الكود السري"
+            value={secretCode}
+            onChange={(e) => setSecretCode(e.target.value)}
             sx={{ mb: 2 }}
           />
-          <Button 
-            variant="contained" fullWidth 
-            onClick={() => { if(!verifyCode()) alert('الكود خطأ'); }}
+          <Button
+            variant="contained"
+            fullWidth
+            onClick={() => {
+              if (!verifyCode()) alert('الكود خطأ');
+            }}
           >
             دخول
           </Button>
@@ -61,7 +93,12 @@ const ReviewParasitesPage = () => {
     <Container maxWidth="xl" sx={{ py: 4 }}>
       {/* Header & Filters */}
       <Paper sx={{ p: 3, mb: 4, borderRadius: 3 }}>
-        <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems="center" spacing={2}>
+        <Stack
+          direction={{ xs: 'column', md: 'row' }}
+          justifyContent="space-between"
+          alignItems="center"
+          spacing={2}
+        >
           <Box>
             <Typography variant="h4" fontWeight="bold" color="primary">
               {isSupervisor ? 'لوحة المراجعة' : 'عيناتي'}
@@ -71,16 +108,24 @@ const ReviewParasitesPage = () => {
             </Typography>
           </Box>
 
-          <Stack direction="row" spacing={2} sx={{ width: { xs: '100%', md: 'auto' } }}>
+          <Stack
+            direction="row"
+            spacing={2}
+            sx={{ width: { xs: '100%', md: 'auto' } }}
+          >
             <TextField
               size="small"
               placeholder="بحث..."
               value={filters.searchQuery}
               onChange={(e) => filters.setSearchQuery(e.target.value)}
-              InputProps={{ startAdornment: <Search size={18} style={{ marginRight: 8 }} /> }}
+              InputProps={{
+                startAdornment: (
+                  <Search size={18} style={{ marginRight: 8 }} />
+                ),
+              }}
             />
-            <Tabs 
-              value={filters.statusFilter} 
+            <Tabs
+              value={filters.statusFilter}
               onChange={(_, v) => filters.setStatusFilter(v)}
               variant="scrollable"
               scrollButtons="auto"
@@ -94,17 +139,17 @@ const ReviewParasitesPage = () => {
         </Stack>
       </Paper>
 
-      {/* Grid Content - الحل لمشكلة TypeScript */}
+      {/* Grid Content */}
       {parasites.length === 0 ? (
         <EmptyState />
       ) : (
         <Grid container spacing={3}>
           {parasites.map((parasite) => (
             <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={parasite.id}>
-              <ParasiteCard 
-                parasite={parasite} 
-                isSupervisor={isSupervisor} 
-                onAction={dialog.openDialog} 
+              <ParasiteCard
+                parasite={parasite}
+                isSupervisor={isSupervisor}
+                onAction={dialog.openDialog}
               />
             </Grid>
           ))}
@@ -112,7 +157,7 @@ const ReviewParasitesPage = () => {
       )}
 
       {/* Dialog */}
-      <ReviewDialog 
+      <ReviewDialog
         open={dialog.open}
         onClose={() => dialog.setOpen(false)}
         type={dialog.type}
