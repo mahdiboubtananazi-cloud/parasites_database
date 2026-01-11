@@ -1,3 +1,5 @@
+/* eslint-disable react-refresh/only-export-components */
+
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 
@@ -23,7 +25,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
-  const [loading, setLoading] = useState(true);     // تحميل عام للتطبيق
+  const [loading, setLoading] = useState(true); // تحميل عام للتطبيق
   const [isLoading, setIsLoading] = useState(false); // تحميل عمليات (login/register)
   const [error, setError] = useState<string | null>(null);
 
@@ -47,12 +49,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         let sessionResult;
         try {
           sessionResult = await Promise.race([sessionPromise, timeoutPromise]);
-        } catch (timeoutError) {
+        } catch {
           // إذا انتهت المهلة الزمنية، استخدم null كجلسة
           console.warn('Auth session fetch timed out, proceeding without session');
           sessionResult = { data: { session: null } };
         }
-        
+
         // تنظيف timeout إذا نجحت العملية
         if (timeoutId) {
           clearTimeout(timeoutId);
@@ -72,19 +74,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               .select('role, name')
               .eq('id', session.user.id)
               .single();
-            
+
             let profileTimeoutId: NodeJS.Timeout;
             const profileTimeoutPromise = new Promise<never>((_, reject) => {
-              profileTimeoutId = setTimeout(() => reject(new Error('Profile fetch timeout')), 5000);
+              profileTimeoutId = setTimeout(
+                () => reject(new Error('Profile fetch timeout')),
+                5000
+              );
             });
 
             let profileResult;
             try {
-              profileResult = await Promise.race([
-                profilePromise,
-                profileTimeoutPromise,
-              ]);
-            } catch (profileTimeoutError) {
+              profileResult = await Promise.race([profilePromise, profileTimeoutPromise]);
+            } catch {
               // إذا انتهت المهلة الزمنية، استخدم null كـ profile
               console.warn('Profile fetch timed out, using fallback');
               profileResult = { data: null };
@@ -122,11 +124,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.error('Auth init error:', err);
         if (isMounted) {
           setUser(null);
-          setError(err instanceof Error ? err.message : 'Failed to initialize authentication');
+          setError(
+            err instanceof Error ? err.message : 'Failed to initialize authentication'
+          );
         }
       } finally {
         if (isMounted) {
-          // 🔴 هذا هو السطر الأهم - يضمن عدم التعليق الأبدي
+          // يضمن عدم التعليق الأبدي
           setLoading(false);
         }
         if (timeoutId) {
@@ -137,16 +141,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     initializeAuth();
 
-    return () => {
-      isMounted = false;
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-      }
-    };
-
-    // ==========================================
     // الاستماع لتغييرات حالة المصادقة
-    // ==========================================
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
@@ -179,6 +174,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
 
     return () => {
+      isMounted = false;
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
       subscription?.unsubscribe();
     };
   }, []);

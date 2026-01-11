@@ -1,8 +1,9 @@
+/* eslint-disable react-refresh/only-export-components */
+
 import React, { Component } from 'react';
 import type { ErrorInfo, ReactNode } from 'react';
 import { Box, Button, Typography, Container, Paper } from '@mui/material';
 import { ErrorOutline, Home } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
 
 interface Props {
   children: ReactNode;
@@ -48,7 +49,6 @@ export class ErrorBoundary extends Component<Props, State> {
 }
 
 const ErrorFallback: React.FC<{ error: Error | null }> = ({ error }) => {
-
   return (
     <Container maxWidth="sm" sx={{ mt: 8 }}>
       <Paper
@@ -95,4 +95,3 @@ const ErrorFallback: React.FC<{ error: Error | null }> = ({ error }) => {
     </Container>
   );
 };
-

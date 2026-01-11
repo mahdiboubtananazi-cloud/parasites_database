@@ -1,3 +1,5 @@
+/* eslint-disable react-refresh/only-export-components */
+
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import { Alert, Snackbar } from '@mui/material';
 
@@ -19,19 +21,34 @@ const ToastContext = createContext<ToastContextType | undefined>(undefined);
 export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [messages, setMessages] = useState<ToastMessage[]>([]);
 
-  const addMessage = useCallback((message: string, type: 'success' | 'error' | 'warning' | 'info') => {
-    const id = Date.now().toString();
-    setMessages((prev) => [...prev, { id, message, type }]);
+  const addMessage = useCallback(
+    (message: string, type: 'success' | 'error' | 'warning' | 'info') => {
+      const id = Date.now().toString();
+      setMessages((prev) => [...prev, { id, message, type }]);
 
-    setTimeout(() => {
-      setMessages((prev) => prev.filter((msg) => msg.id !== id));
-    }, 4000);
-  }, []);
+      setTimeout(() => {
+        setMessages((prev) => prev.filter((msg) => msg.id !== id));
+      }, 4000);
+    },
+    []
+  );
 
-  const showSuccess = useCallback((message: string) => addMessage(message, 'success'), [addMessage]);
-  const showError = useCallback((message: string) => addMessage(message, 'error'), [addMessage]);
-  const showWarning = useCallback((message: string) => addMessage(message, 'warning'), [addMessage]);
-  const showInfo = useCallback((message: string) => addMessage(message, 'info'), [addMessage]);
+  const showSuccess = useCallback(
+    (message: string) => addMessage(message, 'success'),
+    [addMessage]
+  );
+  const showError = useCallback(
+    (message: string) => addMessage(message, 'error'),
+    [addMessage]
+  );
+  const showWarning = useCallback(
+    (message: string) => addMessage(message, 'warning'),
+    [addMessage]
+  );
+  const showInfo = useCallback(
+    (message: string) => addMessage(message, 'info'),
+    [addMessage]
+  );
 
   return (
     <ToastContext.Provider value={{ showSuccess, showError, showWarning, showInfo }}>

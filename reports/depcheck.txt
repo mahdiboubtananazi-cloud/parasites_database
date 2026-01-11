@@ -1,0 +1,7 @@
+Unused dependencies
+* apexcharts
+* react-apexcharts
+Unused devDependencies
+* depcheck
+* madge
+* ts-prune

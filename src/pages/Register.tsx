@@ -19,21 +19,26 @@ import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { LoadingSpinner } from '../components/core/LoadingSpinner';
 
-const schema = yup.object({
-  name: yup.string().required('الاسم مطلوب').min(2, 'الاسم يجب أن يكون حرفين على الأقل'),
-  email: yup
-    .string()
-    .email('البريد الإلكتروني غير صحيح')
-    .required('البريد الإلكتروني مطلوب'),
-  password: yup
-    .string()
-    .min(6, 'كلمة المرور يجب أن تكون 6 أحرف على الأقل')
-    .required('كلمة المرور مطلوبة'),
-  confirmPassword: yup
-    .string()
-    .oneOf([yup.ref('password')], 'كلمات المرور غير متطابقة')
-    .required('تأكيد كلمة المرور مطلوب'),
-}).required();
+const schema = yup
+  .object({
+    name: yup
+      .string()
+      .required('الاسم مطلوب')
+      .min(2, 'الاسم يجب أن يكون حرفين على الأقل'),
+    email: yup
+      .string()
+      .email('البريد الإلكتروني غير صحيح')
+      .required('البريد الإلكتروني مطلوب'),
+    password: yup
+      .string()
+      .min(6, 'كلمة المرور يجب أن تكون 6 أحرف على الأقل')
+      .required('كلمة المرور مطلوبة'),
+    confirmPassword: yup
+      .string()
+      .oneOf([yup.ref('password')], 'كلمات المرور غير متطابقة')
+      .required('تأكيد كلمة المرور مطلوب'),
+  })
+  .required();
 
 interface RegisterFormData {
   name: string;
@@ -54,6 +59,7 @@ export default function Register() {
     handleSubmit,
     formState: { errors },
   } = useForm<RegisterFormData>({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: yupResolver(schema) as any,
     defaultValues: {
       name: '',
@@ -66,11 +72,18 @@ export default function Register() {
   const onSubmit = async (data: RegisterFormData) => {
     try {
       setApiError('');
-      await registerUser(data);
+      await registerUser({
+        email: data.email,
+        password: data.password,
+        name: data.name,
+      });
       showSuccess(t('success') + ' - تم إنشاء الحساب بنجاح');
       navigate('/');
-    } catch (error: any) {
-      const errorMessage = error?.message || 'حدث خطأ أثناء إنشاء الحساب';
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : 'حدث خطأ أثناء إنشاء الحساب';
       setApiError(errorMessage);
       showError(errorMessage);
     }

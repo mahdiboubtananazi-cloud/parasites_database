@@ -19,16 +19,18 @@ import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { LoadingSpinner } from '../components/core/LoadingSpinner';
 
-const schema = yup.object({
-  email: yup
-    .string()
-    .email('البريد الإلكتروني غير صحيح')
-    .required('البريد الإلكتروني مطلوب'),
-  password: yup
-    .string()
-    .min(6, 'كلمة المرور يجب أن تكون 6 أحرف على الأقل')
-    .required('كلمة المرور مطلوبة'),
-}).required();
+const schema = yup
+  .object({
+    email: yup
+      .string()
+      .email('البريد الإلكتروني غير صحيح')
+      .required('البريد الإلكتروني مطلوب'),
+    password: yup
+      .string()
+      .min(6, 'كلمة المرور يجب أن تكون 6 أحرف على الأقل')
+      .required('كلمة المرور مطلوبة'),
+  })
+  .required();
 
 interface LoginFormData {
   email: string;
@@ -48,6 +50,8 @@ export default function Login() {
     handleSubmit,
     formState: { errors },
   } = useForm<LoginFormData>({
+    // نستخدم as any كما كان، لكن نسكت ESLint عن هذه السطر فقط
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: yupResolver(schema) as any,
     defaultValues: {
       email: '',
@@ -61,10 +65,14 @@ export default function Login() {
       await login(data);
       showSuccess(t('success') + ' - تم تسجيل الدخول بنجاح');
 
-      const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/';
+      const from =
+        (location.state as { from?: { pathname: string } })?.from?.pathname || '/';
       navigate(from, { replace: true });
-    } catch (error: any) {
-      const errorMessage = error?.message || 'حدث خطأ أثناء تسجيل الدخول';
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : 'حدث خطأ أثناء تسجيل الدخول';
       setApiError(errorMessage);
       showError(errorMessage);
     }

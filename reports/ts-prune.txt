@@ -1,0 +1,31 @@
+\src\paths.ts:1 - paths
+\src\api\parasites.ts:307 - Parasite (used in module)
+\src\api\parasites.ts:307 - CreateParasiteInput (used in module)
+\src\api\parasites.ts:307 - UpdateParasiteInput (used in module)
+\src\hooks\useParasites.ts:92 - default
+\src\hooks\useParasitesQuery.ts:13 - parasiteKeys (used in module)
+\src\hooks\useParasitesQuery.ts:29 - useParasitesQuery (used in module)
+\src\hooks\useParasitesQuery.ts:50 - useParasiteQuery
+\src\hooks\useParasitesQuery.ts:76 - useCreateParasite
+\src\hooks\useParasitesQuery.ts:91 - useUpdateParasite
+\src\hooks\useParasitesQuery.ts:107 - useDeleteParasite
+\src\hooks\useParasitesQuery.ts:122 - useParasites
+\src\lib\is-nav-item-active.ts:3 - isNavItemActive
+\src\theme\theme.ts:187 - default
+\src\types\parasite.ts:105 - ParasiteFilter
+\src\components\auth\GuestRoute.tsx:10 - GuestRoute
+\src\components\auth\ProtectedRoute.tsx:10 - ProtectedRoute
+\src\components\core\ErrorBoundary.tsx:18 - ErrorBoundary
+\src\pages\ReviewParasites\colors.ts:3 - colors (used in module)
+\src\pages\ReviewParasites\index.tsx:131 - default
+\src\pages\ReviewParasites\types.ts:3 - ReviewComment
+\src\pages\ReviewParasites\types.ts:13 - QualityScore
+\src\pages\ReviewParasites\types.ts:20 - StatusType (used in module)
+\src\pages\ReviewParasites\types.ts:21 - DialogMode
+\src\pages\ReviewParasites\types.ts:34 - SnackbarState
+\src\pages\ReviewParasites\components\ActionButtons.tsx:12 - ActionButtons
+\src\pages\ReviewParasites\components\FilterBar.tsx:184 - default
+\src\pages\ReviewParasites\components\StatCard.tsx:89 - default
+\src\pages\Statistics\components\SummaryPanels.tsx:7 - Stats (used in module)
+\src\pages\Statistics\components\SummaryPanels.tsx:120 - default
+\src\pages\Statistics\components\usePageMeta.ts:9 - usePageMeta
