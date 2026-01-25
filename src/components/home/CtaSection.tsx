@@ -1,59 +1,105 @@
 ﻿import React from 'react';
-import { Box, Container, Typography, Button, Paper, Stack } from '@mui/material';
-import { UserPlus, LogIn, Users } from 'lucide-react';
+import {
+  Box, Container, Typography, Button, Paper, Stack, useTheme, useMediaQuery, alpha
+} from '@mui/material';
+import { UserPlus, LogIn, Users, ArrowRight, Crown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { colors } from '../../theme/colors';
 import { useAuth } from '../../hooks/useAuth';
+import { colors } from '../../theme/colors';
 
 const CtaSection = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { user } = useAuth();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
-  // إذا كان المستخدم مسجلاً بالفعل، لا داعي لعرض زر التسجيل
-  // يمكننا عرض زر "لوحة التحكم" بدلاً منه
+  // ✨ بعد التسجيل - بطاقة واضحة تماماً
   if (user) {
     return (
-      <Box sx={{ py: 8, bgcolor: colors.background.default }}>
-        <Container maxWidth="md">
+      <Box sx={{ 
+        py: { xs: 6, sm: 8, md: 10 }, 
+        bgcolor: alpha(colors.primary.dark, 0.03),
+        position: 'relative'
+      }}>
+        <Container maxWidth="sm">
           <Paper
-            elevation={0}
+            elevation={12}
             sx={{
-              p: { xs: 4, md: 6 },
-              borderRadius: 4,
-              background: `linear-gradient(135deg, ${colors.primary.main} 0%, ${colors.primary.dark} 100%)`,
+              p: { xs: 3, sm: 4, md: 5 },
+              borderRadius: 3,
+              background: 'linear-gradient(145deg, #ffffff 0%, #f8fafc 100%)',
+              color: '#1a1f23',
               textAlign: 'center',
-              color: '#fff',
               position: 'relative',
-              overflow: 'hidden',
+              boxShadow: '0 20px 40px rgba(26,46,37,0.08)',
+              border: '1px solid rgba(255,255,255,0.8)',
             }}
           >
-            {/* زخرفة خلفية */}
-            <Users size={300} style={{ position: 'absolute', right: -50, top: -50, opacity: 0.1 }} />
-            
-            <Stack spacing={2} alignItems="center" position="relative" zIndex={1}>
-              <Typography variant="h4" fontWeight={800}>
-                {t('welcome_back', { defaultValue: 'مرحباً بعودتك،' })} {user.name}
-              </Typography>
-              <Typography variant="body1" sx={{ opacity: 0.9, maxWidth: 500 }}>
-                {t('dashboard_prompt', { defaultValue: 'تابع مساهماتك وشارك في تطوير المحتوى العلمي.' })}
-              </Typography>
-              <Button
-                onClick={() => navigate('/review')}
-                variant="contained"
-                sx={{
-                  bgcolor: '#fff',
-                  color: colors.primary.main,
-                  fontWeight: 'bold',
-                  px: 4,
-                  py: 1.2,
-                  borderRadius: 50,
-                  mt: 2,
-                  '&:hover': { bgcolor: '#f5f5f5' }
+            {/* 👑 Premium badge صغير */}
+            <Box sx={{
+              position: 'absolute',
+              top: 16, right: 16,
+              background: 'linear-gradient(45deg, #10b981, #059669)',
+              p: 1, borderRadius: 2,
+              boxShadow: '0 4px 12px rgba(16,185,129,0.3)',
+              minWidth: 36, height: 36,
+              display: 'flex', alignItems: 'center', justifyContent: 'center'
+            }}>
+              <Crown size={16} color="white" strokeWidth={2.5} />
+            </Box>
+
+            <Stack spacing={2.5} alignItems="center">
+              <Users size={isMobile ? 48 : 56} color="#10b981" />
+              
+              <Typography 
+                variant={isMobile ? 'h6' : 'h5'}
+                sx={{ 
+                  fontWeight: 800,
+                  color: '#1a1f23',
+                  lineHeight: 1.3,
+                  fontSize: { xs: '1.4rem', md: '1.8rem' }
                 }}
               >
-                {t('go_to_dashboard', { defaultValue: 'الذهاب إلى لوحة التحكم' })}
+                مرحباً {user.name} ✨
+              </Typography>
+
+              <Typography 
+                variant="body1" 
+                sx={{ 
+                  color: 'rgba(26,31,35,0.8)',
+                  fontSize: { xs: '0.95rem', md: '1.05rem' },
+                  lineHeight: 1.6,
+                  px: { xs: 1, md: 2 }
+                }}
+              >
+                {t('dashboard_prompt', { defaultValue: 'ابدأ بإضافة عينات جديدة أو راجع الإسهامات.' })}
+              </Typography>
+
+              <Button
+                onClick={() => navigate('/add')}
+                variant="contained"
+                startIcon={<ArrowRight size={18} />}
+                size={isMobile ? 'medium' : 'large'}
+                sx={{
+                  fontSize: { xs: '0.95rem', md: '1rem' },
+                  fontWeight: 700,
+                  background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                  color: 'white',
+                  px: { xs: 3, md: 4 },
+                  py: 1.2,
+                  borderRadius: 25,
+                  boxShadow: '0 4px 15px rgba(16,185,129,0.3)',
+                  minWidth: { xs: 140, md: 180 },
+                  '&:hover': {
+                    background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+                    transform: 'translateY(-1px)',
+                    boxShadow: '0 6px 20px rgba(16,185,129,0.4)'
+                  }
+                }}
+              >
+                ابدأ الآن
               </Button>
             </Stack>
           </Paper>
@@ -62,116 +108,126 @@ const CtaSection = () => {
     );
   }
 
-  // للزوار غير المسجلين
+  // 📱 للزوار - تصميم جذاب + نصوص واضحة
   return (
-    <Box
-      sx={{
-        py: { xs: 6, md: 10 },
-        bgcolor: colors.background.default,
-        position: 'relative',
-        overflow: 'hidden',
-      }}
-    >
-      <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
+    <Box sx={{ 
+      py: { xs: 6, sm: 8, md: 12 }, 
+      background: `linear-gradient(135deg, ${alpha(colors.primary.main, 0.04)} 0%, ${alpha(colors.primary.dark, 0.02)} 100%)`
+    }}>
+      <Container maxWidth={isMobile ? "sm" : "lg"}>
         <Paper
           elevation={0}
           sx={{
-            p: { xs: 4, md: 8 },
-            borderRadius: 6,
-            background: '#1a2e25', // لون غامق مميز (Dark Green)
-            color: '#fff',
+            p: { xs: 3.5, sm: 5, md: 7 },
+            borderRadius: { xs: 2.5, md: 4 },
+            background: 'linear-gradient(145deg, #ffffff 0%, #fafbfc 100%)',
+            color: '#1a1f23',
             textAlign: 'center',
+            boxShadow: '0 10px 30px rgba(26,46,37,0.06)',
+            border: '1px solid rgba(229,231,235,0.8)',
             position: 'relative',
-            overflow: 'hidden',
-            boxShadow: '0 20px 40px rgba(26, 46, 37, 0.15)',
+            overflow: 'visible'
           }}
         >
-          {/* زخرفة خلفية */}
-          <Box
-            sx={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              width: '100%',
-              height: '100%',
-              background: 'radial-gradient(circle at 10% 10%, rgba(255,255,255,0.05) 0%, transparent 20%), radial-gradient(circle at 90% 90%, rgba(255,255,255,0.05) 0%, transparent 20%)',
-            }}
-          />
+          {/* 🎯 Icon badge */}
+          <Box sx={{
+            position: 'absolute',
+            top: -25, left: '50%',
+            transform: 'translateX(-50%)',
+            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+            p: 1.5, borderRadius: '50%',
+            boxShadow: '0 8px 25px rgba(16,185,129,0.3)',
+            minWidth: 60, height: 60,
+            display: 'flex', alignItems: 'center', justifyContent: 'center'
+          }}>
+            <Users size={28} color="white" strokeWidth={2.5} />
+          </Box>
 
-          <Stack spacing={3} alignItems="center" sx={{ position: 'relative', zIndex: 2 }}>
-            <Box sx={{ p: 2, bgcolor: 'rgba(255,255,255,0.1)', borderRadius: '50%', mb: 1 }}>
-              <Users size={40} color="#FFD700" />
-            </Box>
-
-            <Typography
-              variant="h3"
-              sx={{
-                fontWeight: 900,
-                fontSize: { xs: '1.8rem', md: '2.8rem' },
-                lineHeight: 1.2,
+          <Stack spacing={3} alignItems="center">
+            <Typography 
+              variant={isMobile ? "h5" : "h4"}
+              sx={{ 
+                fontWeight: 800,
+                color: '#1a1f23',
+                lineHeight: 1.3,
+                fontSize: { xs: '1.6rem', sm: '2rem', md: '2.5rem' },
+                letterSpacing: '-0.025em'
               }}
             >
-              {t('join_community_title', { defaultValue: 'انضم إلى مجتمعنا الأكاديمي' })}
+              انضم للمشرفين والطلبة
             </Typography>
 
-            <Typography
-              variant="body1"
-              sx={{
-                color: 'rgba(255,255,255,0.8)',
-                fontSize: { xs: '1rem', md: '1.2rem' },
-                maxWidth: '650px',
-                lineHeight: 1.6,
+            <Typography 
+              variant="body1" 
+              sx={{ 
+                color: 'rgba(26,31,35,0.85)',
+                fontSize: { xs: '1rem', md: '1.1rem' },
+                lineHeight: 1.7,
+                maxWidth: 550,
+                px: 1
               }}
             >
-              {t('join_community_desc', { defaultValue: 'كن جزءاً من المشروع العلمي الرائد. سجل حسابك الآن للمساهمة في توثيق العينات ومشاركة المعرفة مع زملائك.' })}
+              سجّل حسابك لإضافة العينات العلمية، مراجعتها، والمساهمة في قاعدة البيانات
             </Typography>
 
-            {/* الأزرار */}
-            <Stack
-              direction={{ xs: 'column', sm: 'row' }}
-              spacing={2}
-              sx={{ mt: 3 }}
+            <Stack 
+              direction={isMobile ? "column" : "row"} 
+              spacing={2} 
+              sx={{ width: isMobile ? "100%" : "auto" }}
             >
               <Button
                 onClick={() => navigate('/register')}
                 startIcon={<UserPlus size={20} />}
+                size={isMobile ? "medium" : "large"}
+                fullWidth={isMobile}
                 sx={{
-                  fontSize: '1.05rem',
+                  fontSize: { xs: '1rem', md: '1.1rem' },
                   fontWeight: 700,
-                  color: '#1a2e25',
-                  bgcolor: '#FFD700', // لون ذهبي مميز للـ CTA
-                  px: { xs: 4, md: 6 },
+                  background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                  color: 'white',
+                  px: { xs: 3, md: 5 },
                   py: 1.5,
-                  borderRadius: '50px',
+                  borderRadius: 28,
+                  boxShadow: '0 6px 20px rgba(16,185,129,0.3)',
+                  minWidth: isMobile ? undefined : 200,
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                   textTransform: 'none',
-                  boxShadow: '0 4px 15px rgba(255, 215, 0, 0.3)',
                   '&:hover': {
-                    bgcolor: '#ffca28',
+                    background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
                     transform: 'translateY(-2px)',
-                  },
+                    boxShadow: '0 10px 30px rgba(16,185,129,0.4)'
+                  }
                 }}
               >
-                {t('create_account', { defaultValue: 'إنشاء حساب باحث' })}
+                إنشاء حساب باحث
               </Button>
 
               <Button
                 onClick={() => navigate('/login')}
                 startIcon={<LogIn size={20} />}
+                size={isMobile ? "medium" : "large"}
+                fullWidth={isMobile}
+                variant="outlined"
                 sx={{
-                  fontSize: '1.05rem',
+                  fontSize: { xs: '1rem', md: '1.1rem' },
                   fontWeight: 600,
-                  color: '#fff',
-                  bgcolor: 'rgba(255,255,255,0.1)',
-                  px: { xs: 4, md: 5 },
+                  color: '#374151',
+                  borderColor: 'rgba(55,65,81,0.3)',
+                  borderWidth: 1.5,
+                  px: { xs: 3, md: 4 },
                   py: 1.5,
-                  borderRadius: '50px',
+                  borderRadius: 28,
+                  minWidth: isMobile ? undefined : 180,
                   textTransform: 'none',
                   '&:hover': {
-                    bgcolor: 'rgba(255,255,255,0.2)',
-                  },
+                    borderColor: '#10b981',
+                    color: '#10b981',
+                    backgroundColor: alpha('#10b981', 0.08),
+                    transform: 'translateY(-1px)'
+                  }
                 }}
               >
-                {t('login', { defaultValue: 'تسجيل الدخول' })}
+                لدي حساب
               </Button>
             </Stack>
           </Stack>

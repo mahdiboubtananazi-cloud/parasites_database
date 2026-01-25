@@ -29,45 +29,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(false); // تحميل عمليات (login/register)
   const [error, setError] = useState<string | null>(null);
 
-  // ==========================================
-  // تحميل الجلسة عند بداية التطبيق
-  // ==========================================
   useEffect(() => {
     let isMounted = true;
     let timeoutId: NodeJS.Timeout;
 
     const initializeAuth = async () => {
       try {
-        // إضافة timeout لمنع التعليق الأبدي
+        // 👇 التعديل هنا: قللنا الوقت من 10000 إلى 2000 (ثانيتين فقط)
+        // إذا لم يرد السيرفر خلال ثانيتين، سيفتح الموقع كزائر
         const sessionPromise = supabase.auth.getSession();
         const timeoutPromise = new Promise<never>((_, reject) => {
           timeoutId = setTimeout(() => {
             reject(new Error('Auth initialization timeout'));
-          }, 10000); // 10 seconds timeout
+          }, 2000); 
         });
 
         let sessionResult;
         try {
           sessionResult = await Promise.race([sessionPromise, timeoutPromise]);
         } catch {
-          // إذا انتهت المهلة الزمنية، استخدم null كجلسة
           console.warn('Auth session fetch timed out, proceeding without session');
           sessionResult = { data: { session: null } };
         }
 
-        // تنظيف timeout إذا نجحت العملية
-        if (timeoutId) {
-          clearTimeout(timeoutId);
-        }
+        if (timeoutId) clearTimeout(timeoutId);
 
-        const {
-          data: { session },
-        } = sessionResult;
+        const { data: { session } } = sessionResult;
 
         if (!isMounted) return;
 
         if (session?.user) {
-          // نحاول جلب profile، لكن لا نسمح له بتعليق التطبيق
           try {
             const profilePromise = supabase
               .from('profiles')
@@ -77,9 +68,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
             let profileTimeoutId: NodeJS.Timeout;
             const profileTimeoutPromise = new Promise<never>((_, reject) => {
+              // 👇 التعديل هنا أيضاً: قللنا وقت انتظار البروفايل
               profileTimeoutId = setTimeout(
                 () => reject(new Error('Profile fetch timeout')),
-                5000
+                2000
               );
             });
 
@@ -87,13 +79,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             try {
               profileResult = await Promise.race([profilePromise, profileTimeoutPromise]);
             } catch {
-              // إذا انتهت المهلة الزمنية، استخدم null كـ profile
-              console.warn('Profile fetch timed out, using fallback');
               profileResult = { data: null };
             } finally {
-              if (profileTimeoutId) {
-                clearTimeout(profileTimeoutId);
-              }
+              if (profileTimeoutId) clearTimeout(profileTimeoutId);
             }
 
             const { data: profile } = profileResult;
@@ -107,9 +95,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               name: profile?.name || session.user.user_metadata?.name,
             });
           } catch (profileErr) {
-            // fallback بدون profile
             if (!isMounted) return;
-            console.warn('Profile fetch failed, using fallback:', profileErr);
             setUser({
               id: session.user.id,
               email: session.user.email,
@@ -124,79 +110,50 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.error('Auth init error:', err);
         if (isMounted) {
           setUser(null);
-          setError(
-            err instanceof Error ? err.message : 'Failed to initialize authentication'
-          );
         }
       } finally {
         if (isMounted) {
-          // يضمن عدم التعليق الأبدي
-          setLoading(false);
+          setLoading(false); // 👈 هذا أهم سطر: يخبر التطبيق أن التحميل انتهى
         }
-        if (timeoutId) {
-          clearTimeout(timeoutId);
-        }
+        if (timeoutId) clearTimeout(timeoutId);
       }
     };
 
     initializeAuth();
 
-    // الاستماع لتغييرات حالة المصادقة
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (!session?.user) {
         setUser(null);
         return;
       }
-
+      // منطق تحديث المستخدم عند تغيير الحالة
       try {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('role, name')
-          .eq('id', session.user.id)
-          .single();
-
-        setUser({
-          id: session.user.id,
-          email: session.user.email,
-          role: profile?.role || session.user.user_metadata?.role || 'student',
-          name: profile?.name || session.user.user_metadata?.name,
-        });
-      } catch {
-        setUser({
+         // اختصار بسيط هنا لتسريع التحديثات اللاحقة
+         setUser({
           id: session.user.id,
           email: session.user.email,
           role: session.user.user_metadata?.role || 'student',
           name: session.user.user_metadata?.name,
         });
-      }
+      } catch (e) { console.error(e) }
     });
 
     return () => {
       isMounted = false;
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-      }
+      if (timeoutId) clearTimeout(timeoutId);
       subscription?.unsubscribe();
     };
   }, []);
 
-  // ==========================================
-  // تسجيل الدخول
-  // ==========================================
   const login = async (data: { email: string; password: string }) => {
     try {
       setIsLoading(true);
       setError(null);
-
       const { data: authData, error } = await supabase.auth.signInWithPassword({
         email: data.email,
         password: data.password,
       });
-
       if (error) throw error;
-
       if (authData.user) {
         setUser({
           id: authData.user.id,
@@ -210,27 +167,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // ==========================================
-  // التسجيل
-  // ==========================================
   const register = async (data: { email: string; password: string; name?: string }) => {
     try {
       setIsLoading(true);
       setError(null);
-
       const { data: authData, error } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
-        options: {
-          data: {
-            name: data.name || '',
-            role: 'student',
-          },
-        },
+        options: { data: { name: data.name || '', role: 'student' } },
       });
-
       if (error) throw error;
-
       if (authData.user) {
         setUser({
           id: authData.user.id,
@@ -244,9 +190,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // ==========================================
-  // تسجيل الخروج
-  // ==========================================
   const logout = async () => {
     try {
       setIsLoading(true);
@@ -261,16 +204,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   return (
     <AuthContext.Provider
-      value={{
-        user,
-        loading,
-        isLoading,
-        isAuthenticated,
-        error,
-        login,
-        logout,
-        register,
-      }}
+      value={{ user, loading, isLoading, isAuthenticated, error, login, logout, register }}
     >
       {children}
     </AuthContext.Provider>
@@ -279,8 +213,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within AuthProvider');
-  }
+  if (!context) throw new Error('useAuth must be used within AuthProvider');
   return context;
 };

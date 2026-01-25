@@ -10,10 +10,9 @@ import {
 } from '@mui/material';
 import {
   Mail,
-  School,
+  School,          // رمز الجامعة
   Globe,
   TestTube2,
-  Code,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -22,6 +21,19 @@ const Footer: React.FC = () => {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const isRtl = i18n.language === 'ar';
+
+  // بيانات الروابط (للتجنب تكرار الكود)
+  const navLinks = [
+    { label: t('nav_archive'), path: '/archive' },
+    { label: t('nav_add_parasite'), path: '/add' },
+    { label: t('nav_statistics'), path: '/statistics' },
+  ];
+
+  const globalResources = [
+    { label: 'CDC Parasites', url: 'https://www.cdc.gov/parasites/index.html', icon: Globe },
+    { label: 'WHO Tropical Diseases', url: 'https://www.who.int/health-topics/neglected-tropical-diseases', icon: Globe },
+    { label: 'DPDx Diagnostic', url: 'https://dpd.cdc.gov/dpdx', icon: TestTube2 },
+  ];
 
   return (
     <Box>
@@ -44,7 +56,7 @@ const Footer: React.FC = () => {
               mb: 5,
             }}
           >
-            {/* معلومات الجامعة */}
+            {/* 1️⃣ معلومات الجامعة (بدون اسم) */}
             <Box>
               <Stack spacing={2}>
                 <Stack direction="row" spacing={2.5} alignItems="flex-start">
@@ -66,7 +78,7 @@ const Footer: React.FC = () => {
                       fontWeight={700}
                       sx={{ color: '#ffffff', lineHeight: 1.3 }}
                     >
-                      University of Larbi Ben M'hidi
+                      {t('university')}  {/* <-- استبدل باسم الجامعة هنا من ملف الترجمة */}
                     </Typography>
                     <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.6)', mt: 0.3 }}>
                       Oum El Bouaghi, Algeria
@@ -75,17 +87,14 @@ const Footer: React.FC = () => {
                 </Stack>
                 <Typography
                   variant="body2"
-                  sx={{
-                    lineHeight: 1.7,
-                    color: 'rgba(255,255,255,0.7)',
-                  }}
+                  sx={{ lineHeight: 1.7, color: 'rgba(255,255,255,0.7)' }}
                 >
                   {t('app_subtitle')}
                 </Typography>
               </Stack>
             </Box>
 
-            {/* روابط المنصة */}
+            {/* 2️⃣ روابط المنصة */}
             <Box>
               <Typography
                 variant="subtitle2"
@@ -101,11 +110,7 @@ const Footer: React.FC = () => {
                 {t('nav_dashboard')}
               </Typography>
               <Stack spacing={1.5}>
-                {[
-                  { label: t('nav_archive'), path: '/archive' },
-                  { label: t('nav_add_parasite'), path: '/add' },
-                  { label: t('nav_statistics'), path: '/statistics' },
-                ].map((item, idx) => (
+                {navLinks.map((item, idx) => (
                   <Link
                     key={idx}
                     component="button"
@@ -129,7 +134,7 @@ const Footer: React.FC = () => {
               </Stack>
             </Box>
 
-            {/* مصادر عالمية */}
+            {/* 3️⃣ مصادر عالمية */}
             <Box>
               <Typography
                 variant="subtitle2"
@@ -142,14 +147,10 @@ const Footer: React.FC = () => {
                   fontSize: '0.75rem',
                 }}
               >
-                {t('global_resources', { defaultValue: 'Global Resources' })}
+                {t('global_resources')}
               </Typography>
               <Stack spacing={1.5}>
-                {[
-                  { label: 'CDC Parasites', url: 'https://www.cdc.gov/parasites/index.html', icon: Globe },
-                  { label: 'WHO Tropical Diseases', url: 'https://www.who.int/health-topics/neglected-tropical-diseases', icon: Globe },
-                  { label: 'DPDx Diagnostic', url: 'https://dpd.cdc.gov/dpdx', icon: TestTube2 },
-                ].map((item, idx) => (
+                {globalResources.map((item, idx) => (
                   <Link
                     key={idx}
                     href={item.url}
@@ -178,7 +179,7 @@ const Footer: React.FC = () => {
               </Stack>
             </Box>
 
-            {/* المطور - Développeur ثابتة */}
+            {/* 4️⃣ التواصل مع المطور (فقط الإيميل) */}
             <Box>
               <Typography
                 variant="subtitle2"
@@ -191,7 +192,7 @@ const Footer: React.FC = () => {
                   fontSize: '0.75rem',
                 }}
               >
-                Développeur
+                {t('contact')}  {/* مثال: "Contact" */}
               </Typography>
               <Paper
                 sx={{
@@ -207,14 +208,8 @@ const Footer: React.FC = () => {
                   },
                 }}
               >
-                <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1.5 }}>
-                  <Code size={18} color="#7fb896" />
-                  <Typography variant="body1" fontWeight={600} sx={{ color: '#ffffff' }}>
-                    Mehdi Boubetana
-                  </Typography>
-                </Stack>
                 <Link
-                  href="mailto:mehdi.boubetana@gmail.com"
+                  href="mehdi.boubetana@gmail.com" // <-- غيّر الإيميل هنا
                   sx={{
                     color: 'rgba(255,255,255,0.75)',
                     textDecoration: 'none',
@@ -225,6 +220,7 @@ const Footer: React.FC = () => {
                     transition: 'color 0.3s ease',
                     '&:hover': { color: '#7fb896' },
                   }}
+                  aria-label={t('contact_email_aria')}
                 >
                   <Mail size={16} style={{ flexShrink: 0 }} />
                   <span style={{ direction: 'ltr' }}>mehdi.boubetana@gmail.com</span>
@@ -241,7 +237,7 @@ const Footer: React.FC = () => {
             align="center"
             sx={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.85rem' }}
           >
-            © 2025 {t('app_title')}. University of Larbi Ben M'hidi.
+            © {new Date().getFullYear()} {t('app_title')}. {t('university')}.
           </Typography>
         </Container>
       </Box>
