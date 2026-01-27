@@ -6,241 +6,190 @@ import {
   Stack,
   Link,
   Divider,
-  Paper,
+  Grid,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  useTheme,
+  useMediaQuery,
+  alpha,
 } from '@mui/material';
-import {
-  Mail,
-  School,          // رمز الجامعة
-  Globe,
-  TestTube2,
-} from 'lucide-react';
+import { Mail, School, ChevronDown, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { colors } from '../../theme/colors';
 
-const Footer: React.FC = () => {
+const Footer = () => {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isRtl = i18n.language === 'ar';
 
-  // بيانات الروابط (للتجنب تكرار الكود)
-  const navLinks = [
-    { label: t('nav_archive'), path: '/archive' },
-    { label: t('nav_add_parasite'), path: '/add' },
-    { label: t('nav_statistics'), path: '/statistics' },
+  // هيكلة الروابط
+  const sections = [
+    {
+      title: t('nav_dashboard'),
+      links: [
+        { label: t('nav_archive'), action: () => navigate('/archive') },
+        { label: t('nav_add_parasite'), action: () => navigate('/add') },
+        { label: t('nav_statistics'), action: () => navigate('/statistics') },
+      ]
+    },
+    {
+      title: t('global_resources'),
+      links: [
+        { label: 'CDC Parasites', href: 'https://www.cdc.gov/parasites' },
+        { label: 'WHO Tropical', href: 'https://www.who.int' },
+        { label: 'DPDx Diagnostic', href: 'https://dpd.cdc.gov/dpdx' },
+      ]
+    }
   ];
 
-  const globalResources = [
-    { label: 'CDC Parasites', url: 'https://www.cdc.gov/parasites/index.html', icon: Globe },
-    { label: 'WHO Tropical Diseases', url: 'https://www.who.int/health-topics/neglected-tropical-diseases', icon: Globe },
-    { label: 'DPDx Diagnostic', url: 'https://dpd.cdc.gov/dpdx', icon: TestTube2 },
-  ];
+  // مكون الرابط الداخلي
+  const FooterLink = ({ item }: any) => (
+    <Box sx={{ mb: 2 }}>
+      {item.href ? (
+        <Link 
+          href={item.href} target="_blank" 
+          sx={{ 
+            color: '#e0e0e0', // لون فاتح جداً للقراءة
+            textDecoration: 'none', fontSize: '0.95rem', 
+            display: 'flex', alignItems: 'center', gap: 1,
+            opacity: 0.8,
+            '&:hover': { color: colors.primary.main, opacity: 1 } 
+          }}
+        >
+          {item.label} <ExternalLink size={14} />
+        </Link>
+      ) : (
+        <Typography 
+          onClick={item.action}
+          sx={{ 
+            color: '#e0e0e0', cursor: 'pointer', fontSize: '0.95rem',
+            opacity: 0.8,
+            transition: 'all 0.2s',
+            '&:hover': { color: colors.primary.main, opacity: 1, transform: isRtl ? 'translateX(-5px)' : 'translateX(5px)' }
+          }}
+        >
+          {item.label}
+        </Typography>
+      )}
+    </Box>
+  );
 
   return (
-    <Box>
-      <Box
-        sx={{
-          background: 'linear-gradient(to bottom, rgba(13,31,21,0.95), rgba(0,0,0,0.98))',
-          backdropFilter: 'blur(20px)',
-          color: 'rgba(255,255,255,0.85)',
-          pt: { xs: 6, md: 10 },
-          pb: 5,
-          borderTop: '1px solid rgba(127,184,150,0.2)',
-        }}
-      >
-        <Container maxWidth="lg">
-          <Box
-            sx={{
-              display: 'grid',
-              gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' },
-              gap: { xs: 4, md: 5 },
-              mb: 5,
-            }}
-          >
-            {/* 1️⃣ معلومات الجامعة (بدون اسم) */}
-            <Box>
-              <Stack spacing={2}>
-                <Stack direction="row" spacing={2.5} alignItems="flex-start">
-                  <Box
-                    sx={{
-                      p: 1.2,
-                      background: 'linear-gradient(135deg, #3a7050 0%, #2d5a3d 100%)',
-                      borderRadius: 2,
-                      display: 'flex',
-                      boxShadow: '0 6px 20px rgba(58,112,80,0.35)',
-                      flexShrink: 0,
-                    }}
-                  >
-                    <School size={22} color="#ffffff" strokeWidth={2} />
-                  </Box>
-                  <Box>
-                    <Typography
-                      variant="subtitle1"
-                      fontWeight={700}
-                      sx={{ color: '#ffffff', lineHeight: 1.3 }}
-                    >
-                      {t('university')}  {/* <-- استبدل باسم الجامعة هنا من ملف الترجمة */}
-                    </Typography>
-                    <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.6)', mt: 0.3 }}>
-                      Oum El Bouaghi, Algeria
-                    </Typography>
-                  </Box>
-                </Stack>
-                <Typography
-                  variant="body2"
-                  sx={{ lineHeight: 1.7, color: 'rgba(255,255,255,0.7)' }}
-                >
-                  {t('app_subtitle')}
-                </Typography>
-              </Stack>
-            </Box>
-
-            {/* 2️⃣ روابط المنصة */}
-            <Box>
-              <Typography
-                variant="subtitle2"
-                fontWeight={700}
-                sx={{
-                  color: '#7fb896',
-                  mb: 2,
-                  textTransform: 'uppercase',
-                  letterSpacing: 1.5,
-                  fontSize: '0.75rem',
-                }}
-              >
-                {t('nav_dashboard')}
+    <Box sx={{ 
+      bgcolor: '#0a0a0a', // خلفية سوداء تقريباً لتباين عالي
+      color: '#ffffff', 
+      pt: 8, pb: 4, 
+      borderTop: '1px solid rgba(255,255,255,0.1)' 
+    }}>
+      <Container maxWidth="lg">
+        {/* استخدام size بدلاً من xs/item للإصدار الجديد */}
+        <Grid container spacing={5}>
+          
+          {/* 1. معلومات التطبيق (بدون اسم الجامعة) */}
+          <Grid size={{ xs: 12, md: 4 }}>
+            <Stack direction="row" spacing={2} mb={2} alignItems="center">
+              <Box sx={{ 
+                p: 1.2, 
+                bgcolor: alpha(colors.primary.main, 0.15), 
+                borderRadius: 2,
+                display: 'flex'
+              }}>
+                <School size={26} color={colors.primary.main} />
+              </Box>
+              <Typography variant="h6" fontWeight={800} color="#fff">
+                {t('app_title')}
               </Typography>
-              <Stack spacing={1.5}>
-                {navLinks.map((item, idx) => (
-                  <Link
-                    key={idx}
-                    component="button"
-                    onClick={() => navigate(item.path)}
-                    sx={{
-                      color: 'rgba(255,255,255,0.75)',
-                      textDecoration: 'none',
-                      textAlign: isRtl ? 'right' : 'left',
-                      display: 'block',
-                      fontSize: '0.9rem',
-                      transition: 'all 0.3s ease',
-                      '&:hover': {
-                        color: '#7fb896',
-                        transform: isRtl ? 'translateX(-5px)' : 'translateX(5px)',
-                      },
-                    }}
-                  >
-                    {item.label}
-                  </Link>
-                ))}
-              </Stack>
-            </Box>
+            </Stack>
+            <Typography variant="body2" sx={{ color: '#b0b0b0', lineHeight: 1.8, maxWidth: 300 }}>
+              {t('app_subtitle')}
+            </Typography>
+          </Grid>
 
-            {/* 3️⃣ مصادر عالمية */}
-            <Box>
-              <Typography
-                variant="subtitle2"
-                fontWeight={700}
-                sx={{
-                  color: '#7fb896',
-                  mb: 2,
-                  textTransform: 'uppercase',
-                  letterSpacing: 1.5,
-                  fontSize: '0.75rem',
-                }}
-              >
-                {t('global_resources')}
-              </Typography>
-              <Stack spacing={1.5}>
-                {globalResources.map((item, idx) => (
-                  <Link
-                    key={idx}
-                    href={item.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    sx={{
-                      color: 'rgba(255,255,255,0.75)',
-                      textDecoration: 'none',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 1.5,
-                      fontSize: '0.9rem',
-                      transition: 'all 0.3s ease',
-                      flexDirection: isRtl ? 'row-reverse' : 'row',
-                      justifyContent: isRtl ? 'flex-end' : 'flex-start',
-                      '&:hover': {
-                        color: '#7fb896',
-                        transform: isRtl ? 'translateX(-5px)' : 'translateX(5px)',
-                      },
-                    }}
-                  >
-                    <item.icon size={16} style={{ flexShrink: 0 }} />
-                    <span>{item.label}</span>
-                  </Link>
-                ))}
-              </Stack>
-            </Box>
-
-            {/* 4️⃣ التواصل مع المطور (فقط الإيميل) */}
-            <Box>
-              <Typography
-                variant="subtitle2"
-                fontWeight={700}
-                sx={{
-                  color: '#7fb896',
-                  mb: 2,
-                  textTransform: 'uppercase',
-                  letterSpacing: 1.5,
-                  fontSize: '0.75rem',
-                }}
-              >
-                {t('contact')}  {/* مثال: "Contact" */}
-              </Typography>
-              <Paper
-                sx={{
-                  p: 2.5,
-                  background: 'rgba(255,255,255,0.05)',
-                  backdropFilter: 'blur(10px)',
-                  borderRadius: 2.5,
-                  border: '1px solid rgba(255,255,255,0.1)',
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    background: 'rgba(255,255,255,0.08)',
-                    transform: 'translateY(-2px)',
-                  },
-                }}
-              >
-                <Link
-                  href="mehdi.boubetana@gmail.com" // <-- غيّر الإيميل هنا
-                  sx={{
-                    color: 'rgba(255,255,255,0.75)',
-                    textDecoration: 'none',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1.5,
-                    fontSize: '0.85rem',
-                    transition: 'color 0.3s ease',
-                    '&:hover': { color: '#7fb896' },
+          {/* 2. الروابط (قائمة منسدلة في الموبايل، وعادية في الحاسوب) */}
+          {isMobile ? (
+            <Grid size={{ xs: 12 }}>
+              {sections.map((section, idx) => (
+                <Accordion 
+                  key={idx} 
+                  disableGutters 
+                  elevation={0}
+                  sx={{ 
+                    bgcolor: 'transparent', color: '#fff', 
+                    borderBottom: '1px solid rgba(255,255,255,0.1)',
+                    '&:before': { display: 'none' } 
                   }}
-                  aria-label={t('contact_email_aria')}
                 >
-                  <Mail size={16} style={{ flexShrink: 0 }} />
-                  <span style={{ direction: 'ltr' }}>mehdi.boubetana@gmail.com</span>
+                  <AccordionSummary expandIcon={<ChevronDown color="#fff" />} sx={{ px: 0 }}>
+                    <Typography fontWeight={700} fontSize="1.1rem">{section.title}</Typography>
+                  </AccordionSummary>
+                  <AccordionDetails sx={{ px: 0, pb: 2 }}>
+                    {section.links.map((link, i) => <FooterLink key={i} item={link} />)}
+                  </AccordionDetails>
+                </Accordion>
+              ))}
+            </Grid>
+          ) : (
+            // نسخة الديسكتوب
+            <>
+              {sections.map((section, idx) => (
+                <Grid size={{ md: 3 }} key={idx}>
+                  <Typography variant="subtitle1" fontWeight={800} sx={{ color: '#fff', mb: 3 }}>
+                    {section.title}
+                  </Typography>
+                  {section.links.map((link, i) => <FooterLink key={i} item={link} />)}
+                </Grid>
+              ))}
+            </>
+          )}
+
+          {/* 3. التواصل */}
+          <Grid size={{ xs: 12, md: 2 }}>
+             <Typography variant="subtitle1" fontWeight={800} sx={{ color: '#fff', mb: 3, display: { xs: 'none', md: 'block' } }}>
+                {t('contact')}
+             </Typography>
+             
+             <Box sx={{ 
+               p: 2, 
+               bgcolor: 'rgba(255,255,255,0.05)', 
+               border: '1px solid rgba(255,255,255,0.1)', 
+               borderRadius: 3, 
+               display: 'flex', 
+               flexDirection: 'column',
+               gap: 1.5
+             }}>
+                <Stack direction="row" spacing={1.5} alignItems="center">
+                  <Mail size={18} color={colors.primary.main} />
+                  <Typography variant="body2" fontWeight={600} color="#fff">Email Us</Typography>
+                </Stack>
+                <Link 
+                  href="mailto:mehdi.boubetana@gmail.com" 
+                  sx={{ 
+                    color: '#b0b0b0', 
+                    textDecoration: 'none', 
+                    fontSize: '0.85rem',
+                    wordBreak: 'break-all',
+                    '&:hover': { color: '#fff' }
+                  }}
+                >
+                  mehdi.boubetana@gmail.com
                 </Link>
-              </Paper>
-            </Box>
-          </Box>
+             </Box>
+          </Grid>
 
-          <Divider sx={{ my: 3, borderColor: 'rgba(127,184,150,0.15)' }} />
-
-          {/* حقوق النشر */}
-          <Typography
-            variant="body2"
-            align="center"
-            sx={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.85rem' }}
-          >
-            © {new Date().getFullYear()} {t('app_title')}. {t('university')}.
+        </Grid>
+        
+        <Divider sx={{ borderColor: 'rgba(255,255,255,0.1)', my: 4 }} />
+        
+        <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems="center" spacing={2}>
+          <Typography align="center" variant="body2" color="#666">
+            © {new Date().getFullYear()} {t('app_title')}. All rights reserved.
           </Typography>
-        </Container>
-      </Box>
+        </Stack>
+      </Container>
     </Box>
   );
 };

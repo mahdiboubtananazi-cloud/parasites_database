@@ -1,5 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
-
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
 /* Reset & Base Styles */
 * {
@@ -17,6 +16,7 @@ html, body, #root {
 /* تحسين عرض النصوص العربية */
 html {
   direction: rtl;
+  scroll-behavior: smooth; /* حركة سلسة للتمرير */
 }
 
 body {
@@ -24,9 +24,10 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
-  background-color: #FAFCFB; /* الخلفية الطبية الفاتحة */
-  color: #051F20; /* النص الداكن */
-  line-height: 1.6;
+  background-color: #FAFCFB;
+  color: #051F20;
+  line-height: 1.65;
+  font-feature-settings: 'liga', 'clig', 'calt'; /* تحسين الـ ligatures */
 }
 
 #root {
@@ -35,23 +36,128 @@ body {
   min-height: 100vh;
 }
 
-/* Scrollbar Customization */
+/* ================= MOBILE OPTIMIZATIONS ================= */
+@media (max-width: 768px) {
+  html {
+    font-size: 16px; /* منع التكبير المفرط */
+  }
+  
+  body {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+  
+  /* تحسين Touch targets */
+  button, [role="button"], a[href] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* ================= HERO SECTION ANIMATIONS ================= */
+@keyframes heroFloat {
+  0%, 100% { transform: translateY(0px) rotateZ(0deg); }
+  50% { transform: translateY(-15px) rotateZ(2deg); }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { 
+    box-shadow: 0 0 20px rgba(11, 43, 38, 0.1);
+  }
+  50% { 
+    box-shadow: 0 0 40px rgba(11, 43, 38, 0.25);
+  }
+}
+
+@keyframes shimmer {
+  0% { 
+    background-position: -200% 0;
+  }
+  100% { 
+    background-position: 200% 0;
+  }
+}
+
+/* ================= RESPONSIVE TYPOGRAPHY ================= */
+@media (max-width: 480px) {
+  h1 { font-size: clamp(2rem, 6vw, 2.5rem) !important; }
+  h2 { font-size: clamp(1.5rem, 5vw, 1.875rem) !important; }
+  h3 { font-size: clamp(1.25rem, 4.5vw, 1.5rem) !important; }
+}
+
+@media (min-width: 768px) {
+  h1 { font-size: clamp(3rem, 8vw, 4.5rem) !important; }
+}
+
+/* ================= HERO SECTION ENHANCEMENTS ================= */
+/* Glassmorphism للخلفيات */
+.hero-glass {
+  background: rgba(250, 252, 251, 0.8);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(218, 241, 222, 0.3);
+}
+
+/* Blob Animation للأيقونة */
+.hero-blob {
+  animation: heroFloat 6s ease-in-out infinite;
+}
+
+/* Button Glass Effect */
+.hero-button {
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  transition: left 0.5s;
+}
+
+.hero-button:hover::before {
+  left: 100%;
+}
+
+/* Gradient Text Animation */
+.hero-gradient-text {
+  background: linear-gradient(135deg, #0B2B26 0%, #051F20 50%, #0B2B26 100%);
+  background-size: 200% 100%;
+  background-position: 100%;
+  transition: background-position 0.6s ease;
+}
+
+.hero-gradient-text:hover {
+  background-position: 0%;
+}
+
+/* ================= SCROLLBAR CUSTOMIZATION ================= */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #FAFCFB;
+  background: linear-gradient(180deg, #FAFCFB 0%, #F0F7F4 100%);
+  border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #DAF1DE;
-  border-radius: 4px;
-  transition: background 0.3s ease;
+  background: linear-gradient(180deg, #DAF1DE 0%, #B8E6C9 100%);
+  border-radius: 10px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 ::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #0B2B26 0%, #051F20 100%);
+  transform: scale(1.1);
+}
+
+::-webkit-scrollbar-thumb:active {
   background: #0B2B26;
 }
 
@@ -61,13 +167,67 @@ body {
   scrollbar-width: thin;
 }
 
-/* Selection Color */
+/* ================= SELECTION & FOCUS ================= */
 ::selection {
-  background-color: #DAF1DE;
+  background: linear-gradient(90deg, #DAF1DE, #B8E6C9);
   color: #0B2B26;
+  text-shadow: none;
 }
 
 ::-moz-selection {
-  background-color: #DAF1DE;
+  background: linear-gradient(90deg, #DAF1DE, #B8E6C9);
   color: #0B2B26;
+  text-shadow: none;
+}
+
+/* Focus Visible للوصولية */
+*:focus-visible {
+  outline: 2px solid #0B2B26;
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+/* ================= LOADING & TRANSITIONS ================= */
+* {
+  transition: color 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Smooth Page Transitions */
+body {
+  animation: fadeIn 0.6s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ================= DARK MODE PREP ================= */
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: #0A1413;
+    color: #FAFCFB;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: #0A1413;
+  }
+  
+  ::selection {
+    background: #DAF1DE;
+    color: #0A1413;
+  }
+}
+
+/* ================= PRINT STYLES ================= */
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  
+  * {
+    box-shadow: none !important;
+    animation: none !important;
+  }
 }

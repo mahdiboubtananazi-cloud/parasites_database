@@ -7,43 +7,19 @@ import {
   Button,
   useTheme,
   useMediaQuery,
-  keyframes,
+  alpha,
+  Grid,
 } from '@mui/material';
-import { Search, Microscope, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Search, ArrowRight, ArrowLeft, Dna, Bug, Activity, Microscope } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { colors } from '../../theme/colors';
-
-// Animation للإضاءة المتغيرة
-const glow = keyframes`
-  0%, 100% {
-    filter: drop-shadow(0 10px 20px rgba(11,43,38,0.15));
-    opacity: 0.85;
-  }
-  50% {
-    filter: drop-shadow(0 15px 35px rgba(11,43,38,0.3)) drop-shadow(0 0 20px rgba(58,112,80,0.2));
-    opacity: 1;
-  }
-`;
-
-// Animation للخلفية
-const pulseGlow = keyframes`
-  0%, 100% {
-    opacity: 0.2;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.35;
-    transform: scale(1.08);
-  }
-`;
 
 const HeroSection = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const isSmallMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isRtl = i18n.language === 'ar';
   const ArrowIcon = isRtl ? ArrowLeft : ArrowRight;
 
@@ -51,174 +27,192 @@ const HeroSection = () => {
     <Box
       sx={{
         position: 'relative',
-        bgcolor: colors.background.default,
+        bgcolor: '#FFFFFF',
         overflow: 'hidden',
-        minHeight: { xs: 'auto', md: '80vh' },
+        minHeight: { xs: '85vh', md: '90vh' },
         display: 'flex',
-        alignItems: 'center',
-        // تقليل المسافات على الهاتف
-        pt: { xs: 1, sm: 2, md: 0 },
-        pb: { xs: 2, sm: 3, md: 0 },
+        // في الموبايل: flex-start يرفع العنصر لأعلى الحاوية
+        alignItems: { xs: 'flex-start', md: 'center' },
+        // تقليل الـ padding لأقصى حد (فقط مسافة الناف بار)
+        pt: { xs: 10, md: 0 }, 
+        pb: { xs: 0, md: 0 },
       }}
     >
-      <Container maxWidth="lg">
-        <Stack
-          direction={{ xs: 'column', md: 'row' }}
-          alignItems="center"
-          justifyContent="space-between"
-          spacing={{ xs: 2, sm: 3, md: 6 }}
-        >
-          {/* النص والأزرار */}
-          <Box sx={{ width: { xs: '100%', md: '55%' }, zIndex: 2 }}>
-            {/* العنوان */}
-            <Typography
-              variant="h1"
-              sx={{
-                color: colors.primary.main,
+      {/* خلفية ناعمة */}
+      <Box sx={{
+        position: 'absolute', top: 0, left: 0, right: 0, height: '100%',
+        background: `radial-gradient(circle at 50% 50%, ${alpha(colors.primary.main, 0.03)} 0%, transparent 50%)`,
+        zIndex: 0
+      }} />
+
+      <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
+        <Grid container spacing={{ xs: 2, md: 4 }} alignItems="center">
+          
+          {/* ================= النص والأزرار ================= */}
+          <Grid size={{ xs: 12, md: 6 }}>
+            <Box 
+              component={motion.div}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              sx={{ 
+                textAlign: { xs: 'center', md: isRtl ? 'right' : 'left' },
+                // رفع إضافي في الموبايل باستخدام مارجن سالب بسيط لتقليل الفراغ
+                mt: { xs: -2, md: 0 } 
+              }}
+            >
+              <Typography variant="h1" sx={{
+                color: '#111827',
                 fontWeight: 900,
-                fontSize: { xs: '1.6rem', sm: '2.2rem', md: '4rem' },
-                lineHeight: 1.15,
-                letterSpacing: { xs: -0.5, md: -1.5 },
-                mb: { xs: 1, sm: 1.5, md: 2.5 },
-                textAlign: { xs: 'center', md: isRtl ? 'right' : 'left' },
-              }}
-            >
-              {t('app_title')}
-            </Typography>
+                fontSize: { xs: '3.2rem', sm: '4rem', md: '4.5rem' },
+                lineHeight: { xs: 1.1, md: 1.1 },
+                mb: 2,
+                letterSpacing: '-0.03em'
+              }}>
+                {t('app_title')}
+              </Typography>
 
-            {/* الوصف */}
-            <Typography
-              variant="h6"
-              sx={{
-                color: colors.text.secondary,
+              <Typography variant="h6" sx={{
+                color: '#4B5563',
+                fontSize: { xs: '1.1rem', md: '1.25rem' },
+                lineHeight: 1.5,
+                mb: 4,
                 fontWeight: 400,
-                fontSize: { xs: '0.85rem', sm: '0.95rem', md: '1.2rem' },
-                lineHeight: 1.6,
-                mb: { xs: 2, sm: 2.5, md: 4 },
-                maxWidth: '100%',
-                borderLeft: isRtl ? 'none' : { xs: 'none', md: `4px solid ${colors.secondary.light}` },
-                borderRight: isRtl ? { xs: 'none', md: `4px solid ${colors.secondary.light}` } : 'none',
-                borderTop: { xs: `3px solid ${colors.secondary.light}`, md: 'none' },
-                pl: isRtl ? 0 : { xs: 0, md: 3 },
-                pr: isRtl ? { xs: 0, md: 3 } : 0,
-                pt: { xs: 1, md: 0 },
-                textAlign: { xs: 'center', md: isRtl ? 'right' : 'left' },
+                maxWidth: { xs: '100%', md: '90%' },
+                mx: { xs: 'auto', md: 0 }
               }}
             >
-              {t('hero_description')}
-            </Typography>
+                {t('hero_description')}
+              </Typography>
 
-            {/* الأزرار */}
-            <Stack
-              direction={{ xs: 'row', sm: 'row' }}
-              spacing={{ xs: 1.5, sm: 2 }}
-              justifyContent={{ xs: 'center', md: isRtl ? 'flex-end' : 'flex-start' }}
-              alignItems="center"
-            >
-              {/* زر تصفح الأرشيف */}
-              <Button
-                onClick={() => navigate('/archive')}
-                variant="contained"
-                sx={{
-                  fontSize: { xs: '0.8rem', sm: '0.9rem', md: '1.05rem' },
-                  fontWeight: 700,
-                  color: '#fff',
-                  bgcolor: colors.primary.main,
-                  px: { xs: 2, sm: 3, md: 4 },
-                  py: { xs: 1, sm: 1.2, md: 1.5 },
-                  borderRadius: '50px',
-                  textTransform: 'none',
-                  boxShadow: `0 8px 25px ${colors.primary.main}30`,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: { xs: 1, sm: 1.5 },
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    bgcolor: colors.primary.dark,
-                    transform: 'translateY(-2px)',
-                    boxShadow: `0 12px 30px ${colors.primary.main}40`,
-                  },
-                }}
+              <Stack 
+                direction={{ xs: 'column', sm: 'row' }} 
+                spacing={2}
+                justifyContent={{ xs: 'center', md: isRtl ? 'flex-start' : 'flex-start' }}
               >
-                <Search size={isSmallMobile ? 16 : 20} />
-                <span>{t('nav_archive')}</span>
-              </Button>
-
-              {/* زر إضافة عينة */}
-              <Button
-                onClick={() => navigate('/add')}
-                variant="outlined"
-                sx={{
-                  fontSize: { xs: '0.8rem', sm: '0.9rem', md: '1.05rem' },
-                  fontWeight: 700,
-                  color: colors.primary.main,
-                  borderColor: colors.primary.main,
-                  borderWidth: 2,
-                  px: { xs: 2, sm: 3, md: 4 },
-                  py: { xs: 0.9, sm: 1.1, md: 1.4 },
-                  borderRadius: '50px',
-                  textTransform: 'none',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: { xs: 1, sm: 1.5 },
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    bgcolor: colors.primary.main,
+                <Button
+                  onClick={() => navigate('/archive')}
+                  variant="contained"
+                  size="large"
+                  startIcon={<Search size={20} />}
+                  sx={{
+                    py: 1.8, px: 5, borderRadius: 50,
+                    bgcolor: '#111827', 
                     color: '#fff',
-                    borderColor: colors.primary.main,
-                    transform: 'translateY(-2px)',
-                  },
-                }}
-              >
-                <span>{t('btn_add_sample')}</span>
-                <ArrowIcon size={isSmallMobile ? 16 : 20} />
-              </Button>
-            </Stack>
-          </Box>
-
-          {/* صورة الميكروسكوب */}
-          <Box
-            sx={{
-              width: { xs: '100%', md: '45%' },
-              height: { xs: '120px', sm: '160px', md: '450px' },
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              position: 'relative',
-              order: { xs: -1, md: 0 },
-            }}
-          >
-            {/* دائرة خلفية متحركة */}
-            <Box
-              sx={{
-                position: 'absolute',
-                width: { xs: '100px', sm: '140px', md: '380px' },
-                height: { xs: '100px', sm: '140px', md: '380px' },
-                borderRadius: '50%',
-                background: `radial-gradient(circle, ${colors.secondary.light} 0%, ${colors.primary.light}40 50%, transparent 70%)`,
-                animation: `${pulseGlow} 4s ease-in-out infinite`,
-                zIndex: 0,
-              }}
-            />
-
-            {/* الميكروسكوب مع Animation */}
-            <Box
-              sx={{
-                zIndex: 1,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                animation: `${glow} 3s ease-in-out infinite`,
-              }}
-            >
-              <Microscope
-                size={isSmallMobile ? 90 : isMobile ? 120 : 340}
-                color={colors.primary.main}
-                strokeWidth={1.2}
-              />
+                    fontSize: '1rem', fontWeight: 700,
+                    width: { xs: '100%', sm: 'auto' },
+                    boxShadow: '0 8px 20px -4px rgba(0,0,0,0.2)',
+                    '&:hover': { bgcolor: '#000', transform: 'translateY(-2px)' }
+                  }}
+                >
+                  {t('nav_archive')}
+                </Button>
+                
+                <Button
+                  onClick={() => navigate('/add')}
+                  variant="outlined"
+                  size="large"
+                  endIcon={<ArrowIcon size={20} />}
+                  sx={{
+                    py: 1.8, px: 5, borderRadius: 50,
+                    borderColor: '#E5E7EB',
+                    color: '#374151',
+                    fontSize: '1rem', fontWeight: 700,
+                    width: { xs: '100%', sm: 'auto' },
+                    bgcolor: '#fff',
+                    '&:hover': { borderColor: '#9CA3AF', bgcolor: '#F9FAFB' }
+                  }}
+                >
+                  {t('btn_add_sample')}
+                </Button>
+              </Stack>
             </Box>
-          </Box>
-        </Stack>
+          </Grid>
+
+          {/* ================= العنصر البصري (طبق بتري مخبري) ================= */}
+          <Grid size={{ xs: 12, md: 6 }} sx={{ display: { xs: 'none', md: 'flex' }, justifyContent: 'center' }}>
+             <Box
+              component={motion.div}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.8 }}
+              sx={{ position: 'relative', width: 450, height: 450, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+             >
+                {/* الدائرة الخارجية (الزجاج) */}
+                <Box sx={{
+                   position: 'relative',
+                   width: 380, height: 380,
+                   borderRadius: '50%',
+                   background: 'linear-gradient(145deg, #f0fdf4 0%, #ffffff 100%)',
+                   border: '1px solid rgba(16, 185, 129, 0.1)',
+                   boxShadow: '0 20px 60px rgba(0,0,0,0.05), inset 0 0 20px rgba(16, 185, 129, 0.05)',
+                   display: 'flex', alignItems: 'center', justifyContent: 'center',
+                   overflow: 'hidden' // لإخفاء العناصر التي تخرج عن الحدود
+                }}>
+                   
+                   {/* أيقونات عائمة ترمز للطفيليات والجينات */}
+                   
+                   {/* 1. رمز DNA */}
+                   <Box component={motion.div} 
+                        animate={{ y: [-10, 10, -10], rotate: [0, 5, 0] }} 
+                        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+                        sx={{ position: 'absolute', top: '25%', left: '25%', color: alpha(colors.primary.main, 0.2) }}>
+                      <Dna size={80} />
+                   </Box>
+
+                   {/* 2. رمز حشرة/طفيلي */}
+                   <Box component={motion.div} 
+                        animate={{ y: [10, -10, 10], x: [-5, 5, -5] }} 
+                        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+                        sx={{ position: 'absolute', bottom: '30%', right: '25%', color: alpha('#10B981', 0.2) }}>
+                      <Bug size={60} />
+                   </Box>
+
+                   {/* 3. رمز نشاط حيوي */}
+                   <Box component={motion.div} 
+                        animate={{ scale: [1, 1.1, 1], opacity: [0.2, 0.4, 0.2] }} 
+                        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                        sx={{ position: 'absolute', color: alpha('#F59E0B', 0.2) }}>
+                      <Activity size={120} />
+                   </Box>
+
+                   {/* العدسة المركزية الواضحة */}
+                   <Box sx={{
+                     position: 'absolute',
+                     width: 120, height: 120,
+                     borderRadius: '50%',
+                     bgcolor: '#fff',
+                     boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
+                     display: 'flex', alignItems: 'center', justifyContent: 'center',
+                     border: `1px solid ${alpha(colors.primary.main, 0.1)}`,
+                     zIndex: 10
+                   }}>
+                      <Microscope size={50} color={colors.primary.main} />
+                   </Box>
+                   
+                   {/* نقاط صغيرة تتحرك في الخلفية */}
+                   {[...Array(8)].map((_, i) => (
+                      <Box
+                        key={i}
+                        component={motion.div}
+                        animate={{ 
+                          x: [Math.random() * 100 - 50, Math.random() * -100 + 50],
+                          y: [Math.random() * 100 - 50, Math.random() * -100 + 50],
+                        }}
+                        transition={{ duration: 5 + i, repeat: Infinity, repeatType: 'reverse' }}
+                        sx={{
+                          position: 'absolute',
+                          width: 6, height: 6, borderRadius: '50%',
+                          bgcolor: i % 2 === 0 ? colors.primary.main : '#10B981',
+                          opacity: 0.4
+                        }}
+                      />
+                   ))}
+                </Box>
+             </Box>
+          </Grid>
+
+        </Grid>
       </Container>
     </Box>
   );

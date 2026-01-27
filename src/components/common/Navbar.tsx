@@ -19,6 +19,7 @@ import {
   MenuItem,
   Avatar,
   Typography,
+  alpha,
 } from '@mui/material';
 import {
   Microscope,
@@ -26,18 +27,19 @@ import {
   Globe,
   Home,
   Archive,
-  PlusCircle,
+  PlusCircle, // أيقونة الإضافة
   BarChart2,
   CheckSquare,
   X,
-  LogIn,
   LogOut,
   ChevronDown,
+  Settings
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { colors } from '../../theme/colors';
 import { useAuth } from '../../hooks/useAuth';
+import { motion } from 'framer-motion';
 
 const Navbar: React.FC = () => {
   const navigate = useNavigate();
@@ -53,18 +55,20 @@ const Navbar: React.FC = () => {
 
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
+      setScrolled(window.scrollY > 10);
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // === القائمة الصحيحة (تمت إعادة زر الإضافة) ===
   const links = [
-    { label: t('nav_home'), path: '/', icon: <Home size={20} /> },
-    { label: t('nav_archive'), path: '/archive', icon: <Archive size={20} /> },
-    { label: t('nav_add_parasite'), path: '/add', icon: <PlusCircle size={20} /> },
-    { label: t('nav_statistics'), path: '/statistics', icon: <BarChart2 size={20} /> },
-    { label: t('nav_review'), path: '/review', icon: <CheckSquare size={20} /> },
+    { label: t('nav_home'), path: '/', icon: <Home size={18} /> },
+    { label: t('nav_archive'), path: '/archive', icon: <Archive size={18} /> },
+    { label: t('nav_add_parasite'), path: '/add', icon: <PlusCircle size={18} /> }, // تمت إعادته!
+    { label: t('nav_statistics'), path: '/statistics', icon: <BarChart2 size={18} /> },
+    // يظهر فقط للمشرفين
+    ...(user ? [{ label: t('nav_review'), path: '/review', icon: <CheckSquare size={18} /> }] : []),
   ];
 
   const isActive = (path: string) => location.pathname === path;
@@ -87,17 +91,17 @@ const Navbar: React.FC = () => {
   return (
     <>
       <Box
+        component={motion.nav}
         sx={{
           position: 'sticky',
           top: 0,
           zIndex: 1200,
-          pt: 1.5,
-          pb: 1,
+          py: scrolled ? 1 : 2,
           px: 2,
-          background: scrolled ? 'rgba(255, 255, 255, 0.95)' : 'transparent',
-          backdropFilter: scrolled ? 'blur(10px)' : 'none',
-          borderBottom: scrolled ? `1px solid ${colors.primary.lighter}30` : 'none',
-          transition: 'all 0.3s ease',
+          background: scrolled ? 'rgba(255, 255, 255, 0.85)' : 'transparent',
+          backdropFilter: scrolled ? 'blur(12px) saturate(180%)' : 'none',
+          borderBottom: scrolled ? `1px solid rgba(0,0,0,0.05)` : '1px solid transparent',
+          transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
         }}
       >
         <Box
@@ -116,161 +120,206 @@ const Navbar: React.FC = () => {
               alignItems: 'center',
               gap: 1.5,
               cursor: 'pointer',
-              transition: 'transform 0.2s',
-              '&:hover': { transform: 'scale(1.02)' },
             }}
             onClick={() => navigate('/')}
           >
-            <Paper
-              elevation={scrolled ? 2 : 0}
+            <Box
               sx={{
-                p: 0.8,
-                borderRadius: '50%',
+                width: 38, height: 38,
+                borderRadius: 2.5,
                 bgcolor: colors.primary.main,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
+                color: '#fff',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                boxShadow: scrolled ? `0 4px 12px ${alpha(colors.primary.main, 0.3)}` : 'none',
+                transition: 'all 0.3s'
               }}
             >
-              <Microscope size={20} color="#fff" />
-            </Paper>
+              <Microscope size={22} />
+            </Box>
             {!isMobile && (
-              <Typography sx={{ fontWeight: 800, fontSize: '1rem', color: colors.primary.main }}>
-                {t('app_title')}
-              </Typography>
+              <Box>
+                 <Typography sx={{ fontWeight: 800, fontSize: '1.05rem', color: '#1e293b', lineHeight: 1.2 }}>
+                   {t('app_title')}
+                 </Typography>
+                 <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 500, letterSpacing: 0.5 }}>
+                   DATABASE
+                 </Typography>
+              </Box>
             )}
           </Box>
 
           {/* Desktop Links */}
           {!isMobile && (
-            <Stack direction="row" spacing={0.5} alignItems="center">
-              {links.map((link) => (
-                <Button
-                  key={link.path}
-                  onClick={() => navigate(link.path)}
-                  sx={{
-                    textTransform: 'none',
-                    borderRadius: 999,
-                    px: 2,
-                    py: 0.7,
-                    fontSize: '0.88rem',
-                    fontWeight: isActive(link.path) ? 700 : 500,
-                    color: isActive(link.path) ? colors.primary.main : colors.text.secondary,
-                    bgcolor: isActive(link.path) ? `${colors.primary.main}10` : 'transparent',
-                    '&:hover': { bgcolor: `${colors.primary.main}08` },
-                  }}
-                >
-                  {link.label}
-                </Button>
-              ))}
-
-              <Divider
-                orientation="vertical"
-                flexItem
-                sx={{ height: 24, alignSelf: 'center', mx: 1 }}
-              />
-
-              <Tooltip title={t('nav_language')}>
-                <IconButton onClick={toggleLanguage} size="small" sx={{ color: colors.text.secondary }}>
-                  <Globe size={20} />
-                  <Typography variant="caption" sx={{ ml: 0.5, fontWeight: 700 }}>
-                    {i18n.language === 'ar' ? 'FR' : 'AR'}
-                  </Typography>
-                </IconButton>
-              </Tooltip>
-
-              {user ? (
-                <>
-                  <Button
-                    onClick={(e) => setUserAnchor(e.currentTarget)}
-                    sx={{
-                      textTransform: 'none',
-                      borderRadius: 999,
-                      pl: 0.5,
-                      pr: 1.5,
-                      py: 0.5,
-                      ml: 1,
-                      gap: 1,
-                      border: `1px solid ${colors.primary.lighter}`,
-                      '&:hover': {
-                        bgcolor: `${colors.primary.main}05`,
-                        borderColor: colors.primary.main,
-                      },
-                    }}
-                  >
-                    <Avatar
+            <Box 
+               sx={{ 
+                  bgcolor: scrolled ? alpha(colors.primary.lighter, 0.3) : 'transparent',
+                  p: 0.5, 
+                  borderRadius: 99,
+                  border: scrolled ? `1px solid ${alpha(colors.primary.main, 0.05)}` : 'none',
+                  transition: 'all 0.3s'
+               }}
+            >
+              <Stack direction="row" spacing={0.5}>
+                {links.map((link) => {
+                  const active = isActive(link.path);
+                  return (
+                    <Button
+                      key={link.path}
+                      onClick={() => navigate(link.path)}
+                      startIcon={active ? link.icon : null}
                       sx={{
-                        width: 32,
-                        height: 32,
-                        bgcolor: colors.primary.main,
-                        fontSize: '0.85rem',
+                        textTransform: 'none',
+                        borderRadius: 99,
+                        px: 2.5,
+                        py: 0.8,
+                        fontSize: '0.9rem',
+                        fontWeight: active ? 700 : 500,
+                        color: active ? '#fff' : colors.text.secondary,
+                        bgcolor: active ? colors.primary.main : 'transparent',
+                        boxShadow: active ? `0 4px 12px ${alpha(colors.primary.main, 0.25)}` : 'none',
+                        transition: 'all 0.3s ease',
+                        '&:hover': { 
+                           bgcolor: active ? colors.primary.main : alpha(colors.primary.main, 0.08),
+                           color: active ? '#fff' : colors.primary.main
+                        },
                       }}
                     >
-                      {user.name?.charAt(0).toUpperCase()}
-                    </Avatar>
-                    <ChevronDown size={16} color={colors.text.secondary} />
-                  </Button>
-                  <Menu
-                    anchorEl={userAnchor}
-                    open={Boolean(userAnchor)}
-                    onClose={() => setUserAnchor(null)}
-                    PaperProps={{
-                      sx: {
-                        mt: 1,
-                        minWidth: 180,
-                        borderRadius: 3,
-                        boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-                      },
-                    }}
-                    transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-                    anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-                  >
-                    <Box sx={{ px: 2, py: 1.5 }}>
-                      <Typography variant="subtitle2" fontWeight={700}>
-                        {user.name}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {user.email}
-                      </Typography>
-                    </Box>
-                    <Divider />
-                    <MenuItem
-                      onClick={handleLogout}
-                      sx={{ color: '#ef4444', gap: 1.5, mt: 0.5 }}
-                    >
-                      <LogOut size={16} />
-                      {t('nav_logout', { defaultValue: 'تسجيل خروج' })}
-                    </MenuItem>
-                  </Menu>
-                </>
-              ) : (
-                <Button
-                  variant="contained"
-                  onClick={() => navigate('/login')}
-                  startIcon={<LogIn size={16} />}
-                  sx={{
-                    borderRadius: 999,
-                    px: 3,
-                    bgcolor: colors.primary.main,
-                    boxShadow: '0 4px 12px rgba(11, 43, 38, 0.2)',
-                    '&:hover': {
-                      bgcolor: colors.primary.dark,
-                      boxShadow: '0 6px 16px rgba(11, 43, 38, 0.3)',
-                    },
-                  }}
-                >
-                  {t('nav_login')}
-                </Button>
-              )}
-            </Stack>
+                      {link.label}
+                    </Button>
+                  );
+                })}
+              </Stack>
+            </Box>
           )}
 
-          {/* Mobile Menu Button */}
-          {isMobile && (
-            <IconButton onClick={handleDrawerToggle} sx={{ color: colors.primary.main }}>
-              <MenuIcon size={24} />
-            </IconButton>
-          )}
+          {/* Right Section */}
+          <Stack direction="row" spacing={1.5} alignItems="center">
+            
+            {/* زر اللغة (تم التعديل ليكون FR/AR) */}
+            <Tooltip title={t('nav_language')}>
+              <IconButton 
+                 onClick={toggleLanguage} 
+                 size="small" 
+                 sx={{ 
+                    border: `1px solid ${alpha(colors.text.secondary, 0.2)}`,
+                    borderRadius: 2,
+                    p: 0.8
+                 }}
+              >
+                <Typography variant="caption" sx={{ fontWeight: 800, fontSize: '0.75rem' }}>
+                  {i18n.language === 'ar' ? 'FR' : 'AR'} {/* تصحيح اللغة */}
+                </Typography>
+              </IconButton>
+            </Tooltip>
+
+            {!isMobile && (
+               <>
+                 <Divider orientation="vertical" flexItem sx={{ height: 20, alignSelf: 'center' }} />
+                 
+                 {user ? (
+                   <>
+                     <Button
+                       onClick={(e) => setUserAnchor(e.currentTarget)}
+                       endIcon={<ChevronDown size={14} />}
+                       sx={{
+                         textTransform: 'none',
+                         borderRadius: 3,
+                         pl: 0.8, pr: 1.5, py: 0.5,
+                         border: '1px solid transparent',
+                         '&:hover': { bgcolor: alpha(colors.primary.main, 0.05), border: `1px solid ${alpha(colors.primary.main, 0.1)}` },
+                       }}
+                     >
+                       <Avatar
+                         sx={{ width: 34, height: 34, bgcolor: colors.primary.main, fontSize: '0.9rem', mr: 1 }}
+                       >
+                         {user.name?.charAt(0).toUpperCase()}
+                       </Avatar>
+                       <Box sx={{ textAlign: 'left', display: { xs: 'none', lg: 'block' } }}>
+                          <Typography variant="subtitle2" sx={{ lineHeight: 1, fontWeight: 700 }}>{user.name}</Typography>
+                          <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem' }}>Member</Typography>
+                       </Box>
+                     </Button>
+                     
+                     <Menu
+                       anchorEl={userAnchor}
+                       open={Boolean(userAnchor)}
+                       onClose={() => setUserAnchor(null)}
+                       PaperProps={{
+                         elevation: 0,
+                         sx: {
+                           mt: 1.5,
+                           minWidth: 200,
+                           borderRadius: 4,
+                           boxShadow: '0 10px 40px -10px rgba(0,0,0,0.1)',
+                           border: '1px solid rgba(0,0,0,0.05)',
+                           overflow: 'visible',
+                           '&:before': {
+                              content: '""',
+                              display: 'block',
+                              position: 'absolute',
+                              top: 0, right: 14,
+                              width: 10, height: 10,
+                              bgcolor: 'background.paper',
+                              transform: 'translateY(-50%) rotate(45deg)',
+                              zIndex: 0,
+                              borderTop: '1px solid rgba(0,0,0,0.05)',
+                              borderLeft: '1px solid rgba(0,0,0,0.05)',
+                           },
+                         },
+                       }}
+                       transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+                       anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+                     >
+                       <Box sx={{ px: 2.5, py: 2 }}>
+                         <Typography variant="subtitle2" fontWeight={700} noWrap>{user.name}</Typography>
+                         <Typography variant="caption" color="text.secondary" noWrap>{user.email}</Typography>
+                       </Box>
+                       <Divider sx={{ my: 1 }} />
+                       <MenuItem onClick={() => navigate('/settings')} sx={{ borderRadius: 2, mx: 1, mb: 0.5 }}>
+                          <ListItemIcon><Settings size={16} /></ListItemIcon>
+                          {t('settings', {defaultValue: 'Settings'})}
+                       </MenuItem>
+                       <MenuItem 
+                          onClick={handleLogout}
+                          sx={{ color: '#ef4444', borderRadius: 2, mx: 1, '&:hover': { bgcolor: '#fef2f2' } }}
+                       >
+                         <ListItemIcon><LogOut size={16} color="#ef4444" /></ListItemIcon>
+                         {t('nav_logout')}
+                       </MenuItem>
+                     </Menu>
+                   </>
+                 ) : (
+                   <Button
+                     variant="contained"
+                     onClick={() => navigate('/login')}
+                     sx={{
+                       borderRadius: 3,
+                       px: 3, py: 1,
+                       bgcolor: '#1e293b',
+                       color: '#fff',
+                       fontWeight: 700,
+                       boxShadow: '0 4px 14px rgba(0,0,0,0.15)',
+                       '&:hover': { bgcolor: '#0f172a', transform: 'translateY(-1px)' },
+                     }}
+                   >
+                     {t('nav_login')}
+                   </Button>
+                 )}
+               </>
+            )}
+
+            {isMobile && (
+              <IconButton 
+                 onClick={handleDrawerToggle}
+                 sx={{ 
+                    bgcolor: mobileOpen ? alpha(colors.primary.main, 0.1) : 'transparent',
+                    color: mobileOpen ? colors.primary.main : '#1e293b'
+                 }}
+              >
+                {mobileOpen ? <X size={24} /> : <MenuIcon size={24} />}
+              </IconButton>
+            )}
+          </Stack>
         </Box>
       </Box>
 
@@ -281,143 +330,103 @@ const Navbar: React.FC = () => {
         onClose={handleDrawerToggle}
         PaperProps={{
           sx: {
-            width: 280,
-            bgcolor: '#fafcfb',
-            borderTopLeftRadius: 20,
-            borderBottomLeftRadius: 20,
+            width: 300,
+            bgcolor: '#ffffff',
+            borderTopLeftRadius: i18n.language === 'ar' ? 24 : 0,
+            borderBottomLeftRadius: i18n.language === 'ar' ? 24 : 0,
+            borderTopRightRadius: i18n.language === 'ar' ? 0 : 24,
+            borderBottomRightRadius: i18n.language === 'ar' ? 0 : 24,
+            boxShadow: '0 0 40px rgba(0,0,0,0.1)'
           },
         }}
       >
-        <Box
-          sx={{
-            p: 3,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}
-        >
-          <Stack direction="row" spacing={1.5} alignItems="center">
-            <Paper sx={{ p: 1, borderRadius: '50%', bgcolor: colors.primary.main, display: 'flex' }}>
-              <Microscope size={20} color="#fff" />
-            </Paper>
-            <Typography variant="h6" fontWeight={800} color={colors.primary.main}>
-              {t('app_title')}
-            </Typography>
+        <Box sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
+          
+          <Stack direction="row" alignItems="center" spacing={2} mb={4}>
+            <Box sx={{ 
+               width: 44, height: 44, 
+               borderRadius: 2.5, 
+               bgcolor: colors.primary.main, 
+               display: 'flex', alignItems: 'center', justifyContent: 'center',
+               color: '#fff' 
+            }}>
+               <Microscope size={24} />
+            </Box>
+            <Box>
+               <Typography variant="h6" fontWeight={800} lineHeight={1.1}>{t('app_title')}</Typography>
+               <Typography variant="caption" color="text.secondary">Mobile Navigation</Typography>
+            </Box>
           </Stack>
-          <IconButton onClick={handleDrawerToggle} size="small">
-            <X size={20} />
-          </IconButton>
-        </Box>
 
-        {user && (
-          <Box sx={{ px: 3, pb: 3 }}>
-            <Paper
-              variant="outlined"
-              sx={{
-                p: 2,
-                borderRadius: 3,
-                bgcolor: '#fff',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 2,
-              }}
-            >
-              <Avatar sx={{ bgcolor: colors.primary.main }}>
-                {user.name?.charAt(0)}
-              </Avatar>
-              <Box sx={{ overflow: 'hidden' }}>
-                <Typography variant="subtitle2" noWrap>
-                  {user.name}
-                </Typography>
-                <Typography variant="caption" color="text.secondary" noWrap>
-                  {user.email}
-                </Typography>
-              </Box>
-            </Paper>
-          </Box>
-        )}
-
-        <List sx={{ px: 2 }}>
-          {links.map((link) => (
-            <ListItem key={link.path} disablePadding sx={{ mb: 1 }}>
-              <ListItemButton
-                selected={isActive(link.path)}
-                onClick={() => {
-                  navigate(link.path);
-                  handleDrawerToggle();
-                }}
-                sx={{
-                  borderRadius: 3,
-                  '&.Mui-selected': {
-                    bgcolor: `${colors.primary.main}15`,
-                    color: colors.primary.main,
-                  },
-                }}
-              >
-                <ListItemIcon
+          <List sx={{ px: 0 }}>
+            {links.map((link) => (
+              <ListItem key={link.path} disablePadding sx={{ mb: 1 }}>
+                <ListItemButton
+                  selected={isActive(link.path)}
+                  onClick={() => { navigate(link.path); handleDrawerToggle(); }}
                   sx={{
-                    minWidth: 40,
-                    color: isActive(link.path) ? colors.primary.main : 'inherit',
+                    borderRadius: 3,
+                    py: 1.5,
+                    color: isActive(link.path) ? colors.primary.main : '#64748b',
+                    bgcolor: isActive(link.path) ? alpha(colors.primary.main, 0.08) : 'transparent',
+                    '&:hover': { bgcolor: alpha(colors.primary.main, 0.04) },
                   }}
                 >
-                  {link.icon}
-                </ListItemIcon>
-                <ListItemText
-                  primary={link.label}
-                  primaryTypographyProps={{
-                    fontWeight: isActive(link.path) ? 700 : 500,
-                  }}
-                />
-              </ListItemButton>
-            </ListItem>
-          ))}
-        </List>
+                  <ListItemIcon sx={{ minWidth: 40, color: 'inherit' }}>
+                    {link.icon}
+                  </ListItemIcon>
+                  <ListItemText 
+                     primary={link.label} 
+                     primaryTypographyProps={{ fontWeight: isActive(link.path) ? 700 : 500 }} 
+                  />
+                  {isActive(link.path) && <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: colors.primary.main }} />}
+                </ListItemButton>
+              </ListItem>
+            ))}
+          </List>
 
-        <Box sx={{ mt: 'auto', p: 3 }}>
-          <Stack spacing={2}>
-            <Button
-              variant="outlined"
-              fullWidth
-              startIcon={<Globe size={18} />}
-              onClick={toggleLanguage}
-              sx={{
-                justifyContent: 'flex-start',
-                borderRadius: 3,
-                color: colors.text.primary,
-                borderColor: 'rgba(0,0,0,0.1)',
-              }}
-            >
-              {i18n.language === 'ar' ? 'Français' : 'العربية'}
-            </Button>
+          <Box sx={{ mt: 'auto' }}>
             {user ? (
-              <Button
-                variant="outlined"
-                fullWidth
-                color="error"
-                startIcon={<LogOut size={18} />}
-                onClick={() => {
-                  handleLogout();
-                  handleDrawerToggle();
-                }}
-                sx={{ justifyContent: 'flex-start', borderRadius: 3 }}
-              >
-                {t('nav_logout', { defaultValue: 'تسجيل خروج' })}
-              </Button>
+               <Paper variant="outlined" sx={{ p: 2, borderRadius: 3, bgcolor: '#f8fafc', mb: 2 }}>
+                  <Stack direction="row" spacing={2} alignItems="center">
+                     <Avatar sx={{ bgcolor: colors.primary.main }}>{user.name?.charAt(0)}</Avatar>
+                     <Box sx={{ flex: 1, overflow: 'hidden' }}>
+                        <Typography variant="subtitle2" noWrap>{user.name}</Typography>
+                        <Typography variant="caption" color="text.secondary" noWrap>{user.email}</Typography>
+                     </Box>
+                     <IconButton size="small" onClick={handleLogout} color="error">
+                        <LogOut size={18} />
+                     </IconButton>
+                  </Stack>
+               </Paper>
             ) : (
-              <Button
-                variant="contained"
-                fullWidth
-                startIcon={<LogIn size={18} />}
-                onClick={() => {
-                  navigate('/login');
-                  handleDrawerToggle();
-                }}
-                sx={{ borderRadius: 3, bgcolor: colors.primary.main, boxShadow: 'none' }}
-              >
-                {t('nav_login')}
-              </Button>
+               <Button
+                  fullWidth
+                  variant="contained"
+                  onClick={() => { navigate('/login'); handleDrawerToggle(); }}
+                  sx={{ 
+                     borderRadius: 3, 
+                     py: 1.5, 
+                     bgcolor: '#1e293b',
+                     fontWeight: 700,
+                     mb: 2 
+                  }}
+               >
+                  {t('nav_login')}
+               </Button>
             )}
-          </Stack>
+
+            <Button
+               fullWidth
+               variant="text"
+               startIcon={<Globe size={18} />}
+               onClick={toggleLanguage}
+               sx={{ color: '#64748b', borderRadius: 3 }}
+            >
+               {i18n.language === 'ar' ? 'Français' : 'العربية'} {/* تصحيح هنا أيضاً */}
+            </Button>
+          </Box>
+
         </Box>
       </Drawer>
     </>
